@@ -1,0 +1,4 @@
+django==1.9
+coverage
+minio
+requests

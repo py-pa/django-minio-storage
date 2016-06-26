@@ -1,0 +1,19 @@
+version: "2"
+services:
+    test:
+        build: .
+        volumes:
+            - ".:/workspace"
+        depends_on:
+            - minio
+        environment:
+            MINIO_STORAGE_ACCESS_KEY: key2000
+            MINIO_STORAGE_SECRET_KEY: secret2000
+    minio:
+        image: "minio/minio"
+        command: /export
+        environment:
+            MINIO_ACCESS_KEY: key2000
+            MINIO_SECRET_KEY: secret2000
+        ports:
+            - "9000:9000"
