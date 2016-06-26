@@ -24,9 +24,10 @@ See the issues to see what needs to be done for a 1.0 release to happen.
 
 ## Installation
 
-    pip install django_minio_storage
+This is not released on Pypi yet, but it will be as soon as I am confident
+enough that it can be used.
 
-Then add `minio_storage` to `INSTALLED_APPS` in your project settings.
+Add `minio_storage` to `INSTALLED_APPS` in your project settings.
 
 The last step is setting `DEFAULT_STORAGE` to
 'minio_storage.storage.MinioMediaStorage', and `STATICFILES_STORAGE` to
