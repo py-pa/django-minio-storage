@@ -10,7 +10,7 @@ been drawn from `django-s3-storage` and `django-storages`.
 It is tested on python 3 and django 1.9 at the moment, but should be easily
 portable to older versions.
 
-The goal is to have a thoroughly tested, small api surface that delegates as
+The goal is to have a thoroughly tested, small codebase that delegates as
 much as possible to the minio client.
 
 Versioning is semver compliant.
