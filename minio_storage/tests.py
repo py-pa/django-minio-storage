@@ -155,6 +155,9 @@ class MinioStorageTests(TestCase):
         with self.assertRaises(IOError):
             self.media_storage.open("this does not exist")
 
+    def test_file_names_are_properly_sanitized(self):
+        self.media_storage.save("./meh22222.txt", io.BytesIO(b"stuff"))
+
     def test_upload_and_get_back_file_with_funky_name(self):
         pass
 

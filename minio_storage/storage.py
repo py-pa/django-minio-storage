@@ -42,16 +42,20 @@ class MinioStorage(Storage):
 
         super().__init__()
 
+    def _sanitize_path(self, name):
+        return name.lstrip("./")
+
     def _examine_file(self, name, content):
         """
         Examines a file and produces information necessary for upload.
 
-        Returns a tuple of the form (content_size, content_type)
+        Returns a tuple of the form (content_size, content_type, sanitized_name)
         """
         content_size = content.size
         content_type = mimetypes.guess_type(name, strict=False)
         content_type = content_type[0] or "application/octet-stream"
-        return (content_size, content_type)
+        sane_name = self._sanitize_path(name)
+        return (content_size, content_type, sane_name)
 
     def _open(self, name, mode="rb"):
         if mode.find("w") > -1:
@@ -64,13 +68,13 @@ class MinioStorage(Storage):
 
     def _save(self, name, content):
         try:
-            content_size, content_type = self._examine_file(name, content)
+            content_size, content_type, sane_name = self._examine_file(name, content)
             self.client.put_object(self.bucket_name,
-                                   name,
+                                   sane_name,
                                    content,
                                    content_size,
                                    content_type)
-            return name
+            return sane_name
         except ResponseError as error:
             logger.warn(error)
             raise IOError("File {} could not be saved".format(name))
@@ -84,7 +88,7 @@ class MinioStorage(Storage):
 
     def exists(self, name):
         try:
-            self.client.stat_object(self.bucket_name, name)
+            self.client.stat_object(self.bucket_name, self._sanitize_path(name))
             return True
         except ResponseError as error:
             if error.code == "NoSuchKey":
@@ -135,7 +139,6 @@ class MinioStorage(Storage):
             logger.warn(error)
             raise IOError(
                 "Could not access modification time for file {}".format(name))
-
 
 @deconstructible
 class MinioMediaStorage(MinioStorage):
