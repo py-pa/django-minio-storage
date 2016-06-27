@@ -150,6 +150,8 @@ class MinioMediaStorage(MinioStorage):
         if self.auto_create_media_bucket and not self.client.bucket_exists(
                                                  self.bucket_name):
             self.client.make_bucket(self.bucket_name)
+        elif not self.client.bucket_exists(self.bucket_name):
+            raise IOError("The media bucket does not exist")
 
 
 @deconstructible
@@ -163,3 +165,5 @@ class MinioStaticStorage(MinioStorage):
         if self.auto_create_static_bucket and not self.client.bucket_exists(
                                                  self.bucket_name):
             self.client.make_bucket(self.bucket_name)
+        elif not self.client.bucket_exists(self.bucket_name):
+            raise IOError("The static bucket does not exist")
