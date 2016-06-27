@@ -7,6 +7,7 @@ from django.utils.deconstruct import deconstructible
 from django.conf import settings
 
 import mimetypes
+import datetime
 
 from logging import getLogger
 
@@ -129,7 +130,7 @@ class MinioStorage(Storage):
     def modified_time(self, name):
         try:
             info = self.client.stat_object(self.bucket_name, name)
-            return info.last_modified
+            return datetime.datetime.fromtimestamp(info.last_modified)
         except ResponseError as error:
             logger.warn(error)
             raise IOError(

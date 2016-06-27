@@ -92,15 +92,15 @@ class MinioStorageTests(TestCase):
 
     def test_modified_time(self):
         self.assertIsInstance(self.media_storage.modified_time(self.new_file),
-                              float)
+                              datetime.datetime)
 
     def test_accessed_time(self):
         self.assertIsInstance(self.media_storage.accessed_time(self.new_file),
-                              float)
+                              datetime.datetime)
 
     def test_created_time(self):
         self.assertIsInstance(self.media_storage.created_time(self.new_file),
-                              float)
+                              datetime.datetime)
 
     def test_modified_time_of_non_existent_throws(self):
         with self.assertRaises(IOError):
