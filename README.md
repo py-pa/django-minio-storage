@@ -30,8 +30,8 @@ enough that it can be used.
 Add `minio_storage` to `INSTALLED_APPS` in your project settings.
 
 The last step is setting `DEFAULT_STORAGE` to
-'minio_storage.storage.MinioMediaStorage', and `STATICFILES_STORAGE` to
-`minio_storage.storages.MinioStaticStorage`.
+`"minio_storage.storage.MinioMediaStorage"`, and `STATICFILES_STORAGE` to
+`"minio_storage.storages.MinioStaticStorage"`.
 
 ## Configuration
 
@@ -41,11 +41,11 @@ The following settings are available:
     `minio.example.org:9000` (note that there is no scheme)).
 - `MINIO_STORAGE_ACCESS_KEY` and `MINIO_STORAGE_SECRET_KEY` (mandatory)
 - `MINIO_STORAGE_USE_HTTPS`: whether to use TLS or not (default: `True`)
-- `MINIO_MEDIA_BUCKET_NAME`: the bucket that will act as `MEDIA` folder
-- `MINIO_AUTO_CREATE_MEDIA_BUCKET`: whether to create the bucket if it does not
+- `MINIO_STORAGE_MEDIA_BUCKET_NAME`: the bucket that will act as `MEDIA` folder
+- `MINIO_STORAGE_AUTO_CREATE_MEDIA_BUCKET`: whether to create the bucket if it does not
 already exist (default: `False`)
-- `MINIO_STATIC_BUCKET_NAME`: the bucket that will act as `MEDIA` folder
-- `MINIO_AUTO_CREATE_STATIC_BUCKET`: whether to create the bucket if it does not
+- `MINIO_STORAGE_STATIC_BUCKET_NAME`: the bucket that will act as `MEDIA` folder
+- `MINIO_STORAGE_AUTO_CREATE_STATIC_BUCKET`: whether to create the bucket if it does not
 already exist (default: `False`)
 
 ## Logging
