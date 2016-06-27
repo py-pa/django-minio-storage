@@ -2,7 +2,7 @@ from minio_storage.storage import MinioMediaStorage, MinioStaticStorage, get_set
 
 from django.test import TestCase, override_settings
 from django.core.exceptions import ImproperlyConfigured
-from django.core.files.uploadedfile import SimpleUploadedFile
+from django.core.files.base import ContentFile, File
 from minio import Minio, ResponseError
 
 import requests
@@ -10,9 +10,6 @@ import os
 import io
 import datetime
 from unittest.mock import patch, MagicMock
-from logging import getLogger
-
-logger = getLogger(__name__)
 
 ENDPOINT = "minio:9000"
 
@@ -32,7 +29,7 @@ class MinioStorageTests(TestCase):
         self.media_storage = MinioMediaStorage()
         self.static_storage = MinioStaticStorage()
         self.new_file = self.media_storage.save("a new & original file",
-                                                io.BytesIO(b"yep"))
+                                                ContentFile(b"yep"))
 
     @override_settings(
         MINIO_STORAGE_MEDIA_BUCKET_NAME="inexistent",
@@ -54,25 +51,28 @@ class MinioStorageTests(TestCase):
         with self.assertRaises(ImproperlyConfigured):
             get_setting("INEXISTENT_SETTING")
 
+    def test_it_works(self):
+        self.assertEqual(2 + 2, 4)
+
     def test_file_upload_does_not_throw(self):
-        self.media_storage.save("trivial.txt", io.BytesIO(b"12345"))
+        self.media_storage.save("trivial.txt", ContentFile(b"12345"))
 
     def test_two_files_with_the_same_name_can_be_uploaded(self):
         ivan = self.media_storage.save("pelican.txt",
-                                       io.BytesIO(b"Ivan le Pelican"))
+                                       ContentFile(b"Ivan le Pelican"))
         jean = self.media_storage.save("pelican.txt",
-                                       io.BytesIO(b"Jean le Pelican"))
+                                       ContentFile(b"Jean le Pelican"))
         self.assertNotEqual(jean, ivan)
 
 
     @patch("minio.Minio.put_object", side_effect=ResponseError(MagicMock()))
     def test_file_upload_throws_on_failure(self, mock):
         with self.assertRaises(IOError):
-            self.media_storage.save("meh", io.BytesIO(b"meh"))
+            self.media_storage.save("meh", ContentFile(b"meh"))
 
     def test_file_removal(self):
         test_file = self.media_storage.save("should_be_removed.txt",
-                                            io.BytesIO(b"meh"))
+                                            ContentFile(b"meh"))
         self.media_storage.delete(test_file)
         self.assertFalse(self.media_storage.exists(test_file))
 
@@ -82,10 +82,17 @@ class MinioStorageTests(TestCase):
 
     def test_url_generation(self):
         test_file = self.media_storage.save("weird & ÜRΛ",
-                                            io.BytesIO(b"irrelevant"))
+                                            ContentFile(b"irrelevant"))
         url = self.media_storage.url(test_file)
         res = requests.get(url)
         self.assertEqual(res.content, b"irrelevant")
+
+    def test_files_from_filesystem_are_uploaded_properly(self):
+        f = File(io.open("watermelon-cat.jpg", "br"))
+        saved_file = self.media_storage.save("watermelon-cat.jpg", f)
+        res = requests.get(self.media_storage.url(saved_file))
+        self.assertAlmostEqual(round(res.content.__sizeof__() / 100),
+                               round(f.size / 100))
 
     def test_url_of_non_existent_throws(self):
         with self.assertRaises(IOError):
@@ -96,12 +103,12 @@ class MinioStorageTests(TestCase):
 
     def test_file_size(self):
         test_file = self.media_storage.save("sizetest.txt",
-                                            io.BytesIO(b"1234"))
+                                            ContentFile(b"1234"))
         self.assertEqual(4, self.media_storage.size(test_file))
 
     def test_size_of_non_existent_throws(self):
         test_file = self.media_storage.save("sizetest.txt",
-                                            io.BytesIO(b"1234"))
+                                            ContentFile(b"1234"))
         self.media_storage.delete(test_file)
         with self.assertRaises(IOError):
             self.media_storage.size(test_file)
@@ -124,7 +131,7 @@ class MinioStorageTests(TestCase):
 
     def test_files_cannot_be_open_in_write_mode(self):
         test_file = self.media_storage.save("iomodetest.txt",
-                                            io.BytesIO(b"should not change"))
+                                            ContentFile(b"should not change"))
         with self.assertRaises(NotImplementedError):
             self.media_storage.open(test_file, mode="bw")
 
@@ -140,7 +147,7 @@ class MinioStorageTests(TestCase):
             self.media_storage.listdir("")
 
     def test_file_exists(self):
-        existent = self.media_storage.save("existent.txt", io.BytesIO(b"meh"))
+        existent = self.media_storage.save("existent.txt", ContentFile(b"meh"))
         self.assertTrue(self.media_storage.exists(existent))
 
     def test_file_exists_failure(self):
