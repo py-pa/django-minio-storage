@@ -44,7 +44,7 @@ The following settings are available:
 - `MINIO_STORAGE_MEDIA_BUCKET_NAME`: the bucket that will act as `MEDIA` folder
 - `MINIO_STORAGE_AUTO_CREATE_MEDIA_BUCKET`: whether to create the bucket if it does not
 already exist (default: `False`)
-- `MINIO_STORAGE_STATIC_BUCKET_NAME`: the bucket that will act as `MEDIA` folder
+- `MINIO_STORAGE_STATIC_BUCKET_NAME`: the bucket that will act as `STATIC` folder
 - `MINIO_STORAGE_AUTO_CREATE_STATIC_BUCKET`: whether to create the bucket if it does not
 already exist (default: `False`)
 
