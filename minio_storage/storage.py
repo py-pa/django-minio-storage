@@ -26,7 +26,7 @@ def get_setting(name, default=None):
 @deconstructible
 class MinioStorage(Storage):
     """
-    An implementation of Django’s file storage using the minio client.
+    An implementation of Django's file storage using the minio client.
     """
 
     def __init__(self):
@@ -40,7 +40,7 @@ class MinioStorage(Storage):
                                   secret_key=self.secret_key,
                                   secure=self.secure)
 
-        super().__init__()
+        super(MinioStorage, self).__init__()
 
     def _sanitize_path(self, name):
         return name.lstrip("./")
@@ -121,7 +121,7 @@ class MinioStorage(Storage):
 
     def accessed_time(self, name):
         """
-        Not available via the S3 API
+        Not available via S3 the API
         """
         return self.modified_time(name)
 
@@ -143,7 +143,7 @@ class MinioStorage(Storage):
 @deconstructible
 class MinioMediaStorage(MinioStorage):
     def __init__(self):
-        super().__init__()
+        super(MinioMediaStorage, self).__init__()
         self.bucket_name = get_setting("MINIO_STORAGE_MEDIA_BUCKET_NAME")
         # self.static_use_media_bucket = get_setting(
         #     "MINIO_STORAGE_STATIC_USE_MEDIA_BUCKET")
@@ -160,7 +160,7 @@ class MinioMediaStorage(MinioStorage):
 @deconstructible
 class MinioStaticStorage(MinioStorage):
     def __init__(self):
-        super().__init__()
+        super(MinioStaticStorage, self).__init__()
         self.bucket_name = get_setting("MINIO_STORAGE_STATIC_BUCKET_NAME")
         self.auto_create_static_bucket = get_setting(
             "MINIO_STORAGE_AUTO_CREATE_STATIC_BUCKET", False)
