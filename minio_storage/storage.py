@@ -67,6 +67,7 @@ class MinioStorage(Storage):
             raise IOError("File {} does not exist".format(name))
 
     def _save(self, name, content):
+        # (str, bytes) -> str
         try:
             content_size, content_type, sane_name = self._examine_file(name, content)
             self.client.put_object(self.bucket_name,
@@ -80,6 +81,7 @@ class MinioStorage(Storage):
             raise IOError("File {} could not be saved".format(name))
 
     def delete(self, name):
+        # type: (str) -> None
         try:
             self.client.remove_object(self.bucket_name, name)
         except ResponseError as error:
@@ -87,6 +89,7 @@ class MinioStorage(Storage):
             raise IOError("Could not remove file {}".format(name))
 
     def exists(self, name):
+        # type: (str) -> bool
         try:
             self.client.stat_object(self.bucket_name, self._sanitize_path(name))
             return True
@@ -106,6 +109,7 @@ class MinioStorage(Storage):
             raise IOError("Could not list directory {}".format(path))
 
     def size(self, name):
+        # type: (str) -> int
         try:
             info = self.client.stat_object(self.bucket_name, name)
             return info.size
@@ -114,24 +118,28 @@ class MinioStorage(Storage):
             raise IOError("Could not access file size for {}".format(name))
 
     def url(self, name):
+        # type: (str) -> str
         if self.exists(name):
             return self.client.presigned_get_object(self.bucket_name, name)
         else:
             raise IOError("This file does not exist")
 
     def accessed_time(self, name):
+        # type: (str) -> datetime.datetime
         """
         Not available via S3 the API
         """
         return self.modified_time(name)
 
     def created_time(self, name):
+        # type: (str) -> datetime.datetime
         """
         Not available via the S3 API
         """
         return self.modified_time(name)
 
     def modified_time(self, name):
+        # type: (str) -> datetime.datetime
         try:
             info = self.client.stat_object(self.bucket_name, name)
             return datetime.datetime.fromtimestamp(info.last_modified)

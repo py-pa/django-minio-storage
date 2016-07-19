@@ -1,4 +1,5 @@
-django==1.9
 coverage
+django
 minio
+mypy-lang
 requests
