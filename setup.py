@@ -9,12 +9,12 @@ version_str = ".".join(str(n) for n in __version__)
 setup(
     name="django-minio-storage",
     version=version_str,
-    license="BSD",
+    license="MIT",
     description="Django file storage using the minio python client",
     author="Tom Houlé",
     author_email="tom@kafunsho.be",
     url="https://github.com/tomhoule/django-minio-storage",
-    packages=find_packages(),
+    packages=['minio_storage'],
     install_requires=[
         "django>=1.9",
         "minio>=1.0.2",

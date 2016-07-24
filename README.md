@@ -26,8 +26,7 @@ See the issues to see what needs to be done for a 1.0 release to happen.
 
 ## Installation
 
-This is not released on Pypi yet, but it will be as soon as I am confident
-enough that it can be used.
+    pip install django-minio-storage
 
 Add `minio_storage` to `INSTALLED_APPS` in your project settings.
 
