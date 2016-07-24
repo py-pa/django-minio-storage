@@ -138,6 +138,9 @@ class MinioStorageTests(TestCase):
             self.media_storage.open(test_file, mode="bw")
 
     def test_list_dir_base(self):
+        # Pre-condition
+        self.assertIsNotNone(self.new_file)
+
         test_dir = self.media_storage.listdir("/")
         files = [elem for elem in test_dir]
         self.assertIsInstance(files, list)
