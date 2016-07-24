@@ -11,7 +11,7 @@ import io
 import datetime
 from unittest.mock import patch, MagicMock
 
-ENDPOINT = "minio:9000"
+ENDPOINT = os.getenv("MINIO_STORAGE_ENDPOINT", "minio:9000")
 
 
 @override_settings(
