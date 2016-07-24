@@ -1,6 +1,6 @@
 version: "2"
 services:
-    test:
+    django:
         build: .
         volumes:
             - ".:/workspace"

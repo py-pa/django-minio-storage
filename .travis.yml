@@ -1,0 +1,20 @@
+language: python
+
+sudo: required
+
+services:
+    - docker
+
+env:
+    MINIO_ACCESS_KEY: weak_access_key
+    MINIO_SECRET_KEY: weak_secret_key
+
+before_install:
+    - docker run -d -p 9000:9000 -e MINIO_ACCESS_KEY=$MINIO_ACCESS_KEY -e MINIO_SECRET_KEY=$MINIO_SECRET_KEY minio/minio /export
+    - docker build -t django-minio-storage-testing .
+
+script:
+    - docker run --rm -it \
+        -e MINIO_STORAGE_ACCESS_KEY=$MINIO_ACCESS_KEY \
+        -e MINIO_STORAGE_SECRET_KEY=$MINIO_SECRET_KEY \
+        django-minio-storage-testing  ./run_tests.sh
