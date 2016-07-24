@@ -85,6 +85,7 @@ class MinioStorage(Storage):
         try:
             self.client.remove_object(self.bucket_name, name)
         except ResponseError as error:
+            logger.warn("Object deletion failed")
             logger.warn(error)
             raise IOError("Could not remove file {}".format(name))
 
