@@ -76,9 +76,11 @@ class MinioStorageTests(TestCase):
         self.media_storage.delete(test_file)
         self.assertFalse(self.media_storage.exists(test_file))
 
-    def test_delete_of_non_existent_throws(self):
-        with self.assertRaises(IOError):
-            self.media_storage.delete("i don't even exist")
+    # Does not throw anymore
+    # See https://github.com/minio/minio-py/issues/391
+    # def test_delete_of_non_existent_throws(self):
+    #     with self.assertRaises(IOError):
+    #         self.media_storage.delete("i don't even exist")
 
     def test_url_generation(self):
         test_file = self.media_storage.save("weird & ÜRΛ",
