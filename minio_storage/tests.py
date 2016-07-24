@@ -1,3 +1,6 @@
+# encoding: utf-8
+from __future__ import unicode_literals
+
 from minio_storage.storage import MinioMediaStorage, MinioStaticStorage, get_setting
 
 from django.test import TestCase, override_settings
@@ -9,7 +12,7 @@ import requests
 import os
 import io
 import datetime
-from unittest.mock import patch, MagicMock
+from mock import patch, MagicMock
 
 ENDPOINT = os.getenv("MINIO_STORAGE_ENDPOINT", "minio:9000")
 
@@ -83,9 +86,9 @@ class MinioStorageTests(TestCase):
     #         self.media_storage.delete("i don't even exist")
 
     def test_url_generation(self):
-        test_file = self.media_storage.save("weird & ÜRΛ",
+        test_file_name = self.media_storage.save(u"weird & ÜRΛ",
                                             ContentFile(b"irrelevant"))
-        url = self.media_storage.url(test_file)
+        url = self.media_storage.url(test_file_name)
         res = requests.get(url)
         self.assertEqual(res.content, b"irrelevant")
 
@@ -141,7 +144,7 @@ class MinioStorageTests(TestCase):
         # Pre-condition
         self.assertIsNotNone(self.new_file)
 
-        test_dir = self.media_storage.listdir("/")
+        test_dir = self.media_storage.listdir("./")
         files = [elem for elem in test_dir]
         self.assertIsInstance(files, list)
         self.assertGreaterEqual(len(files), 1)

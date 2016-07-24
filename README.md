@@ -1,5 +1,7 @@
 # django-minio-storage
 
+[![Build Status](https://travis-ci.org/tomhoule/django-minio-storage.svg?branch=master)](https://travis-ci.org/tomhoule/django-minio-storage)
+
 Use [minio](https://minio.io) for django static and media file storage.
 
 Minio is accessed through the Amazon S3 API, so existing django file

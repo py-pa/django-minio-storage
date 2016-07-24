@@ -1,5 +1,5 @@
 coverage
 django
 minio
-mypy-lang
+mock
 requests
