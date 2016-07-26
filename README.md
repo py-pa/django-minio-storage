@@ -63,7 +63,7 @@ instance.
 
 To run the tests, you need docker and docker compose, then it is as simple as:
 
-    docker-compose run tests ./run_tests.sh
+    docker-compose run django ./run_tests.sh
 
 ## License
 
