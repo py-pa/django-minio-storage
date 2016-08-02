@@ -22,6 +22,9 @@ Versioning is semver compliant.
 This library is still a work in progress and not suitable for production
 use yet. Contributions and ideas are welcome (I mean it).
 
+Python 2 support is coming but spotty (problems with utf-8 filenames, see #6)
+at the moment.
+
 See the issues to see what needs to be done for a 1.0 release to happen.
 
 ## Installation
