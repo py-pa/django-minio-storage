@@ -1,4 +1,3 @@
-# encoding: utf-8
 from __future__ import unicode_literals
 
 from minio_storage.storage import MinioMediaStorage, MinioStaticStorage, get_setting
