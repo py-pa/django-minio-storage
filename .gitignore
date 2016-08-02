@@ -3,3 +3,4 @@ pycache
 htmlcov
 *egg-info
 .coverage
+*.swp
