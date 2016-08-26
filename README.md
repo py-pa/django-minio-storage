@@ -35,7 +35,7 @@ Add `minio_storage` to `INSTALLED_APPS` in your project settings.
 
 The last step is setting `DEFAULT_FILE_STORAGE` to
 `"minio_storage.storage.MinioMediaStorage"`, and `STATICFILES_STORAGE` to
-`"minio_storage.storages.MinioStaticStorage"`.
+`"minio_storage.storage.MinioStaticStorage"`.
 
 ## Configuration
 
