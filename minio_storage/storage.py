@@ -130,7 +130,7 @@ class MinioStorage(Storage):
     def accessed_time(self, name):
         # type: (str) -> datetime.datetime
         """
-        Not available via S3 the API
+        Not available via the S3 API
         """
         return self.modified_time(name)
 
