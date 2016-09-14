@@ -9,8 +9,9 @@ storage adapters for S3 should work, but in practice they are hard to
 configure. This project uses the minio python client instead. Inspiration has
 been drawn from `django-s3-storage` and `django-storages`.
 
-It is tested on python 3 and django 1.9 at the moment, but should be easily
-portable to older versions.
+It is tested on python 3 and django 1.9+ at the moment, but should be easily
+portable to older versions. Python 2.7 is supported on a best effort basis,
+contributions are welcome. The current main blocker is issue #6.
 
 The goal is to have a thoroughly tested, small codebase that delegates as
 much as possible to the minio client.
@@ -21,9 +22,6 @@ Versioning is semver compliant.
 
 This library is still a work in progress and not suitable for production
 use yet. Contributions and ideas are welcome (I mean it).
-
-Python 2 support is coming but spotty (problems with utf-8 filenames, see #6)
-at the moment.
 
 See the issues to see what needs to be done for a 1.0 release to happen.
 
