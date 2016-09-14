@@ -4,3 +4,5 @@ htmlcov
 *egg-info
 .coverage
 *.swp
+build/
+dist/
