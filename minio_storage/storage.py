@@ -10,6 +10,7 @@ from django.conf import settings
 
 import mimetypes
 import datetime
+from urlparse import urlparse
 
 from logging import getLogger
 
@@ -123,7 +124,11 @@ class MinioStorage(Storage):
     def url(self, name):
         # type: (str) -> str
         if self.exists(name):
-            return self.client.presigned_get_object(self.bucket_name, name)
+            url = self.client.presigned_get_object(self.bucket_name, name)
+            if not self.presigned:
+                parsed_url = urlparse(url)
+                return parsed_url.scheme + "://" + parsed_url.netloc + parsed_url.path
+            return url
         else:
             raise IOError("This file does not exist")
 
@@ -160,6 +165,7 @@ class MinioMediaStorage(MinioStorage):
         #     "MINIO_STORAGE_STATIC_USE_MEDIA_BUCKET")
         self.auto_create_media_bucket = get_setting(
             "MINIO_STORAGE_AUTO_CREATE_MEDIA_BUCKET", False)
+        self.presigned = get_setting('MINIO_STORAGE_MEDIA_USE_PRESIGNED', True)
 
         if self.auto_create_media_bucket and not self.client.bucket_exists(
                                                  self.bucket_name):
@@ -175,6 +181,7 @@ class MinioStaticStorage(MinioStorage):
         self.bucket_name = get_setting("MINIO_STORAGE_STATIC_BUCKET_NAME")
         self.auto_create_static_bucket = get_setting(
             "MINIO_STORAGE_AUTO_CREATE_STATIC_BUCKET", False)
+        self.presigned = get_setting('MINIO_STORAGE_STATIC_USE_PRESIGNED', True)
 
         if self.auto_create_static_bucket and not self.client.bucket_exists(
                                                  self.bucket_name):
