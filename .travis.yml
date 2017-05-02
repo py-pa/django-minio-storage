@@ -1,11 +1,14 @@
 language: python
 python:
-    # - "2.7"
     - "3.4"
     - "3.5"
+    - "3.6"
     - "nightly"
 
-install: pip install -r dev-requirements.txt
+install:
+    - pip install tox tox-travis
+
+script: tox
 
 sudo: required
 
@@ -20,4 +23,9 @@ env:
 before_install:
     - docker run -d -p 9000:9000 -e MINIO_ACCESS_KEY=$MINIO_STORAGE_ACCESS_KEY -e MINIO_SECRET_KEY=$MINIO_STORAGE_SECRET_KEY minio/minio /export
 
-script: "./run_tests.sh"
+after_success:
+    - pip install codecov
+    - codecov -e TOXENV,DJANGO
+
+notifications:
+    email: false

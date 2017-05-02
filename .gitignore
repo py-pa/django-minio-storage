@@ -6,3 +6,4 @@ htmlcov
 *.swp
 build/
 dist/
+.idea/
