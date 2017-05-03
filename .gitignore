@@ -7,3 +7,6 @@ htmlcov
 build/
 dist/
 .idea/
+env/
+.cache/
+.tox/

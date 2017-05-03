@@ -16,12 +16,19 @@ services:
     - docker
 
 env:
-    MINIO_STORAGE_ENDPOINT: "localhost:9000"
-    MINIO_STORAGE_ACCESS_KEY: weak_access_key
-    MINIO_STORAGE_SECRET_KEY: weak_secret_key
+  global:
+    - MINIO_STORAGE_ENDPOINT=localhost:9000
+    - MINIO_STORAGE_ACCESS_KEY=weak_access_key
+    - MINIO_STORAGE_SECRET_KEY=weak_secret_key
+
+  matrix:
+    - DJANGO=1.8
+    - DJANGO=1.9
+    - DJANGO=1.10
+    - DJANGO=1.11
 
 before_install:
-    - docker run -d -p 9000:9000 -e MINIO_ACCESS_KEY=$MINIO_STORAGE_ACCESS_KEY -e MINIO_SECRET_KEY=$MINIO_STORAGE_SECRET_KEY minio/minio /export
+    - docker run -d -p 9000:9000 -e MINIO_ACCESS_KEY=$MINIO_STORAGE_ACCESS_KEY -e MINIO_SECRET_KEY=$MINIO_STORAGE_SECRET_KEY minio/minio server /export
 
 after_success:
     - pip install codecov

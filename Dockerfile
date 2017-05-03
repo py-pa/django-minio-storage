@@ -1,4 +1,4 @@
-FROM python:3
+FROM python:3.5
 WORKDIR /workspace
 
 COPY dev-requirements.txt dev-requirements.txt
