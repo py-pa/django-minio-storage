@@ -31,6 +31,20 @@ ALLOWED_HOSTS = []
 DEFAULT_STORAGE = "minio_storage.storage.MinioMediaStorage"
 STATICFILES_STORAGE = "minio_storage.storage.MinioStaticStorage"
 
+MINIO_STORAGE_ENDPOINT = os.getenv("MINIO_STORAGE_ENDPOINT", "minio:9000")
+MINIO_STORAGE_ACCESS_KEY = os.environ["MINIO_STORAGE_ACCESS_KEY"]
+MINIO_STORAGE_SECRET_KEY = os.environ["MINIO_STORAGE_SECRET_KEY"]
+MINIO_STORAGE_MEDIA_BUCKET_NAME = "tests-media"
+MINIO_STORAGE_AUTO_CREATE_MEDIA_BUCKET = True
+MINIO_STORAGE_AUTO_CREATE_STATIC_BUCKET = True
+MINIO_STORAGE_STATIC_BUCKET_NAME = "tests-static"
+MINIO_STORAGE_USE_HTTPS = False
+
+MINIO_PARTIAL_URL = True
+MINIO_PARTIAL_URL_BASE = 'http://localhost:9000'
+
+# MINIO_STORAGE_MEDIA_USE_PRESIGNED = True
+# MINIO_STORAGE_STATIC_USE_PRESIGNED = True
 
 # Application definition
 
@@ -42,6 +56,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'minio_storage',
+    'test_app'
 ]
 
 MIDDLEWARE_CLASSES = [

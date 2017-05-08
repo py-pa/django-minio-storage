@@ -6,3 +6,7 @@ htmlcov
 *.swp
 build/
 dist/
+.idea/
+env/
+.cache/
+.tox/

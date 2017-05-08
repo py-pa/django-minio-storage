@@ -11,7 +11,7 @@ services:
             MINIO_STORAGE_SECRET_KEY: secret2000
     minio:
         image: "minio/minio"
-        command: /export
+        command: server /export
         environment:
             MINIO_ACCESS_KEY: key2000
             MINIO_SECRET_KEY: secret2000

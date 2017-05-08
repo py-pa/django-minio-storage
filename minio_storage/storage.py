@@ -1,17 +1,18 @@
 from __future__ import unicode_literals
 
-import minio
-from minio.error import ResponseError
+import datetime
+import mimetypes
+from logging import getLogger
+from urllib.parse import urlparse
 
+import minio
+from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.core.files.storage import Storage
 from django.utils.deconstruct import deconstructible
-from django.conf import settings
+from minio.error import NoSuchBucket, NoSuchKey, ResponseError
 
-import mimetypes
-import datetime
-
-from logging import getLogger
+from minio.helpers import get_target_url
 
 logger = getLogger("minio_storage")
 
@@ -29,6 +30,7 @@ def get_setting(name, default=None):
 class MinioStorage(Storage):
     """
     An implementation of Django's file storage using the minio client.
+    The implementation should comply with https://docs.djangoproject.com/en/dev/ref/files/storage/.
     """
 
     def __init__(self):
@@ -36,6 +38,13 @@ class MinioStorage(Storage):
         self.access_key = get_setting("MINIO_STORAGE_ACCESS_KEY")
         self.secret_key = get_setting("MINIO_STORAGE_SECRET_KEY")
         self.secure = get_setting("MINIO_STORAGE_USE_HTTPS", True)
+
+        self.partial_url = get_setting("MINIO_PARTIAL_URL", False)
+        self.partial_url_base = get_setting("MINIO_PARTIAL_URL_BASE", None)
+
+        if self.partial_url and not self.partial_url_base:
+            raise NotImplementedError('MINIO_PARTIAL_URL_BASE must be provided '
+                                      'when MINIO_PARTIAL_URL is set to True')
 
         self.client = minio.Minio(self.endpoint,
                                   access_key=self.access_key,
@@ -97,19 +106,29 @@ class MinioStorage(Storage):
             self.client.stat_object(self.bucket_name, self._sanitize_path(name))
             return True
         except ResponseError as error:
+            # TODO - deprecate
             if error.code == "NoSuchKey":
                 return False
             else:
                 logger.warn(error)
                 raise IOError("Could not stat file {}".format(name))
+        except NoSuchKey as error:
+            return False
+        # Temporary - due to https://github.com/minio/minio-py/issues/514
+        except NoSuchBucket as error:
+            return False
+        except Exception as error:
+            logger.warn(error)
+            raise IOError("Could not stat file {}".format(name))
 
-    def listdir(self, path):
+    def listdir(self, prefix):
         try:
             # TODO: break the path
-            return self.client.list_objects(self.bucket_name, path)
+            objects = self.client.list_objects(self.bucket_name, prefix)
+            return objects
         except ResponseError as error:
             logger.warn(error)
-            raise IOError("Could not list directory {}".format(path))
+            raise IOError("Could not list directory {}".format(prefix))
 
     def size(self, name):
         # type: (str) -> int
@@ -123,7 +142,21 @@ class MinioStorage(Storage):
     def url(self, name):
         # type: (str) -> str
         if self.exists(name):
-            return self.client.presigned_get_object(self.bucket_name, name)
+            url = self.client.presigned_get_object(self.bucket_name, name)
+
+            parsed_url = urlparse(url)
+
+            if self.partial_url and self.presigned:
+                url = '{0}{1}?{2}{3}{4}'.format(self.partial_url_base, parsed_url.path, parsed_url.params,
+                                                parsed_url.query, parsed_url.fragment)
+
+            if not self.presigned:
+                if self.partial_url:
+                    url = '{}{}'.format(self.partial_url_base, parsed_url.path)
+                else:
+                    url = '{}://{}{}'.format(parsed_url.scheme, parsed_url.netloc, parsed_url.path)
+
+            return url
         else:
             raise IOError("This file does not exist")
 
@@ -151,15 +184,15 @@ class MinioStorage(Storage):
             raise IOError(
                 "Could not access modification time for file {}".format(name))
 
+
 @deconstructible
 class MinioMediaStorage(MinioStorage):
     def __init__(self):
         super(MinioMediaStorage, self).__init__()
         self.bucket_name = get_setting("MINIO_STORAGE_MEDIA_BUCKET_NAME")
-        # self.static_use_media_bucket = get_setting(
-        #     "MINIO_STORAGE_STATIC_USE_MEDIA_BUCKET")
         self.auto_create_media_bucket = get_setting(
             "MINIO_STORAGE_AUTO_CREATE_MEDIA_BUCKET", False)
+        self.presigned = get_setting('MINIO_STORAGE_MEDIA_USE_PRESIGNED', False)
 
         if self.auto_create_media_bucket and not self.client.bucket_exists(
                                                  self.bucket_name):
@@ -175,6 +208,7 @@ class MinioStaticStorage(MinioStorage):
         self.bucket_name = get_setting("MINIO_STORAGE_STATIC_BUCKET_NAME")
         self.auto_create_static_bucket = get_setting(
             "MINIO_STORAGE_AUTO_CREATE_STATIC_BUCKET", False)
+        self.presigned = get_setting('MINIO_STORAGE_STATIC_USE_PRESIGNED', False)
 
         if self.auto_create_static_bucket and not self.client.bucket_exists(
                                                  self.bucket_name):
