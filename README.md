@@ -85,9 +85,18 @@ server can be very easily brought up with docker, so there is no reason to use
 mocking most of the time, the tests should run directly against a real minio
 instance.
 
-To run the tests, you need docker and docker compose, then it is as simple as:
+To run the tests you need to have minio running locally with some specific
+settings, you can start it using docker-compose:
 
-    docker-compose run django ./run_tests.sh
+    docker-compose up -d
+
+Use tox to run the tests for all environments in tox.ini:
+
+    tox
+
+Or just run tests for some of them
+
+    tox -e py35-django110,py35-django111
 
 ## License
 
