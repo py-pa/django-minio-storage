@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/1.9/ref/settings/
 
 import os
 
+from tests.test_app.tests.utils import bucket_name
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -34,10 +36,10 @@ STATICFILES_STORAGE = "minio_storage.storage.MinioStaticStorage"
 MINIO_STORAGE_ENDPOINT = os.getenv("MINIO_STORAGE_ENDPOINT", "minio:9000")
 MINIO_STORAGE_ACCESS_KEY = os.environ["MINIO_STORAGE_ACCESS_KEY"]
 MINIO_STORAGE_SECRET_KEY = os.environ["MINIO_STORAGE_SECRET_KEY"]
-MINIO_STORAGE_MEDIA_BUCKET_NAME = "tests-media"
+MINIO_STORAGE_MEDIA_BUCKET_NAME = bucket_name("tests-media")
 MINIO_STORAGE_AUTO_CREATE_MEDIA_BUCKET = True
 MINIO_STORAGE_AUTO_CREATE_STATIC_BUCKET = True
-MINIO_STORAGE_STATIC_BUCKET_NAME = "tests-static"
+MINIO_STORAGE_STATIC_BUCKET_NAME = bucket_name("tests-static")
 MINIO_STORAGE_USE_HTTPS = False
 
 MINIO_PARTIAL_URL = True
