@@ -37,9 +37,8 @@ class RetrieveTestsWithRestrictedBucket(BaseTestMixin, TestCase):
     def test_partial_url(self):
         pass
 
-    def test_url_of_non_existent_throws(self):
-        with self.assertRaises(IOError):
-            self.media_storage.url("this does not exist")
+    def test_url_of_non_existent_object(self):
+        self.media_storage.url("this does not exist")
 
     def test_file_size(self):
         test_file = self.media_storage.save("sizetest.txt",
