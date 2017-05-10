@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 import datetime
 import mimetypes
 from logging import getLogger
+from tempfile import SpooledTemporaryFile
 from urllib.parse import urlparse
 
 import minio
@@ -72,10 +73,23 @@ class MinioStorage(Storage):
         if mode.find("w") > -1:
             raise NotImplementedError("Minio storage cannot write to file")
         try:
-            return self.client.get_object(self.bucket_name, name)
+            obj = self.client.get_object(self.bucket_name, name)
+            # Load the key into a temporary file. It would be nice to stream
+            # the content, but Minio doesn't support seeking, which is
+            # sometimes needed.
+            content = SpooledTemporaryFile(max_size=1024 * 1024 * 10)  # 10 MB.
+            for d in obj.stream(amt=1024 * 1024):
+                content.write(d)
+            content.seek(0)
+            return content
         except ResponseError as error:
             logger.warn(error)
             raise IOError("File {} does not exist".format(name))
+        finally:
+            try:
+                obj.release_conn()
+            except Exception as e:
+                logger.error(str(e))
 
     def _save(self, name, content):
         # (str, bytes) -> str

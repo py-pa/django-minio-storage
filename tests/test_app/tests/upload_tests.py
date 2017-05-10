@@ -52,6 +52,14 @@ class UploadTests(BaseTestMixin, TestCase):
         with self.assertRaises(NotImplementedError):
             self.media_storage.open(test_file, mode="bw")
 
+    def test_files_seekable(self):
+        self.media_storage.save("read_seek_test.txt",
+                                ContentFile(b"should not change"))
+
+        f = self.media_storage.open("read_seek_test.txt", mode="br")
+        f.seek(4)
+        f.seek(0)
+
     def test_upload_and_get_back_file_with_funky_name(self):
         self.media_storage.save("áčďěščřžýŽŇůúť.txt", ContentFile(b"12345"))
 
