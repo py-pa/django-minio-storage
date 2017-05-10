@@ -155,24 +155,23 @@ class MinioStorage(Storage):
 
     def url(self, name):
         # type: (str) -> str
-        if self.exists(name):
-            url = self.client.presigned_get_object(self.bucket_name, name)
 
-            parsed_url = urlparse(url)
+        url = self.client.presigned_get_object(self.bucket_name, name)
 
-            if self.partial_url and self.presigned:
-                url = '{0}{1}?{2}{3}{4}'.format(self.partial_url_base, parsed_url.path, parsed_url.params,
-                                                parsed_url.query, parsed_url.fragment)
+        parsed_url = urlparse(url)
 
-            if not self.presigned:
-                if self.partial_url:
-                    url = '{}{}'.format(self.partial_url_base, parsed_url.path)
-                else:
-                    url = '{}://{}{}'.format(parsed_url.scheme, parsed_url.netloc, parsed_url.path)
+        if self.partial_url and self.presigned:
+            url = '{0}{1}?{2}{3}{4}'.format(self.partial_url_base, parsed_url.path, parsed_url.params,
+                                            parsed_url.query, parsed_url.fragment)
 
-            return url
-        else:
-            raise IOError("This file does not exist")
+        if not self.presigned:
+            if self.partial_url:
+                url = '{}{}'.format(self.partial_url_base, parsed_url.path)
+            else:
+                url = '{}://{}{}'.format(parsed_url.scheme, parsed_url.netloc, parsed_url.path)
+
+        return url
+
 
     def accessed_time(self, name):
         # type: (str) -> datetime.datetime
