@@ -1,14 +1,9 @@
 from setuptools import setup
 
-from minio_storage import __version__
-
-version_str = ".".join(str(n) for n in __version__)
-
-
 setup(
     name="django-minio-storage-py-pa",
-    version=version_str,
     license="MIT",
+    use_scm_version=True,
     description="Django file storage using the minio python client",
     author="Tom Houlé",
     author_email="tom@kafunsho.be",
@@ -17,7 +12,7 @@ setup(
     setup_requires=['setuptools_scm'],
     install_requires=[
         "django>=1.9",
-        "minio>=1.0.2",
+        "minio>=2.2.2",
     ],
     extras_require={
         "test": [
