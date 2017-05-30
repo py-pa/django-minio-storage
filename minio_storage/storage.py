@@ -12,7 +12,6 @@ from django.core.exceptions import ImproperlyConfigured
 from django.core.files.storage import Storage
 from django.utils.deconstruct import deconstructible
 from minio.error import NoSuchBucket, NoSuchKey, ResponseError
-from minio.helpers import get_target_url
 
 logger = getLogger("minio_storage")
 
@@ -28,9 +27,11 @@ def get_setting(name, default=None):
 
 @deconstructible
 class MinioStorage(Storage):
-    """
-    An implementation of Django's file storage using the minio client.
-    The implementation should comply with https://docs.djangoproject.com/en/dev/ref/files/storage/.
+    """An implementation of Django's file storage using the minio client.
+
+    The implementation should comply with
+    https://docs.djangoproject.com/en/dev/ref/files/storage/.
+
     """
 
     def __init__(self):
@@ -43,8 +44,9 @@ class MinioStorage(Storage):
         self.partial_url_base = get_setting("MINIO_PARTIAL_URL_BASE", None)
 
         if self.partial_url and not self.partial_url_base:
-            raise NotImplementedError('MINIO_PARTIAL_URL_BASE must be provided '
-                                      'when MINIO_PARTIAL_URL is set to True')
+            raise NotImplementedError(
+                'MINIO_PARTIAL_URL_BASE must be provided '
+                'when MINIO_PARTIAL_URL is set to True')
 
         self.client = minio.Minio(self.endpoint,
                                   access_key=self.access_key,
@@ -57,10 +59,11 @@ class MinioStorage(Storage):
         return name.lstrip("./")
 
     def _examine_file(self, name, content):
-        """
-        Examines a file and produces information necessary for upload.
+        """Examines a file and produces information necessary for upload.
 
-        Returns a tuple of the form (content_size, content_type, sanitized_name)
+        Returns a tuple of the form (content_size, content_type,
+        sanitized_name)
+
         """
         content_size = content.size
         content_type = mimetypes.guess_type(name, strict=False)
@@ -162,8 +165,9 @@ class MinioStorage(Storage):
         parsed_url = urlparse(url)
 
         if self.partial_url and self.presigned:
-            url = '{0}{1}?{2}{3}{4}'.format(self.partial_url_base, parsed_url.path, parsed_url.params,
-                                            parsed_url.query, parsed_url.fragment)
+            url = '{0}{1}?{2}{3}{4}'.format(
+                self.partial_url_base, parsed_url.path, parsed_url.params,
+                parsed_url.query, parsed_url.fragment)
 
         if not self.presigned:
             if self.partial_url:
