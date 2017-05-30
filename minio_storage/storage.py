@@ -12,19 +12,18 @@ from django.core.exceptions import ImproperlyConfigured
 from django.core.files.storage import Storage
 from django.utils.deconstruct import deconstructible
 from minio.error import NoSuchBucket, NoSuchKey, ResponseError
-
 from minio.helpers import get_target_url
 
 logger = getLogger("minio_storage")
 
 
 def get_setting(name, default=None):
-        result = getattr(settings, name, default)
-        if result is None:
-            print("Attr {} : {}".format(name, getattr(settings, name, default)))
-            raise ImproperlyConfigured
-        else:
-            return result
+    result = getattr(settings, name, default)
+    if result is None:
+        print("Attr {} : {}".format(name, getattr(settings, name, default)))
+        raise ImproperlyConfigured
+    else:
+        return result
 
 
 @deconstructible
@@ -94,7 +93,8 @@ class MinioStorage(Storage):
     def _save(self, name, content):
         # (str, bytes) -> str
         try:
-            content_size, content_type, sane_name = self._examine_file(name, content)
+            content_size, content_type, sane_name = self._examine_file(
+                name, content)
             self.client.put_object(self.bucket_name,
                                    sane_name,
                                    content,
@@ -117,7 +117,8 @@ class MinioStorage(Storage):
     def exists(self, name):
         # type: (str) -> bool
         try:
-            self.client.stat_object(self.bucket_name, self._sanitize_path(name))
+            self.client.stat_object(
+                self.bucket_name, self._sanitize_path(name))
             return True
         except ResponseError as error:
             # TODO - deprecate
@@ -168,10 +169,10 @@ class MinioStorage(Storage):
             if self.partial_url:
                 url = '{}{}'.format(self.partial_url_base, parsed_url.path)
             else:
-                url = '{}://{}{}'.format(parsed_url.scheme, parsed_url.netloc, parsed_url.path)
+                url = '{}://{}{}'.format(parsed_url.scheme,
+                                         parsed_url.netloc, parsed_url.path)
 
         return url
-
 
     def accessed_time(self, name):
         # type: (str) -> datetime.datetime
@@ -205,10 +206,11 @@ class MinioMediaStorage(MinioStorage):
         self.bucket_name = get_setting("MINIO_STORAGE_MEDIA_BUCKET_NAME")
         self.auto_create_media_bucket = get_setting(
             "MINIO_STORAGE_AUTO_CREATE_MEDIA_BUCKET", False)
-        self.presigned = get_setting('MINIO_STORAGE_MEDIA_USE_PRESIGNED', False)
+        self.presigned = get_setting(
+            'MINIO_STORAGE_MEDIA_USE_PRESIGNED', False)
 
         if self.auto_create_media_bucket and not self.client.bucket_exists(
-                                                 self.bucket_name):
+                self.bucket_name):
             self.client.make_bucket(self.bucket_name)
         elif not self.client.bucket_exists(self.bucket_name):
             raise IOError("The media bucket does not exist")
@@ -221,10 +223,11 @@ class MinioStaticStorage(MinioStorage):
         self.bucket_name = get_setting("MINIO_STORAGE_STATIC_BUCKET_NAME")
         self.auto_create_static_bucket = get_setting(
             "MINIO_STORAGE_AUTO_CREATE_STATIC_BUCKET", False)
-        self.presigned = get_setting('MINIO_STORAGE_STATIC_USE_PRESIGNED', False)
+        self.presigned = get_setting(
+            'MINIO_STORAGE_STATIC_USE_PRESIGNED', False)
 
         if self.auto_create_static_bucket and not self.client.bucket_exists(
-                                                 self.bucket_name):
+                self.bucket_name):
             self.client.make_bucket(self.bucket_name)
         elif not self.client.bucket_exists(self.bucket_name):
             raise IOError("The static bucket does not exist")

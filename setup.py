@@ -1,7 +1,6 @@
-from setuptools import setup, find_packages
+from setuptools import setup
 
 from minio_storage import __version__
-
 
 version_str = ".".join(str(n) for n in __version__)
 

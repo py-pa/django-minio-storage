@@ -16,9 +16,9 @@ from .utils import BaseTestMixin
 
 
 @override_settings(
-        MINIO_STORAGE_MEDIA_USE_PRESIGNED=True,
-        MINIO_STORAGE_STATIC_USE_PRESIGNED=True,
-    )
+    MINIO_STORAGE_MEDIA_USE_PRESIGNED=True,
+    MINIO_STORAGE_STATIC_USE_PRESIGNED=True,
+)
 class UploadTests(BaseTestMixin, TestCase):
 
     def test_file_upload_success(self):
@@ -40,7 +40,8 @@ class UploadTests(BaseTestMixin, TestCase):
         self.assertNotEqual(jean, ivan)
 
     def test_files_from_filesystem_are_uploaded_properly(self):
-        f = File(io.open(os.path.join(settings.BASE_DIR, "watermelon-cat.jpg"), "br"))
+        f = File(io.open(os.path.join(
+            settings.BASE_DIR, "watermelon-cat.jpg"), "br"))
         saved_file = self.media_storage.save("watermelon-cat.jpg", f)
         res = requests.get(self.media_storage.url(saved_file))
         self.assertAlmostEqual(round(res.content.__sizeof__() / 100),

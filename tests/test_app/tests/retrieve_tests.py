@@ -9,21 +9,21 @@ import requests
 from django.core.files.base import ContentFile
 from django.test import TestCase, override_settings
 from minio.error import NoSuchKey
-from minio_storage.storage import (MinioMediaStorage, MinioStaticStorage)
+from minio.policy import Policy
+from minio_storage.storage import MinioMediaStorage, MinioStaticStorage
 
 from .utils import BaseTestMixin
-from minio.policy import Policy
 
 
 @override_settings(
-        MINIO_STORAGE_MEDIA_USE_PRESIGNED=True,
-        MINIO_STORAGE_STATIC_USE_PRESIGNED=True,
-    )
+    MINIO_STORAGE_MEDIA_USE_PRESIGNED=True,
+    MINIO_STORAGE_STATIC_USE_PRESIGNED=True,
+)
 class RetrieveTestsWithRestrictedBucket(BaseTestMixin, TestCase):
 
     def test_presigned_url_generation(self):
         media_test_file_name = self.media_storage.save(
-                u"weird & ÜRΛ", ContentFile(b"irrelevant"))
+            u"weird & ÜRΛ", ContentFile(b"irrelevant"))
         url = self.media_storage.url(media_test_file_name)
         res = requests.get(url)
         self.assertEqual(res.content, b"irrelevant")
@@ -45,7 +45,9 @@ class RetrieveTestsWithRestrictedBucket(BaseTestMixin, TestCase):
                                             ContentFile(b"1234"))
         self.assertEqual(4, self.media_storage.size(test_file))
 
-    # TODO - temporarily diapbled due to https://github.com/minio/minio-py/issues/514
+    # TODO - temporarily diapbled due to
+    # https://github.com/minio/minio-py/issues/514
+    #
     # def test_size_of_non_existent_throws(self):
     #     test_file = self.media_storage.save("sizetest.txt",
     #                                         ContentFile(b"1234"))
@@ -65,7 +67,9 @@ class RetrieveTestsWithRestrictedBucket(BaseTestMixin, TestCase):
         self.assertIsInstance(self.media_storage.created_time(self.new_file),
                               datetime.datetime)
 
-    # TODO - temporarily diapbled due to https://github.com/minio/minio-py/issues/514
+    # TODO - temporarily diapbled due to
+    # https://github.com/minio/minio-py/issues/514
+    #
     # def test_modified_time_of_non_existent_throws(self):
     #     with self.assertRaises(NoSuchKey):
     #         self.media_storage.modified_time("nonexistent.jpg")

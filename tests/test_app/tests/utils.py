@@ -5,8 +5,9 @@ import os
 
 from django.core.files.base import ContentFile
 from minio import Minio
-from minio_storage.storage import (MinioMediaStorage, MinioStaticStorage,
-                                   get_setting)
+from minio_storage.storage import (
+    MinioMediaStorage, MinioStaticStorage, get_setting
+)
 
 
 def bucket_name(name):
@@ -36,7 +37,7 @@ class BaseTestMixin:
         def obliterate_bucket(name):
             for obj in client.list_objects(name, ""):
                 client.remove_object(name, obj.object_name)
-            for obj in client.list_incomplete_uploads(name, ""):  # pragma: no cover
+            for obj in client.list_incomplete_uploads(name, ""):  # pragma: no cover  # noqa
                 client.remove_incomplete_upload(name, obj.objectname)
             client.remove_bucket(name)
 
