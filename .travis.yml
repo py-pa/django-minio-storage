@@ -31,8 +31,10 @@ before_install:
     - docker run -d -p 9000:9000 -e MINIO_ACCESS_KEY=$MINIO_STORAGE_ACCESS_KEY -e MINIO_SECRET_KEY=$MINIO_STORAGE_SECRET_KEY minio/minio server /export
 
 after_success:
-    - pip install codecov
+    - pip install codecov flake8 isort
     - codecov -e TOXENV,DJANGO
+    - flake8 --config .flake8rc
+    - isort -df -c -rc
 
 notifications:
     email: false
