@@ -6,7 +6,7 @@ version_str = ".".join(str(n) for n in __version__)
 
 
 setup(
-    name="django-minio-storage",
+    name="django-minio-storage-py-pa",
     version=version_str,
     license="MIT",
     description="Django file storage using the minio python client",
@@ -14,6 +14,7 @@ setup(
     author_email="tom@kafunsho.be",
     url="https://github.com/py-pa/django-minio-storage",
     packages=['minio_storage'],
+    setup_requires=['setuptools_scm'],
     install_requires=[
         "django>=1.9",
         "minio>=1.0.2",
@@ -34,6 +35,7 @@ setup(
         "Programming Language :: Python :: 3.3",
         "Programming Language :: Python :: 3.4",
         "Programming Language :: Python :: 3.5",
+        "Programming Language :: Python :: 3.6",
         "Framework :: Django",
     ],
 )
