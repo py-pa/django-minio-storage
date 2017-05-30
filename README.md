@@ -1,6 +1,6 @@
 # django-minio-storage
 
-[![Build Status](https://travis-ci.org/tomhoule/django-minio-storage.svg?branch=master)](https://travis-ci.org/tomhoule/django-minio-storage)
+[![Build Status](https://travis-ci.org/py-pa/django-minio-storage.svg?branch=master)](https://travis-ci.org/py-pa/django-minio-storage)
 
 Use [minio](https://minio.io) for django static and media file storage.
 
@@ -10,8 +10,7 @@ configure. This project uses the minio python client instead. Inspiration has
 been drawn from `django-s3-storage` and `django-storages`.
 
 It is tested on python 3 and django 1.8 - 1.11, but should be easily
-portable to older versions. Python 2.7 is supported on a best effort basis,
-contributions are welcome. The current main blocker is issue #6.
+portable to older versions. Python 2.7 is not supported
 
 The goal is to have a thoroughly tested, small codebase that delegates as
 much as possible to the minio client.
@@ -120,3 +119,4 @@ dual licensed as above, without any additional terms or conditions.
 - Belek Abylov
 - Tom Houlé
 - @yml
+- Thomas Frössman
