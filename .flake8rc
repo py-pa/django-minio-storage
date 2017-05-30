@@ -1,0 +1,2 @@
+[flake8]
+exclude = docs,migrations,.git,.ropeproject,minio_storage,.cache,.tox
