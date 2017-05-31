@@ -9,6 +9,7 @@ import minio
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.core.files.storage import Storage
+from django.core.files.base import ContentFile
 from django.utils.deconstruct import deconstructible
 from minio.error import NoSuchBucket, NoSuchKey, ResponseError
 
@@ -72,7 +73,8 @@ class MinioStorage(Storage):
         if mode.find("w") > -1:
             raise NotImplementedError("Minio storage cannot write to file")
         try:
-            return self.client.get_object(self.bucket_name, name)
+            obj = self.client.get_object(self.bucket_name, name)
+            return ContentFile(obj.read())
         except ResponseError as error:
             logger.warn(error)
             raise IOError("File {} does not exist".format(name))
