@@ -106,7 +106,35 @@ class MinioStorage(Storage):
             logger.warn(error)
             raise IOError("Could not remove file {}".format(name))
 
+    def _folder_exists(self, name):
+        # Working around shortcoming of minio implementation described here:
+        # https://github.com/minio/minio/issues/4434
+        try:
+            objects = self.listdir(name)
+            objects.next()
+            return True
+        except StopIteration:
+            return False
+        except ResponseError as error:
+            # TODO - deprecate
+            if error.code == "NoSuchKey":
+                return False
+            else:
+                logger.warn(error)
+                raise IOError("Could not stat file {}".format(name))
+        except NoSuchKey as error:
+            return False
+        # Temporary - due to https://github.com/minio/minio-py/issues/514
+        except NoSuchBucket as error:
+            return False
+        except Exception as error:
+            logger.warn(error)
+            raise IOError("Could not stat file {}".format(name))
+
     def exists(self, name):
+        return self._object_exists(name) or self._folder_exists(name)
+
+    def _object_exists(self, name):
         # type: (str) -> bool
         try:
             self.client.stat_object(self.bucket_name, self._sanitize_path(name))
@@ -164,7 +192,7 @@ class MinioStorage(Storage):
 
             return url
         else:
-            raise IOError("This file does not exist")
+            raise IOError("This file does not exist: "+self.bucket_name + "/"+name)
 
     def accessed_time(self, name):
         # type: (str) -> datetime.datetime
