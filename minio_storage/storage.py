@@ -101,6 +101,8 @@ class MinioStorage(Storage):
             raise IOError("Could not remove file {}".format(name))
 
     def _folder_exists(self, name):
+        # Working around shortcoming of minio implementation described here:
+        # https://github.com/minio/minio/issues/4434
         try:
             objects = self.listdir(name)
             objects.next()
