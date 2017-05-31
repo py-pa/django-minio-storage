@@ -96,6 +96,8 @@ class MinioStorage(Storage):
     def _save(self, name, content):
         # (str, bytes) -> str
         try:
+            if hasattr(content, 'seek') and callable(content.seek):
+                content.seek(0)
             content_size, content_type, sane_name = self._examine_file(
                 name, content)
             self.client.put_object(self.bucket_name,

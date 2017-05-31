@@ -47,6 +47,16 @@ class UploadTests(BaseTestMixin, TestCase):
         self.assertAlmostEqual(round(res.content.__sizeof__() / 100),
                                round(f.size / 100))
 
+    def test_files_are_uploaded_from_the_beginning(self):
+        local_filename = os.path.join(settings.BASE_DIR, "watermelon-cat.jpg")
+        f = io.open(local_filename, "br")
+        f.seek(20000)
+        saved_file = self.media_storage.save("watermelon-cat.jpg", f)
+        file_size = os.stat(local_filename).st_size
+        res = requests.get(self.media_storage.url(saved_file))
+        self.assertAlmostEqual(round(res.content.__sizeof__() / 100),
+                               round(file_size / 100))
+
     def test_files_cannot_be_open_in_write_mode(self):
         test_file = self.media_storage.save("iomodetest.txt",
                                             ContentFile(b"should not change"))
