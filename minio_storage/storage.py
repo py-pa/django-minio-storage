@@ -105,7 +105,7 @@ class MinioStorage(Storage):
         # https://github.com/minio/minio/issues/4434
         try:
             objects = self.listdir(name)
-            objects.next()
+            next(objects)
             return True
         except StopIteration:
             return False
