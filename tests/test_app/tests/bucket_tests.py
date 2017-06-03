@@ -3,8 +3,10 @@ from __future__ import unicode_literals
 
 from django.core.exceptions import ImproperlyConfigured
 from django.test import TestCase, override_settings
-from minio_storage.storage import (MinioMediaStorage, MinioStaticStorage,
-                                   get_setting)
+
+from minio_storage.storage import (
+    MinioMediaStorage, MinioStaticStorage, get_setting
+)
 
 from .utils import BaseTestMixin
 

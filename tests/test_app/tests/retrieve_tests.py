@@ -5,11 +5,11 @@ import datetime
 import io
 
 import requests
-
 from django.core.files.base import ContentFile
 from django.test import TestCase, override_settings
 from minio.error import NoSuchKey
 from minio.policy import Policy
+
 from minio_storage.storage import MinioMediaStorage, MinioStaticStorage
 
 from .utils import BaseTestMixin

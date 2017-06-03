@@ -5,11 +5,11 @@ import io
 import os
 
 import requests
-
 from django.conf import settings
 from django.core.files.base import ContentFile, File
 from django.test import TestCase, override_settings
 from minio.error import ResponseError
+
 from minio_storage.storage import MinioMediaStorage
 
 from .utils import BaseTestMixin

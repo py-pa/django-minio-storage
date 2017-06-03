@@ -5,6 +5,7 @@ import os
 
 from django.core.files.base import ContentFile
 from minio import Minio
+
 from minio_storage.storage import (
     MinioMediaStorage, MinioStaticStorage, get_setting
 )
