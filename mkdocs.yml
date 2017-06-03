@@ -1,0 +1,9 @@
+site_name: django-minio-storage
+theme: readthedocs
+pages:
+    - Home: index.md
+    - Usage: usage.md
+    - Development: development.md
+    - Contributing: contributing.md
+    - Contributors: contributors.md
+    - Licences: licences.md

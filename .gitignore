@@ -11,3 +11,4 @@ env/
 .cache/
 .tox/
 .eggs/
+site/
