@@ -3,7 +3,6 @@ from __future__ import unicode_literals
 import datetime
 import mimetypes
 from logging import getLogger
-from tempfile import SpooledTemporaryFile
 from urllib.parse import urlparse
 
 import minio
@@ -13,16 +12,9 @@ from django.core.files.storage import Storage
 from django.utils.deconstruct import deconstructible
 from minio.error import NoSuchBucket, NoSuchKey, ResponseError
 
+from .files import ReadOnlySpooledTemporaryFile
+
 logger = getLogger("minio_storage")
-
-
-def get_setting(name, default=None):
-    result = getattr(settings, name, default)
-    if result is None:
-        print("Attr {} : {}".format(name, getattr(settings, name, default)))
-        raise ImproperlyConfigured
-    else:
-        return result
 
 
 @deconstructible
@@ -33,26 +25,27 @@ class MinioStorage(Storage):
     https://docs.djangoproject.com/en/dev/ref/files/storage/.
 
     """
+    file_class = ReadOnlySpooledTemporaryFile
 
-    def __init__(self):
-        self.endpoint = get_setting("MINIO_STORAGE_ENDPOINT")
-        self.access_key = get_setting("MINIO_STORAGE_ACCESS_KEY")
-        self.secret_key = get_setting("MINIO_STORAGE_SECRET_KEY")
-        self.secure = get_setting("MINIO_STORAGE_USE_HTTPS", True)
+    def __init__(self, minio_client, bucket_name, *,
+                 base_url=None, file_class=None,
+                 auto_create_bucket=False, presign_urls=False,
+                 **kwargs):
+        self.client = minio_client
+        self.bucket_name = bucket_name
+        self.base_url = base_url
 
-        self.partial_url = get_setting("MINIO_PARTIAL_URL", False)
-        self.partial_url_base = get_setting("MINIO_PARTIAL_URL_BASE", None)
+        if file_class is not None:
+            self.file_class = file_class
+        self.auto_create_bucket = auto_create_bucket
 
-        if self.partial_url and not self.partial_url_base:
-            raise NotImplementedError(
-                'MINIO_PARTIAL_URL_BASE must be provided '
-                'when MINIO_PARTIAL_URL is set to True')
+        self.presign_urls = presign_urls
 
-        self.client = minio.Minio(self.endpoint,
-                                  access_key=self.access_key,
-                                  secret_key=self.secret_key,
-                                  secure=self.secure)
-
+        if auto_create_bucket and not self.client.bucket_exists(
+                self.bucket_name):
+            self.client.make_bucket(self.bucket_name)
+        elif not self.client.bucket_exists(self.bucket_name):
+            raise IOError("The bucket {} does not exist".format(bucket_name))
         super(MinioStorage, self).__init__()
 
     def _sanitize_path(self, name):
@@ -72,26 +65,8 @@ class MinioStorage(Storage):
         return (content_size, content_type, sane_name)
 
     def _open(self, name, mode="rb"):
-        if mode.find("w") > -1:
-            raise NotImplementedError("Minio storage cannot write to file")
-        try:
-            obj = self.client.get_object(self.bucket_name, name)
-            # Load the key into a temporary file. It would be nice to stream
-            # the content, but Minio doesn't support seeking, which is
-            # sometimes needed.
-            content = SpooledTemporaryFile(max_size=1024 * 1024 * 10)  # 10 MB.
-            for d in obj.stream(amt=1024 * 1024):
-                content.write(d)
-            content.seek(0)
-            return content
-        except ResponseError as error:
-            logger.warn(error)
-            raise IOError("File {} does not exist".format(name))
-        finally:
-            try:
-                obj.release_conn()
-            except Exception as e:
-                logger.error(str(e))
+        f = self.file_class(name, mode, self)
+        return f
 
     def _save(self, name, content):
         # (str, bytes) -> str
@@ -162,18 +137,19 @@ class MinioStorage(Storage):
     def url(self, name):
         # type: (str) -> str
 
+        # TODO: no need to call presign unless it's used
         url = self.client.presigned_get_object(self.bucket_name, name)
 
         parsed_url = urlparse(url)
 
-        if self.partial_url and self.presigned:
+        if self.base_url is not None and self.presign_urls:
             url = '{0}{1}?{2}{3}{4}'.format(
-                self.partial_url_base, parsed_url.path, parsed_url.params,
+                self.base_url, parsed_url.path, parsed_url.params,
                 parsed_url.query, parsed_url.fragment)
 
-        if not self.presigned:
-            if self.partial_url:
-                url = '{}{}'.format(self.partial_url_base, parsed_url.path)
+        if not self.presign_urls:
+            if self.base_url is not None:
+                url = '{}{}'.format(self.base_url, parsed_url.path)
             else:
                 url = '{}://{}{}'.format(parsed_url.scheme,
                                          parsed_url.netloc, parsed_url.path)
@@ -205,35 +181,71 @@ class MinioStorage(Storage):
                 "Could not access modification time for file {}".format(name))
 
 
+_NoValue = object()
+
+
+def get_setting(name, default=_NoValue, ):
+    result = getattr(settings, name, default)
+    if result is _NoValue:
+        print("Attr {} : {}".format(name, getattr(settings, name, default)))
+        raise ImproperlyConfigured
+    else:
+        return result
+
+
+def create_minio_client_from_settings():
+    endpoint = get_setting("MINIO_STORAGE_ENDPOINT")
+    access_key = get_setting("MINIO_STORAGE_ACCESS_KEY")
+    secret_key = get_setting("MINIO_STORAGE_SECRET_KEY")
+    secure = get_setting("MINIO_STORAGE_USE_HTTPS", True)
+    client = minio.Minio(endpoint,
+                         access_key=access_key,
+                         secret_key=secret_key,
+                         secure=secure)
+    return client
+
+
+def get_base_url_from_settings():
+    partial_url = get_setting("MINIO_PARTIAL_URL", False)
+    partial_url_base = get_setting("MINIO_PARTIAL_URL_BASE", None)
+
+    if partial_url and not partial_url_base:
+        raise NotImplementedError(
+            'MINIO_PARTIAL_URL_BASE must be provided '
+            'when MINIO_PARTIAL_URL is set to True')
+    return partial_url_base
+
+
 @deconstructible
 class MinioMediaStorage(MinioStorage):
     def __init__(self):
-        super(MinioMediaStorage, self).__init__()
-        self.bucket_name = get_setting("MINIO_STORAGE_MEDIA_BUCKET_NAME")
-        self.auto_create_media_bucket = get_setting(
+        client = create_minio_client_from_settings()
+        bucket_name = get_setting("MINIO_STORAGE_MEDIA_BUCKET_NAME")
+        base_url = get_base_url_from_settings()
+        auto_create_bucket = get_setting(
             "MINIO_STORAGE_AUTO_CREATE_MEDIA_BUCKET", False)
-        self.presigned = get_setting(
+        presign_urls = get_setting(
             'MINIO_STORAGE_MEDIA_USE_PRESIGNED', False)
 
-        if self.auto_create_media_bucket and not self.client.bucket_exists(
-                self.bucket_name):
-            self.client.make_bucket(self.bucket_name)
-        elif not self.client.bucket_exists(self.bucket_name):
-            raise IOError("The media bucket does not exist")
+        super(MinioMediaStorage, self).__init__(
+            client, bucket_name,
+            auto_create_bucket=auto_create_bucket,
+            base_url=base_url,
+            presign_urls=presign_urls)
 
 
 @deconstructible
 class MinioStaticStorage(MinioStorage):
     def __init__(self):
-        super(MinioStaticStorage, self).__init__()
-        self.bucket_name = get_setting("MINIO_STORAGE_STATIC_BUCKET_NAME")
-        self.auto_create_static_bucket = get_setting(
+        client = create_minio_client_from_settings()
+        base_url = get_base_url_from_settings()
+        bucket_name = get_setting("MINIO_STORAGE_STATIC_BUCKET_NAME")
+        auto_create_bucket = get_setting(
             "MINIO_STORAGE_AUTO_CREATE_STATIC_BUCKET", False)
-        self.presigned = get_setting(
-            'MINIO_STORAGE_STATIC_USE_PRESIGNED', False)
+        presign_urls = get_setting('MINIO_STORAGE_STATIC_USE_PRESIGNED', False)
 
-        if self.auto_create_static_bucket and not self.client.bucket_exists(
-                self.bucket_name):
-            self.client.make_bucket(self.bucket_name)
-        elif not self.client.bucket_exists(self.bucket_name):
-            raise IOError("The static bucket does not exist")
+        super(MinioStaticStorage, self).__init__(
+            client, bucket_name,
+            auto_create_bucket=auto_create_bucket,
+            base_url=base_url,
+            presign_urls=presign_urls)

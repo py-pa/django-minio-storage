@@ -34,9 +34,6 @@ class RetrieveTestsWithRestrictedBucket(BaseTestMixin, TestCase):
         res = requests.get(url)
         self.assertEqual(res.content, b"irrelevant")
 
-    def test_partial_url(self):
-        pass
-
     def test_url_of_non_existent_object(self):
         self.media_storage.url("this does not exist")
 
@@ -96,6 +93,43 @@ class RetrieveTestsWithRestrictedBucket(BaseTestMixin, TestCase):
 
     def test_file_names_are_properly_sanitized(self):
         self.media_storage.save("./meh22222.txt", io.BytesIO(b"stuff"))
+
+
+class URLTests(TestCase):
+
+    @override_settings(
+        MINIO_STORAGE_MEDIA_USE_PRESIGNED=False,
+        MINIO_PARTIAL_URL=False,
+        MINIO_PARTIAL_URL_BASE=None,
+        MINIO_STORAGE_MEDIA_BUCKET_NAME='foo',
+    )
+    def test_no_base_url(self):
+        media_storage = MinioMediaStorage()
+        url = media_storage.url("22")
+        self.assertEqual(url, 'http://localhost:9000/foo/22')
+
+    @override_settings(
+        MINIO_STORAGE_MEDIA_USE_PRESIGNED=False,
+        MINIO_PARTIAL_URL=True,
+        MINIO_PARTIAL_URL_BASE='http://example23.com',
+        MINIO_STORAGE_MEDIA_BUCKET_NAME='foo',
+    )
+    def test_base_url(self):
+        media_storage = MinioMediaStorage()
+        url = media_storage.url("1")
+        self.assertEqual(url, 'http://example23.com/foo/1')
+
+    @override_settings(
+        MINIO_PARTIAL_URL=True,
+        MINIO_PARTIAL_URL_BASE='http://example11.com',
+        MINIO_STORAGE_MEDIA_USE_PRESIGNED=True,
+        MINIO_STORAGE_MEDIA_BUCKET_NAME='bar',
+    )
+    def test_presigned_base_url(self):
+        media_storage = MinioMediaStorage()
+        url = media_storage.url("1")
+        self.assertIn('X-Amz-Signature', url)
+        self.assertIn("http://example11.com/bar", url)
 
 
 class RetrieveTestsWithPublicBucket(BaseTestMixin, TestCase):

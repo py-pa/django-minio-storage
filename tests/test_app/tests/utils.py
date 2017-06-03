@@ -21,6 +21,14 @@ class BaseTestMixin:
     def bucket_name(name):
         return bucket_name(name)
 
+    def minio_client(self):
+        minio_client = Minio(
+            endpoint=get_setting("MINIO_STORAGE_ENDPOINT"),
+            access_key=get_setting("MINIO_STORAGE_ACCESS_KEY"),
+            secret_key=get_setting("MINIO_STORAGE_SECRET_KEY"),
+            secure=get_setting("MINIO_STORAGE_USE_HTTPS"))
+        return minio_client
+
     def setUp(self):
         self.media_storage = MinioMediaStorage()
         self.static_storage = MinioStaticStorage()
@@ -30,10 +38,7 @@ class BaseTestMixin:
                                                    ContentFile(b"nope"))
 
     def tearDown(self):
-        client = Minio(endpoint=get_setting("MINIO_STORAGE_ENDPOINT"),
-                       access_key=get_setting("MINIO_STORAGE_ACCESS_KEY"),
-                       secret_key=get_setting("MINIO_STORAGE_SECRET_KEY"),
-                       secure=get_setting("MINIO_STORAGE_USE_HTTPS"))
+        client = self.minio_client()
 
         def obliterate_bucket(name):
             for obj in client.list_objects(name, ""):
