@@ -34,8 +34,9 @@ storage adapters for S3 should work, but in practice they are hard to
 configure. This project uses the minio python client instead. Inspiration has
 been drawn from `django-s3-storage` and `django-storages`.
 
-# documentation
+# usage & documentation
 
-See [docs/](docs/index.md)
+See the [docs/](docs/) directory for all documentation files or 
+[docs/usage.md](docs/usage.md) for quick installation and usage guides.
 
 
