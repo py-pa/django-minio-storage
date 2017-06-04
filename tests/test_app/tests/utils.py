@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 import os
+import warnings
 
 from django.core.files.base import ContentFile
 from minio import Minio
@@ -9,6 +10,11 @@ from minio import Minio
 from minio_storage.storage import (
     MinioMediaStorage, MinioStaticStorage, get_setting
 )
+
+warnings.simplefilter("default")
+warnings.simplefilter("ignore", ResourceWarning)
+warnings.filterwarnings(
+    "ignore", message="This usage is deprecated, please use pytest.* instead")
 
 
 def bucket_name(name):
