@@ -11,6 +11,7 @@ from django.core.exceptions import ImproperlyConfigured
 from django.core.files.storage import Storage
 from django.utils.deconstruct import deconstructible
 from minio.error import NoSuchBucket, NoSuchKey, ResponseError
+from minio.helpers import get_target_url
 
 from .files import ReadOnlySpooledTemporaryFile
 
@@ -137,23 +138,38 @@ class MinioStorage(Storage):
     def url(self, name):
         # type: (str) -> str
 
-        # TODO: no need to call presign unless it's used
-        url = self.client.presigned_get_object(self.bucket_name, name)
-
-        parsed_url = urlparse(url)
-
-        if self.base_url is not None and self.presign_urls:
-            url = '{0}{1}?{2}{3}{4}'.format(
-                self.base_url, parsed_url.path, parsed_url.params,
-                parsed_url.query, parsed_url.fragment)
-
-        if not self.presign_urls:
+        # NOTE: Here be dragons, when a external base_url is used the code
+        # below is both using "internal" minio clint APIs and somewhat
+        # subverting how minio/S3 expects urls to be generated in the first
+        # place.
+        if self.presign_urls:
+            url = self.client.presigned_get_object(self.bucket_name, name)
             if self.base_url is not None:
-                url = '{}{}'.format(self.base_url, parsed_url.path)
-            else:
-                url = '{}://{}{}'.format(parsed_url.scheme,
-                                         parsed_url.netloc, parsed_url.path)
+                parsed_url = urlparse(url)
+                path = parsed_url.path.split(self.bucket_name, 1)[1]
+                url = '{0}{1}?{2}{3}{4}'.format(
+                    self.base_url, path, parsed_url.params,
+                    parsed_url.query, parsed_url.fragment)
 
+        else:
+            if self.base_url is not None:
+                def strip_beg(path):
+                    while path.startswith('/'):
+                        path = path[1:]
+                    return path
+
+                def strip_end(path):
+                    while path.endswith('/'):
+                        path = path[:-1]
+                    return path
+                url = "{}/{}".format(strip_end(self.base_url),
+                                     strip_beg(name))
+            else:
+                url = get_target_url(self.client._endpoint_url,
+                                     bucket_name=self.bucket_name,
+                                     object_name=name,
+                                     # bucket_region=region,
+                                     )
         return url
 
     def accessed_time(self, name):
@@ -205,23 +221,12 @@ def create_minio_client_from_settings():
     return client
 
 
-def get_base_url_from_settings():
-    partial_url = get_setting("MINIO_PARTIAL_URL", False)
-    partial_url_base = get_setting("MINIO_PARTIAL_URL_BASE", None)
-
-    if partial_url and not partial_url_base:
-        raise NotImplementedError(
-            'MINIO_PARTIAL_URL_BASE must be provided '
-            'when MINIO_PARTIAL_URL is set to True')
-    return partial_url_base
-
-
 @deconstructible
 class MinioMediaStorage(MinioStorage):
     def __init__(self):
         client = create_minio_client_from_settings()
         bucket_name = get_setting("MINIO_STORAGE_MEDIA_BUCKET_NAME")
-        base_url = get_base_url_from_settings()
+        base_url = get_setting("MINIO_STORAGE_MEDIA_URL", None)
         auto_create_bucket = get_setting(
             "MINIO_STORAGE_AUTO_CREATE_MEDIA_BUCKET", False)
         presign_urls = get_setting(
@@ -238,7 +243,7 @@ class MinioMediaStorage(MinioStorage):
 class MinioStaticStorage(MinioStorage):
     def __init__(self):
         client = create_minio_client_from_settings()
-        base_url = get_base_url_from_settings()
+        base_url = get_setting("MINIO_STORAGE_STATIC_URL", None)
         bucket_name = get_setting("MINIO_STORAGE_STATIC_BUCKET_NAME")
         auto_create_bucket = get_setting(
             "MINIO_STORAGE_AUTO_CREATE_STATIC_BUCKET", False)

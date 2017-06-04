@@ -42,8 +42,10 @@ MINIO_STORAGE_AUTO_CREATE_STATIC_BUCKET = True
 MINIO_STORAGE_STATIC_BUCKET_NAME = bucket_name("tests-static")
 MINIO_STORAGE_USE_HTTPS = False
 
-MINIO_PARTIAL_URL = True
-MINIO_PARTIAL_URL_BASE = 'http://localhost:9000'
+MINIO_STORAGE_MEDIA_URL = 'http://localhost:9000/{}'.format(
+    bucket_name("tests-media"))
+# MINIO_STATIC_URL = 'http://localhost:9000/{}'.format(
+#     bucket_name("tests-static"))
 
 # MINIO_STORAGE_MEDIA_USE_PRESIGNED = True
 # MINIO_STORAGE_STATIC_USE_PRESIGNED = True

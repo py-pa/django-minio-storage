@@ -32,14 +32,23 @@ The following settings are available:
 - `MINIO_STORAGE_AUTO_CREATE_STATIC_BUCKET`: whether to create the bucket if it
   does not already exist (default: `False`)
 
-- `MINIO_PARTIAL_URL`: by default a `MINIO_STORAGE_ENDPOINT` is used as a base
-  for file URLs. However when deployed in docker cluster, it is desired to
-  return only the path and combine with `MINIO_PARTIAL_URL_BASE` (default:
-  `False`)
+- `MINIO_STORAGE_MEDIA_URL`: the base URL for generating urls to objects from
+  `MinioMediaStorage`. When not specified or set to `None` it's value will be
+  combined from `MINIO_STORAGE_ENDPOINT` and `MINIO_STORAGE_MEDIA_BUCKET_NAME`.
+  `MINIO_STORAGE_MEDIA_URL` should contain the full base url including the
+  bucket name without a trailing slash. Please not that when using presigned
+  URLs, the URL itself is a part of the calculated signature so be careful with
+  how `MINIO_STORAGE_MEDIA_URL` is used, normally it doest have to be set at
+  all.
 
-- `MINIO_PARTIAL_URL_BASE`: base for the file's URL. It must be a valid URI
-  without trailing slash at the end, e.g. 'http://example.com' or
-  'http://localhost:9000'
+- `MINIO_STORAGE_STATIC_URL`: the base URL for generating urls to objects from
+  `MinioStaticStorage`. When not specified or set to `None` it's value will be
+  combined from `MINIO_STORAGE_ENDPOINT` and
+  `MINIO_STORAGE_STATIC_BUCKET_NAME`. `MINIO_STORAGE_STATIC_URL` should contain
+  the full base url including the bucket name without a trailing slash. Please
+  not that when using presigned URLs, the URL itself is a part of the
+  calculated signature so be careful with how `MINIO_STORAGE_STATIC_URL` is
+  used, normally it doest have to be set at all.
 
 - `MINIO_STORAGE_MEDIA_USE_PRESIGNED`: Determines if the media file URLs should
   be pre-signed (default: `False`)
@@ -64,8 +73,8 @@ MINIO_STORAGE_AUTO_CREATE_MEDIA_BUCKET = True
 MINIO_STORAGE_STATIC_BUCKET_NAME = 'local-static'
 MINIO_STORAGE_AUTO_CREATE_STATIC_BUCKET = True
 
-MINIO_PARTIAL_URL = True
-MINIO_PARTIAL_URL_BASE = 'http://localhost:9000'
+MINIO_MEDIA_URL = 'http://localhost:9000/local-media'
+MINIO_STATIC_URL = 'http://localhost:9000/local-static'
 ```
 
 ## Logging

@@ -99,8 +99,7 @@ class URLTests(TestCase):
 
     @override_settings(
         MINIO_STORAGE_MEDIA_USE_PRESIGNED=False,
-        MINIO_PARTIAL_URL=False,
-        MINIO_PARTIAL_URL_BASE=None,
+        MINIO_STORAGE_MEDIA_URL=None,
         MINIO_STORAGE_MEDIA_BUCKET_NAME='foo',
     )
     def test_no_base_url(self):
@@ -110,26 +109,60 @@ class URLTests(TestCase):
 
     @override_settings(
         MINIO_STORAGE_MEDIA_USE_PRESIGNED=False,
-        MINIO_PARTIAL_URL=True,
-        MINIO_PARTIAL_URL_BASE='http://example23.com',
+        MINIO_STORAGE_MEDIA_URL=None,
         MINIO_STORAGE_MEDIA_BUCKET_NAME='foo',
+    )
+    def test_no_base_url_subpath(self):
+        media_storage = MinioMediaStorage()
+        name = "23/23/aaa/bbb/22"
+        url = media_storage.url(name)
+        self.assertEqual(url, 'http://localhost:9000/foo/23/23/aaa/bbb/22')
+
+    @override_settings(
+        MINIO_STORAGE_MEDIA_USE_PRESIGNED=False,
+        MINIO_STORAGE_MEDIA_URL='https://example23.com/foo',
+        MINIO_STORAGE_MEDIA_BUCKET_NAME='bar',
     )
     def test_base_url(self):
         media_storage = MinioMediaStorage()
         url = media_storage.url("1")
-        self.assertEqual(url, 'http://example23.com/foo/1')
+        self.assertEqual(url, 'https://example23.com/foo/1')
 
     @override_settings(
-        MINIO_PARTIAL_URL=True,
-        MINIO_PARTIAL_URL_BASE='http://example11.com',
+        MINIO_STORAGE_MEDIA_USE_PRESIGNED=False,
+        MINIO_STORAGE_MEDIA_URL='https://example23.com/foo',
+        MINIO_STORAGE_MEDIA_BUCKET_NAME='bar',
+    )
+    def test_base_url_subpath(self):
+        media_storage = MinioMediaStorage()
+        url = media_storage.url("1/2/3/4")
+        self.assertEqual(url, 'https://example23.com/foo/1/2/3/4')
+
+    @override_settings(
+        MINIO_STORAGE_MEDIA_URL='http://example11.com/foo',
         MINIO_STORAGE_MEDIA_USE_PRESIGNED=True,
         MINIO_STORAGE_MEDIA_BUCKET_NAME='bar',
     )
     def test_presigned_base_url(self):
+        # The url generated here probably doenst work in a real situation
         media_storage = MinioMediaStorage()
         url = media_storage.url("1")
         self.assertIn('X-Amz-Signature', url)
-        self.assertIn("http://example11.com/bar", url)
+        self.assertIn("http://example11.com/foo", url)
+
+    @override_settings(
+        MINIO_STORAGE_MEDIA_URL='http://example11.com/foo',
+        MINIO_STORAGE_MEDIA_USE_PRESIGNED=True,
+        MINIO_STORAGE_MEDIA_BUCKET_NAME='bar',
+    )
+    def test_presigned_base_url_subpath(self):
+        # The url generated here probably doenst work in a real situation
+        media_storage = MinioMediaStorage()
+        name = "1/555/666/777"
+        url = media_storage.url(name)
+        self.assertIn('X-Amz-Signature', url)
+        self.assertIn("http://example11.com/foo", url)
+        self.assertIn(name, url)
 
 
 class RetrieveTestsWithPublicBucket(BaseTestMixin, TestCase):
