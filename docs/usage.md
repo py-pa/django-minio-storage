@@ -14,7 +14,7 @@ The last step is setting `DEFAULT_FILE_STORAGE` to
 
 The following settings are available:
 
-- `MINIO_STORAGE_ENDPOINT`: the access url for the service (for example
+- `MINIO_STORAGE_ENDPOINT`: the access URL for the service (for example
   `minio.example.org:9000` (note that there is no scheme)).
 
 - `MINIO_STORAGE_ACCESS_KEY` and `MINIO_STORAGE_SECRET_KEY` (mandatory)
@@ -38,17 +38,17 @@ The following settings are available:
   `MINIO_STORAGE_MEDIA_URL` should contain the full base url including the
   bucket name without a trailing slash. Please not that when using presigned
   URLs, the URL itself is a part of the calculated signature so be careful with
-  how `MINIO_STORAGE_MEDIA_URL` is used, normally it doest have to be set at
-  all.
+  how `MINIO_STORAGE_MEDIA_URL` is used, normally it should not have to be set
+  at all.
 
-- `MINIO_STORAGE_STATIC_URL`: the base URL for generating urls to objects from
+- `MINIO_STORAGE_STATIC_URL`: the base URL for generating URLs to objects from
   `MinioStaticStorage`. When not specified or set to `None` it's value will be
   combined from `MINIO_STORAGE_ENDPOINT` and
   `MINIO_STORAGE_STATIC_BUCKET_NAME`. `MINIO_STORAGE_STATIC_URL` should contain
   the full base url including the bucket name without a trailing slash. Please
   not that when using presigned URLs, the URL itself is a part of the
   calculated signature so be careful with how `MINIO_STORAGE_STATIC_URL` is
-  used, normally it doest have to be set at all.
+  used, normally it should not have to be set at all.
 
 - `MINIO_STORAGE_MEDIA_USE_PRESIGNED`: Determines if the media file URLs should
   be pre-signed (default: `False`)
@@ -80,4 +80,4 @@ MINIO_STATIC_URL = 'http://localhost:9000/local-static'
 ## Logging
 
 The library defines a logger with the name `minio_storage` that you can add to
-your django logging configuration.
+your Django logging configuration.

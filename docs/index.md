@@ -13,7 +13,7 @@ project uses the minio python client instead. Inspiration has been drawn from
 CI is currenlty executed on Python 3.4-3.6 and Django 1.8-1.11.
 Python 2.7 is (right now) not officially supported.
 
-The goal is to have a thoroughly tested, small codebase that delegates as much
+The goal is to have a thoroughly tested, small code base that delegates as much
 as possible to the minio client.
 
 - Release versioning is semver compliant.
