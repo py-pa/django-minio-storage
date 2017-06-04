@@ -1,6 +1,7 @@
 # encoding: utf-8
 from __future__ import unicode_literals
 
+import hashlib
 import os
 import warnings
 
@@ -18,7 +19,9 @@ warnings.filterwarnings(
 
 
 def bucket_name(name):
-    return "".join([name, os.getenv("TOX_ENVNAME", "")])
+    env_name = os.getenv("TOX_ENVNAME", "").encode('utf-8')
+    env_hash = hashlib.md5(env_name).hexdigest()
+    return "".join([name, env_hash])
 
 
 class BaseTestMixin:

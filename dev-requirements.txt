@@ -1,5 +1,4 @@
 coverage
-minio==2.2.2
 mock
 requests
 
