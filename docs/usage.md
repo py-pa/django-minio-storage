@@ -10,7 +10,7 @@ The last step is setting `DEFAULT_FILE_STORAGE` to
 `"minio_storage.storage.MinioMediaStorage"`, and `STATICFILES_STORAGE` to
 `"minio_storage.storage.MinioStaticStorage"`.
 
-## Configuration
+## Django settings Configuration
 
 The following settings are available:
 
@@ -19,7 +19,10 @@ The following settings are available:
 
 - `MINIO_STORAGE_ACCESS_KEY` and `MINIO_STORAGE_SECRET_KEY` (mandatory)
 
-- `MINIO_STORAGE_USE_HTTPS`: whether to use TLS or not (default: `True`)
+- `MINIO_STORAGE_USE_HTTPS`: whether to use TLS or not (default: `True`). This
+  affect both how how Django internally communicates with the Minio server AND
+  controls if the generated the storage object URLs uses `http://` or
+  `https://` schemes.
 
 - `MINIO_STORAGE_MEDIA_BUCKET_NAME`: the bucket that will act as `MEDIA` folder
 
@@ -73,8 +76,9 @@ MINIO_STORAGE_AUTO_CREATE_MEDIA_BUCKET = True
 MINIO_STORAGE_STATIC_BUCKET_NAME = 'local-static'
 MINIO_STORAGE_AUTO_CREATE_STATIC_BUCKET = True
 
-MINIO_MEDIA_URL = 'http://localhost:9000/local-media'
-MINIO_STATIC_URL = 'http://localhost:9000/local-static'
+# These settings should generally not be used:
+# MINIO_STORAGE_MEDIA_URL = 'http://localhost:9000/local-media'
+# MINIO_STORAGE_STATIC_URL = 'http://localhost:9000/local-static'
 ```
 
 ## Logging
