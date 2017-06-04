@@ -1,29 +1,9 @@
 # django-minio-storage
 
+[![PyPI version](https://badge.fury.io/py/django-minio-storage-py-pa.svg)](https://badge.fury.io/py/django-minio-storage-py-pa)
+[![Documentation Status](http://readthedocs.org/projects/django-minio-storage/badge/?version=latest)](http://django-minio-storage.readthedocs.io/en/latest/?badge=latest)
 [![Build Status](https://travis-ci.org/py-pa/django-minio-storage.svg?branch=master)](https://travis-ci.org/py-pa/django-minio-storage)
-
-# IMPORTANT NOTE ABOUT THIS FORK
-
-- This is a fork https://github.com/tomhoule/django-minio-storage with fixes
-  and improvements.
-
-- The final goal of this fork is do fixes and make the project ready to be
-  maintained by [jazzband](https://jazzband.co/).
-
-- Avoiding forking is always preferable so if the original maintainer can get
-  involved in this process we would be very happy.
-
-- This fork attempts to not break API's which exists in release versions unless
-  the API's themselves are broken.
-
-- This fork currently does not officially support python 2, if the original
-  maintainer gets involved and strongly disagree with this decision py2 support
-  can be reinstated (No active removal has been done except for the Travis)
-
-- Depending on future maintainer circumstances **this repository might be fully
-  removed or moved** and **the -py-pa suffixed packages released to pypi.org
-  will stop being published and in removed 6 months after the last published
-  version.**
+  
 
 # django-minio-storage
 
@@ -34,9 +14,16 @@ storage adapters for S3 should work, but in practice they are hard to
 configure. This project uses the minio python client instead. Inspiration has
 been drawn from `django-s3-storage` and `django-storages`.
 
+# IMPORTANT NOTE ABOUT THIS FORK
+
+The page belo contains important information about this fork, it is considered
+to be valid until this notice and the page is removed:
+
+[http://django-minio-storage.readthedocs.io/en/latest/fork](http://django-minio-storage.readthedocs.io/en/latest/fork)
+
 # usage & documentation
 
-See the [docs/](docs/) directory for all documentation files or 
-[docs/usage.md](docs/usage.md) for quick installation and usage guides.
-
+See
+[http://django-minio-storage.readthedocs.io/en/latest/](http://django-minio-storage.readthedocs.io/en/latest/) for
+documentation and usage guides.
 
