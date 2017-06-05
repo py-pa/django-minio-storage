@@ -5,7 +5,8 @@ from minio_storage import __version__
 
 version_str = ".".join(str(n) for n in __version__)
 
-
+# Python 2.7 compat
+# -*- coding: utf-8 -*-
 setup(
     name="django-minio-storage",
     version=version_str,
