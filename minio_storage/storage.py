@@ -3,12 +3,16 @@ from __future__ import unicode_literals
 import datetime
 import mimetypes
 from logging import getLogger
-from urllib.parse import urlparse
+try:
+    from urllib.parse import urlparse
+except ImportError:
+    from urlparse import urlparse
 
 import minio
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.core.files.storage import Storage
+from django.core.files.base import ContentFile
 from django.utils.deconstruct import deconstructible
 from minio.error import NoSuchBucket, NoSuchKey, ResponseError
 
@@ -72,7 +76,8 @@ class MinioStorage(Storage):
         if mode.find("w") > -1:
             raise NotImplementedError("Minio storage cannot write to file")
         try:
-            return self.client.get_object(self.bucket_name, name)
+            obj = self.client.get_object(self.bucket_name, name)
+            return ContentFile(obj.read())
         except ResponseError as error:
             logger.warn(error)
             raise IOError("File {} does not exist".format(name))
@@ -80,6 +85,7 @@ class MinioStorage(Storage):
     def _save(self, name, content):
         # (str, bytes) -> str
         try:
+            content.open()
             content_size, content_type, sane_name = self._examine_file(name, content)
             self.client.put_object(self.bucket_name,
                                    sane_name,
