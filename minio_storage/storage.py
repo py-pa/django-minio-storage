@@ -104,6 +104,7 @@ class MinioStorage(Storage):
         # Working around shortcoming of minio implementation described here:
         # https://github.com/minio/minio/issues/4434
         try:
+            name = name.rstrip('/')+'/' # Make sure we search for folder, not file that may exist with such prefix
             objects = self.listdir(name)
             objects.next()
             return True
@@ -169,24 +170,21 @@ class MinioStorage(Storage):
 
     def url(self, name):
         # type: (str) -> str
-        if self.exists(name):
-            url = self.client.presigned_get_object(self.bucket_name, name)
+        url = self.client.presigned_get_object(self.bucket_name, name)
 
-            parsed_url = urlparse(url)
+        parsed_url = urlparse(url)
 
-            if self.partial_url and self.presigned:
-                url = '{0}{1}?{2}{3}{4}'.format(self.partial_url_base, parsed_url.path, parsed_url.params,
-                                                parsed_url.query, parsed_url.fragment)
+        if self.partial_url and self.presigned:
+            url = '{0}{1}?{2}{3}{4}'.format(self.partial_url_base, parsed_url.path, parsed_url.params,
+                                            parsed_url.query, parsed_url.fragment)
 
-            if not self.presigned:
-                if self.partial_url:
-                    url = '{}{}'.format(self.partial_url_base, parsed_url.path)
-                else:
-                    url = '{}://{}{}'.format(parsed_url.scheme, parsed_url.netloc, parsed_url.path)
+        if not self.presigned:
+            if self.partial_url:
+                url = '{}{}'.format(self.partial_url_base, parsed_url.path)
+            else:
+                url = '{}://{}{}'.format(parsed_url.scheme, parsed_url.netloc, parsed_url.path)
 
-            return url
-        else:
-            raise IOError("This file does not exist: "+self.bucket_name + "/"+name)
+        return url
 
     def accessed_time(self, name):
         # type: (str) -> datetime.datetime
