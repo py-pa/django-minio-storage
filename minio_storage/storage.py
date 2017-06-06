@@ -106,7 +106,7 @@ class MinioStorage(Storage):
         try:
             name = name.rstrip('/')+'/' # Make sure we search for folder, not file that may exist with such prefix
             objects = self.listdir(name)
-            objects.next()
+            next(objects)
             return True
         except StopIteration:
             return False
