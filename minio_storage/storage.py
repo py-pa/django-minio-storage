@@ -3,12 +3,16 @@ from __future__ import unicode_literals
 import datetime
 import mimetypes
 from logging import getLogger
-from urllib.parse import urlparse
+try:
+    from urllib.parse import urlparse
+except ImportError:
+    from urlparse import urlparse
 
 import minio
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.core.files.storage import Storage
+from django.core.files.base import ContentFile
 from django.utils.deconstruct import deconstructible
 from minio.error import NoSuchBucket, NoSuchKey, ResponseError
 
@@ -72,7 +76,8 @@ class MinioStorage(Storage):
         if mode.find("w") > -1:
             raise NotImplementedError("Minio storage cannot write to file")
         try:
-            return self.client.get_object(self.bucket_name, name)
+            obj = self.client.get_object(self.bucket_name, name)
+            return ContentFile(obj.read())
         except ResponseError as error:
             logger.warn(error)
             raise IOError("File {} does not exist".format(name))
@@ -80,6 +85,7 @@ class MinioStorage(Storage):
     def _save(self, name, content):
         # (str, bytes) -> str
         try:
+            content.open()
             content_size, content_type, sane_name = self._examine_file(name, content)
             self.client.put_object(self.bucket_name,
                                    sane_name,
@@ -100,7 +106,36 @@ class MinioStorage(Storage):
             logger.warn(error)
             raise IOError("Could not remove file {}".format(name))
 
+    def _folder_exists(self, name):
+        # Working around shortcoming of minio implementation described here:
+        # https://github.com/minio/minio/issues/4434
+        try:
+            name = name.rstrip('/')+'/' # Make sure we search for folder, not file that may exist with such prefix
+            objects = self.listdir(name)
+            next(objects)
+            return True
+        except StopIteration:
+            return False
+        except ResponseError as error:
+            # TODO - deprecate
+            if error.code == "NoSuchKey":
+                return False
+            else:
+                logger.warn(error)
+                raise IOError("Could not stat file {}".format(name))
+        except NoSuchKey as error:
+            return False
+        # Temporary - due to https://github.com/minio/minio-py/issues/514
+        except NoSuchBucket as error:
+            return False
+        except Exception as error:
+            logger.warn(error)
+            raise IOError("Could not stat file {}".format(name))
+
     def exists(self, name):
+        return self._object_exists(name) or self._folder_exists(name)
+
+    def _object_exists(self, name):
         # type: (str) -> bool
         try:
             self.client.stat_object(self.bucket_name, self._sanitize_path(name))
@@ -141,24 +176,21 @@ class MinioStorage(Storage):
 
     def url(self, name):
         # type: (str) -> str
-        if self.exists(name):
-            url = self.client.presigned_get_object(self.bucket_name, name)
+        url = self.client.presigned_get_object(self.bucket_name, name)
 
-            parsed_url = urlparse(url)
+        parsed_url = urlparse(url)
 
-            if self.partial_url and self.presigned:
-                url = '{0}{1}?{2}{3}{4}'.format(self.partial_url_base, parsed_url.path, parsed_url.params,
-                                                parsed_url.query, parsed_url.fragment)
+        if self.partial_url and self.presigned:
+            url = '{0}{1}?{2}{3}{4}'.format(self.partial_url_base, parsed_url.path, parsed_url.params,
+                                            parsed_url.query, parsed_url.fragment)
 
-            if not self.presigned:
-                if self.partial_url:
-                    url = '{}{}'.format(self.partial_url_base, parsed_url.path)
-                else:
-                    url = '{}://{}{}'.format(parsed_url.scheme, parsed_url.netloc, parsed_url.path)
+        if not self.presigned:
+            if self.partial_url:
+                url = '{}{}'.format(self.partial_url_base, parsed_url.path)
+            else:
+                url = '{}://{}{}'.format(parsed_url.scheme, parsed_url.netloc, parsed_url.path)
 
-            return url
-        else:
-            raise IOError("This file does not exist")
+        return url
 
     def accessed_time(self, name):
         # type: (str) -> datetime.datetime
