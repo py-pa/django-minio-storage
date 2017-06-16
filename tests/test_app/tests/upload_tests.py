@@ -8,7 +8,7 @@ import requests
 from django.conf import settings
 from django.core.files.base import ContentFile, File
 from django.test import TestCase, override_settings
-from minio.error import ResponseError
+from minio.error import InvalidAccessKeyId
 
 from minio_storage.storage import MinioMediaStorage
 
@@ -29,7 +29,7 @@ class UploadTests(BaseTestMixin, TestCase):
         MINIO_STORAGE_SECRET_KEY='wrong_secret'
     )
     def test_file_upload_fail_incorrect_keys(self):
-        with self.assertRaises(ResponseError):
+        with self.assertRaises(InvalidAccessKeyId):
             MinioMediaStorage()
 
     def test_two_files_with_the_same_name_can_be_uploaded(self):
