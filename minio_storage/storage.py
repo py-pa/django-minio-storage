@@ -14,6 +14,7 @@ from django.core.exceptions import ImproperlyConfigured
 from django.core.files.storage import Storage
 from django.utils.deconstruct import deconstructible
 from minio.error import NoSuchBucket, NoSuchKey, ResponseError
+from minio.policy import Policy
 
 from minio.helpers import get_target_url
 
@@ -200,6 +201,7 @@ class MinioMediaStorage(MinioStorage):
         if self.auto_create_media_bucket and not self.client.bucket_exists(
                                                  self.bucket_name):
             self.client.make_bucket(self.bucket_name)
+            self.client.set_bucket_policy(self.bucket_name, '*', Policy.READ_ONLY)
         elif not self.client.bucket_exists(self.bucket_name):
             raise IOError("The media bucket does not exist")
 
@@ -216,5 +218,6 @@ class MinioStaticStorage(MinioStorage):
         if self.auto_create_static_bucket and not self.client.bucket_exists(
                                                  self.bucket_name):
             self.client.make_bucket(self.bucket_name)
+            self.client.set_bucket_policy(self.bucket_name, '*', Policy.READ_ONLY)
         elif not self.client.bucket_exists(self.bucket_name):
             raise IOError("The static bucket does not exist")
