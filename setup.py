@@ -2,7 +2,7 @@
 from setuptools import setup
 
 setup(
-    name="django-minio-storage-py-pa",
+    name="django-minio-storage",
     license="MIT",
     use_scm_version=True,
     description="Django file storage using the minio python client",

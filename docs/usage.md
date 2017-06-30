@@ -1,7 +1,7 @@
 ## Installation
 
 ```sh
-pip install django-minio-storage-py-pa
+pip install django-minio-storage
 ```
 
 Add `minio_storage` to `INSTALLED_APPS` in your project settings.
