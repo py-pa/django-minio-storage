@@ -1,9 +1,9 @@
+# encoding: utf-8
 from __future__ import unicode_literals
 
 import datetime
 import mimetypes
 from logging import getLogger
-from urllib.parse import urlparse
 
 import minio
 from django.conf import settings
@@ -14,6 +14,12 @@ from minio.error import NoSuchBucket, NoSuchKey, ResponseError
 from minio.helpers import get_target_url
 
 from .files import ReadOnlySpooledTemporaryFile
+
+try:
+    from urllib.parse import urlparse
+except ImportError:  # Python 2.7 compatibility
+    from urlparse import urlparse
+
 
 logger = getLogger("minio_storage")
 
@@ -28,10 +34,10 @@ class MinioStorage(Storage):
     """
     file_class = ReadOnlySpooledTemporaryFile
 
-    def __init__(self, minio_client, bucket_name, *,
+    def __init__(self, minio_client, bucket_name,
                  base_url=None, file_class=None,
                  auto_create_bucket=False, presign_urls=False,
-                 **kwargs):
+                 *args, **kwargs):
         self.client = minio_client
         self.bucket_name = bucket_name
         self.base_url = base_url
@@ -115,7 +121,6 @@ class MinioStorage(Storage):
             return False
         except Exception as error:
             logger.warn(error)
-            raise IOError("Could not stat file {}".format(name))
 
     def listdir(self, prefix):
         try:

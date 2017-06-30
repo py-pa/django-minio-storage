@@ -1,3 +1,4 @@
+# encoding: utf-8
 from setuptools import setup
 
 setup(
@@ -12,7 +13,7 @@ setup(
     setup_requires=['setuptools_scm'],
     install_requires=[
         "django>=1.8",
-        "minio>=2.2.2",
+        "minio>=2.2.3",
     ],
     extras_require={
         "test": [
