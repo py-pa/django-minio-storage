@@ -10,7 +10,7 @@ from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.core.files.storage import Storage
 from django.utils.deconstruct import deconstructible
-from minio.error import NoSuchBucket, NoSuchKey, ResponseError
+from minio.error import MinioError, NoSuchBucket, NoSuchKey, ResponseError
 from minio.helpers import get_target_url
 
 from .files import ReadOnlySpooledTemporaryFile
@@ -72,8 +72,13 @@ class MinioStorage(Storage):
         return (content_size, content_type, sane_name)
 
     def _open(self, name, mode="rb"):
-        f = self.file_class(name, mode, self)
-        return f
+        try:
+            f = self.file_class(name, mode, self)
+            return f
+        except MinioError as error:
+            logger.warn(error)
+            raise IOError(
+                "File {} could not be saved".format(name) + ' ' + str(error))
 
     def _save(self, name, content):
         # (str, bytes) -> str
