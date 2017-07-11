@@ -7,7 +7,6 @@ import io
 import requests
 from django.core.files.base import ContentFile
 from django.test import TestCase, override_settings
-from minio.error import NoSuchKey
 from minio.policy import Policy
 
 from minio_storage.storage import MinioMediaStorage, MinioStaticStorage
@@ -88,7 +87,7 @@ class RetrieveTestsWithRestrictedBucket(BaseTestMixin, TestCase):
         self.assertFalse(self.media_storage.exists("nonexistent.txt"))
 
     def test_opening_non_existing_file_raises_exception(self):
-        with self.assertRaises(NoSuchKey):
+        with self.assertRaises(IOError):
             self.media_storage.open("this does not exist")
 
     def test_file_names_are_properly_sanitized(self):
