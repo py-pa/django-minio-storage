@@ -2,7 +2,9 @@ import tempfile
 from logging import getLogger
 
 from django.core.files.base import File
-from minio.error import ResponseError
+from minio import error as merr
+
+from .errors import minio_error
 
 logger = getLogger("minio_storage")
 
@@ -63,7 +65,7 @@ of the current issue too much. Tests will be added soon."""
                     self._storage.bucket_name, self.name)
                 self._file = obj
                 return self._file
-            except ResponseError as error:
+            except merr.ResponseError as error:
                 logger.warn(error)
                 raise IOError("File {} does not exist".format(self.name))
             finally:
@@ -109,9 +111,9 @@ SpooledTemporaryFile. """
                     self._file.write(d)
                 self._file.seek(0)
                 return self._file
-            except ResponseError as error:
-                logger.warn(error)
-                raise IOError("File {} does not exist".format(self.name))
+            except merr.ResponseError as error:
+                raise minio_error(
+                    "File {} does not exist".format(self.name), error)
             finally:
                 try:
                     obj.release_conn()

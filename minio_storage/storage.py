@@ -6,13 +6,14 @@ import mimetypes
 from logging import getLogger
 
 import minio
+import minio.error as merr
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.core.files.storage import Storage
 from django.utils.deconstruct import deconstructible
-from minio.error import NoSuchBucket, NoSuchKey, ResponseError
 from minio.helpers import get_target_url
 
+from .errors import minio_error
 from .files import ReadOnlySpooledTemporaryFile
 
 try:
@@ -72,7 +73,11 @@ class MinioStorage(Storage):
         return (content_size, content_type, sane_name)
 
     def _open(self, name, mode="rb"):
-        f = self.file_class(name, mode, self)
+        try:
+            f = self.file_class(name, mode, self)
+        except merr.MinioError as e:
+            raise minio_error(
+                "File {} could not be saved: {}".format(name, str(e)), e)
         return f
 
     def _save(self, name, content):
@@ -88,18 +93,15 @@ class MinioStorage(Storage):
                                    content_size,
                                    content_type)
             return sane_name
-        except ResponseError as error:
-            logger.warn(error)
-            raise IOError("File {} could not be saved".format(name))
+        except merr.ResponseError as error:
+            raise minio_error("File {} could not be saved".format(name), error)
 
     def delete(self, name):
         # type: (str) -> None
         try:
             self.client.remove_object(self.bucket_name, name)
-        except ResponseError as error:
-            logger.warn("Object deletion failed")
-            logger.warn(error)
-            raise IOError("Could not remove file {}".format(name))
+        except merr.ResponseError as error:
+            raise minio_error("Could not remove file {}".format(name), error)
 
     def exists(self, name):
         # type: (str) -> bool
@@ -107,38 +109,38 @@ class MinioStorage(Storage):
             self.client.stat_object(
                 self.bucket_name, self._sanitize_path(name))
             return True
-        except ResponseError as error:
+        except merr.ResponseError as error:
             # TODO - deprecate
             if error.code == "NoSuchKey":
                 return False
             else:
-                logger.warn(error)
-                raise IOError("Could not stat file {}".format(name))
-        except NoSuchKey as error:
+                raise minio_error("Could not stat file {}".format(name), error)
+        except merr.NoSuchKey as error:
             return False
-        # Temporary - due to https://github.com/minio/minio-py/issues/514
-        except NoSuchBucket as error:
-            return False
+        except merr.NoSuchBucket:
+            raise
         except Exception as error:
-            logger.warn(error)
+            logger.error(error)
 
     def listdir(self, prefix):
         try:
             # TODO: break the path
             objects = self.client.list_objects(self.bucket_name, prefix)
             return objects
-        except ResponseError as error:
-            logger.warn(error)
-            raise IOError("Could not list directory {}".format(prefix))
+        except merr.NoSuchBucket:
+            raise
+        except merr.ResponseError as error:
+            raise minio_error(
+                "Could not list directory {}".format(prefix), error)
 
     def size(self, name):
         # type: (str) -> int
         try:
             info = self.client.stat_object(self.bucket_name, name)
             return info.size
-        except ResponseError as error:
-            logger.warn(error)
-            raise IOError("Could not access file size for {}".format(name))
+        except merr.ResponseError as error:
+            raise minio_error(
+                "Could not access file size for {}".format(name), error)
 
     def url(self, name):
         # type: (str) -> str
@@ -196,10 +198,10 @@ class MinioStorage(Storage):
         try:
             info = self.client.stat_object(self.bucket_name, name)
             return datetime.datetime.fromtimestamp(info.last_modified)
-        except ResponseError as error:
-            logger.warn(error)
-            raise IOError(
-                "Could not access modification time for file {}".format(name))
+        except merr.ResponseError as error:
+            raise minio_error(
+                "Could not access modification time for file {}"
+                .format(name), error)
 
 
 _NoValue = object()
