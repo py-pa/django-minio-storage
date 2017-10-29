@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import datetime
 import mimetypes
 from logging import getLogger
+from time import mktime
 
 import minio
 import minio.error as merr
@@ -197,7 +198,10 @@ class MinioStorage(Storage):
         # type: (str) -> datetime.datetime
         try:
             info = self.client.stat_object(self.bucket_name, name)
-            return datetime.datetime.fromtimestamp(info.last_modified)
+            # Minio 2.2.5 returns a time_struct, 2.2.4 returns an int
+            if isinstance(info.last_modified, (int, float)):
+                return datetime.datetime.fromtimestamp(info.last_modified)
+            return datetime.datetime.fromtimestamp(mktime(info.last_modified))
         except merr.ResponseError as error:
             raise minio_error(
                 "Could not access modification time for file {}"
