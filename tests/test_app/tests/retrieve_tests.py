@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 import datetime
 import io
+import os
 
 import requests
 from django.core.files.base import ContentFile
@@ -112,9 +113,11 @@ class URLTests(TestCase):
         MINIO_STORAGE_MEDIA_BUCKET_NAME='foo',
     )
     def test_no_base_url(self):
+        endpoint = os.getenv("MINIO_STORAGE_ENDPOINT", "minio:9000")
+        assert endpoint != ""
         media_storage = MinioMediaStorage()
         url = media_storage.url("22")
-        self.assertEqual(url, 'http://localhost:9000/foo/22')
+        self.assertEqual(url, 'http://{}/foo/22'.format(endpoint))
 
     @override_settings(
         MINIO_STORAGE_MEDIA_USE_PRESIGNED=False,
@@ -122,10 +125,13 @@ class URLTests(TestCase):
         MINIO_STORAGE_MEDIA_BUCKET_NAME='foo',
     )
     def test_no_base_url_subpath(self):
+        endpoint = os.getenv("MINIO_STORAGE_ENDPOINT", "minio:9000")
+        assert endpoint != ""
         media_storage = MinioMediaStorage()
         name = "23/23/aaa/bbb/22"
         url = media_storage.url(name)
-        self.assertEqual(url, 'http://localhost:9000/foo/23/23/aaa/bbb/22')
+        self.assertEqual(
+            url, 'http://{}/foo/23/23/aaa/bbb/22'.format(endpoint))
 
     @override_settings(
         MINIO_STORAGE_MEDIA_USE_PRESIGNED=False,

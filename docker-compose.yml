@@ -7,4 +7,4 @@ services:
             MINIO_ACCESS_KEY: weak_access_key
             MINIO_SECRET_KEY: weak_secret_key
         ports:
-            - "9000:9000"
+            - "9153:9000"
