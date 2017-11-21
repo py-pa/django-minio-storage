@@ -13,6 +13,7 @@ from django.core.exceptions import ImproperlyConfigured
 from django.core.files.storage import Storage
 from django.utils.deconstruct import deconstructible
 from minio.helpers import get_target_url
+from minio.policy import Policy
 
 from .errors import minio_error
 from .files import ReadOnlySpooledTemporaryFile
@@ -39,6 +40,7 @@ class MinioStorage(Storage):
     def __init__(self, minio_client, bucket_name,
                  base_url=None, file_class=None,
                  auto_create_bucket=False, presign_urls=False,
+                 auto_create_policy=False,
                  *args, **kwargs):
         self.client = minio_client
         self.bucket_name = bucket_name
@@ -53,6 +55,9 @@ class MinioStorage(Storage):
         if auto_create_bucket and not self.client.bucket_exists(
                 self.bucket_name):
             self.client.make_bucket(self.bucket_name)
+            if auto_create_policy:
+                self.client.set_bucket_policy(self.bucket_name,
+                                              '*', Policy.READ_ONLY)
         elif not self.client.bucket_exists(self.bucket_name):
             raise IOError("The bucket {} does not exist".format(bucket_name))
         super(MinioStorage, self).__init__()
@@ -237,12 +242,15 @@ class MinioMediaStorage(MinioStorage):
         base_url = get_setting("MINIO_STORAGE_MEDIA_URL", None)
         auto_create_bucket = get_setting(
             "MINIO_STORAGE_AUTO_CREATE_MEDIA_BUCKET", False)
+        auto_create_policy = get_setting(
+            "MINIO_STORAGE_AUTO_CREATE_MEDIA_POLICY", False)
         presign_urls = get_setting(
             'MINIO_STORAGE_MEDIA_USE_PRESIGNED', False)
 
         super(MinioMediaStorage, self).__init__(
             client, bucket_name,
             auto_create_bucket=auto_create_bucket,
+            auto_create_policy=auto_create_policy,
             base_url=base_url,
             presign_urls=presign_urls)
 
@@ -255,10 +263,14 @@ class MinioStaticStorage(MinioStorage):
         bucket_name = get_setting("MINIO_STORAGE_STATIC_BUCKET_NAME")
         auto_create_bucket = get_setting(
             "MINIO_STORAGE_AUTO_CREATE_STATIC_BUCKET", False)
+        auto_create_policy = get_setting(
+            "MINIO_STORAGE_AUTO_CREATE_STATIC_POLICY", False)
+
         presign_urls = get_setting('MINIO_STORAGE_STATIC_USE_PRESIGNED', False)
 
         super(MinioStaticStorage, self).__init__(
             client, bucket_name,
             auto_create_bucket=auto_create_bucket,
+            auto_create_policy=auto_create_policy,
             base_url=base_url,
             presign_urls=presign_urls)
