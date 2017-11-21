@@ -29,11 +29,19 @@ The following settings are available:
 - `MINIO_STORAGE_AUTO_CREATE_MEDIA_BUCKET`: whether to create the bucket if it
   does not already exist (default: `False`)
 
+- `MINIO_STORAGE_AUTO_CREATE_MEDIA_POLICY`: sets the bucket policy to public
+  read only but only after created by `MINIO_STORAGE_AUTO_CREATE_MEDIA_BUCKET`
+  (default: `False`)
+
 - `MINIO_STORAGE_STATIC_BUCKET_NAME`: the bucket that will act as `STATIC`
   folder
 
 - `MINIO_STORAGE_AUTO_CREATE_STATIC_BUCKET`: whether to create the bucket if it
   does not already exist (default: `False`)
+
+- `MINIO_STORAGE_AUTO_CREATE_STATIC_POLICY`: sets the bucket policy to public
+  read only but only after created by `MINIO_STORAGE_AUTO_CREATE_STATIC_BUCKET`
+  (default: `False`)
 
 - `MINIO_STORAGE_MEDIA_URL`: the base URL for generating urls to objects from
   `MinioMediaStorage`. When not specified or set to `None` it's value will be
