@@ -1,2 +1,2 @@
 [flake8]
-exclude = docs,migrations,.git,.ropeproject,.cache,.tox
+exclude = docs,migrations,.git,.ropeproject,.cache,.tox,.eggs
