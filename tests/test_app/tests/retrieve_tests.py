@@ -9,7 +9,7 @@ import requests
 from django.core.files.base import ContentFile
 from django.test import TestCase, override_settings
 from minio.error import NoSuchKey
-from minio.policy import Policy
+#from minio.policy import Policy
 
 from minio_storage.errors import MinIOError
 from minio_storage.storage import MinioMediaStorage, MinioStaticStorage
@@ -187,10 +187,11 @@ class RetrieveTestsWithPublicBucket(BaseTestMixin, TestCase):
         self.static_storage = MinioStaticStorage()
         self.new_file = self.media_storage.save("test-file",
                                                 ContentFile(b"yep"))
+                                                
         self.media_storage.client.set_bucket_policy(
-            self.media_storage.bucket_name, '', Policy.READ_WRITE)
+            self.media_storage.bucket_name, self.media_storage._policy(self.media_storage.bucket_name, "READ_WRITE"))
         self.static_storage.client.set_bucket_policy(
-            self.static_storage.bucket_name, '', Policy.READ_WRITE)
+            self.static_storage.bucket_name, self.static_storage._policy(self.static_storage.bucket_name, "READ_WRITE"))
 
     def test_public_url_generation(self):
         media_test_file_name = self.media_storage.save(
