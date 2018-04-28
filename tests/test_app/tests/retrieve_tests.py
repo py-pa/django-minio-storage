@@ -189,9 +189,9 @@ class RetrieveTestsWithPublicBucket(BaseTestMixin, TestCase):
                                                 ContentFile(b"yep"))
                                                 
         self.media_storage.client.set_bucket_policy(
-            self.media_storage.bucket_name, self.media_storage._policy(self.media_storage.bucket_name, "READ_WRITE"))
+            self.media_storage.bucket_name, self.media_storage._policy("READ_WRITE"))
         self.static_storage.client.set_bucket_policy(
-            self.static_storage.bucket_name, self.static_storage._policy(self.static_storage.bucket_name, "READ_WRITE"))
+            self.static_storage.bucket_name, self.static_storage._policy("READ_WRITE"))
 
     def test_public_url_generation(self):
         media_test_file_name = self.media_storage.save(

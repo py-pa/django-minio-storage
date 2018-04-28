@@ -85,7 +85,7 @@ class MinioStorage(Storage):
                 "File {} could not be saved: {}".format(name, str(e)), e)
         return f
 
-    def _policy(self, name, type):
+    def _policy(self, type):
 
         Policy = {
             "READ_ONLY":{
@@ -96,21 +96,21 @@ class MinioStorage(Storage):
                         "Effect":"Allow",
                         "Principal":{"AWS":"*"},
                         "Action":"s3:GetBucketLocation",
-                        "Resource":"arn:aws:s3:::%s"%(name)
+                        "Resource":"arn:aws:s3:::%s"%(self.bucket_name)
                     },
                     {
                         "Sid":"",
                         "Effect":"Allow",
                         "Principal":{"AWS":"*"},
                         "Action":"s3:ListBucket",
-                        "Resource":"arn:aws:s3:::%s"%(name)
+                        "Resource":"arn:aws:s3:::%s"%(self.bucket_name)
                     },
                     {
                         "Sid":"",
                         "Effect":"Allow",
                         "Principal":{"AWS":"*"},
                         "Action":"s3:GetObject",
-                        "Resource":"arn:aws:s3:::%s/*"%(name)
+                        "Resource":"arn:aws:s3:::%s/*"%(self.bucket_name)
                     }
                 ]
             },
@@ -122,14 +122,14 @@ class MinioStorage(Storage):
                         "Effect":"Allow",
                         "Principal":{"AWS":"*"},
                         "Action":"s3:GetBucketLocation",
-                        "Resource":"arn:aws:s3:::%s"%(name)
+                        "Resource":"arn:aws:s3:::%s"%(self.bucket_name)
                     },
                     {
                         "Sid":"",
                         "Effect":"Allow",
                         "Principal":{"AWS":"*"},
                         "Action":"s3:ListBucketMultipartUploads",
-                        "Resource":"arn:aws:s3:::%s"%(name)                        
+                        "Resource":"arn:aws:s3:::%s"%(self.bucket_name)                        
                     },
                     {
                         "Sid":"",
@@ -141,7 +141,7 @@ class MinioStorage(Storage):
                             "s3:DeleteObject",
                             "s3:PutObject"
                         ],
-                        "Resource":"arn:aws:s3:::%s/*"%(name)
+                        "Resource":"arn:aws:s3:::%s/*"%(self.bucket_name)
                     }
                 ]
             },
@@ -151,21 +151,21 @@ class MinioStorage(Storage):
                     {
                         "Action": ["s3:GetBucketLocation"],
                         "Sid": "",
-                        "Resource":["arn:aws:s3:::%s"%(name)],
+                        "Resource":["arn:aws:s3:::%s"%(self.bucket_name)],
                         "Effect": "Allow",
                         "Principal": {"AWS": "*"}
                     },
                     {
                         "Action": ["s3:ListBucket"],
                         "Sid": "",
-                        "Resource":["arn:aws:s3:::%s"%(name)],                        
+                        "Resource":["arn:aws:s3:::%s"%(self.bucket_name)],                        
                         "Effect": "Allow",
                         "Principal": {"AWS": "*"}
                     },
                     {
                         "Action": ["s3:ListBucketMultipartUploads"],
                         "Sid": "",
-                        "Resource":["arn:aws:s3:::%s"%(name)],
+                        "Resource":["arn:aws:s3:::%s"%(self.bucket_name)],
                         "Effect": "Allow",
                         "Principal": {"AWS": "*"}
                     },
@@ -178,7 +178,7 @@ class MinioStorage(Storage):
                             "s3:PutObject"
                         ],
                         "Sid": "",
-                        "Resource":["arn:aws:s3:::%s/*"%(name)],
+                        "Resource":["arn:aws:s3:::%s/*"%(self.bucket_name)],
                         "Effect": "Allow",
                         "Principal": {"AWS": "*"}
                     }
