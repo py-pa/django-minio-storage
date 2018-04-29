@@ -13,7 +13,6 @@ from django.core.exceptions import ImproperlyConfigured
 from django.core.files.storage import Storage
 from django.utils.deconstruct import deconstructible
 from minio.helpers import get_target_url
-#from minio.policy import Policy //Deprecated from the minio-py api
 import json
 
 from .errors import minio_error
@@ -53,12 +52,20 @@ class MinioStorage(Storage):
 
         self.presign_urls = presign_urls
 
-        if auto_create_bucket and not self.client.bucket_exists(self.bucket_name):
+        if auto_create_bucket and not self.client.bucket_exists(
+                                        self.bucket_name):
+
             self.client.make_bucket(self.bucket_name)
+
             if auto_create_policy:
-                self.client.set_bucket_policy(self.bucket_name, self._policy(self.bucket_name, "READ_ONLY"))
+                self.client.set_bucket_policy(
+                    self.bucket_name,
+                    self._policy("READ_ONLY")
+                )
+
         elif not self.client.bucket_exists(self.bucket_name):
             raise IOError("The bucket {} does not exist".format(bucket_name))
+
         super(MinioStorage, self).__init__()
 
     def _sanitize_path(self, name):
@@ -86,86 +93,89 @@ class MinioStorage(Storage):
         return f
 
     def _policy(self, type):
-
+        """
+        Dictionary containing basic AWS Policies in JSON format
+        Policies: READ_ONLY, WRITE_ONLY, READ_WRITE
+        """
         Policy = {
-            "READ_ONLY":{
-                "Version":"2012-10-17",
-                "Statement":[
+            "READ_ONLY": {
+                "Version": "2012-10-17",
+                "Statement": [
                     {
-                        "Sid":"",
-                        "Effect":"Allow",
-                        "Principal":{"AWS":"*"},
-                        "Action":"s3:GetBucketLocation",
-                        "Resource":"arn:aws:s3:::%s"%(self.bucket_name)
+                        "Sid": "",
+                        "Effect": "Allow",
+                        "Principal": {"AWS": "*"},
+                        "Action": "s3:GetBucketLocation",
+                        "Resource": "arn:aws:s3:::%s" % (self.bucket_name)
                     },
                     {
-                        "Sid":"",
-                        "Effect":"Allow",
-                        "Principal":{"AWS":"*"},
-                        "Action":"s3:ListBucket",
-                        "Resource":"arn:aws:s3:::%s"%(self.bucket_name)
+                        "Sid": "",
+                        "Effect": "Allow",
+                        "Principal": {"AWS": "*"},
+                        "Action": "s3:ListBucket",
+                        "Resource": "arn:aws:s3:::%s" % (self.bucket_name)
                     },
                     {
-                        "Sid":"",
-                        "Effect":"Allow",
-                        "Principal":{"AWS":"*"},
-                        "Action":"s3:GetObject",
-                        "Resource":"arn:aws:s3:::%s/*"%(self.bucket_name)
+                        "Sid": "",
+                        "Effect": "Allow",
+                        "Principal": {"AWS": "*"},
+                        "Action": "s3:GetObject",
+                        "Resource": "arn:aws:s3:::%s/*" % (self.bucket_name)
                     }
                 ]
             },
             "WRITE_ONLY": {
-                "Version":"2012-10-17",
-                "Statement":[
+                "Version": "2012-10-17",
+                "Statement": [
                     {
-                        "Sid":"",
-                        "Effect":"Allow",
-                        "Principal":{"AWS":"*"},
-                        "Action":"s3:GetBucketLocation",
-                        "Resource":"arn:aws:s3:::%s"%(self.bucket_name)
+                        "Sid": "",
+                        "Effect": "Allow",
+                        "Principal": {"AWS": "*"},
+                        "Action": "s3:GetBucketLocation",
+                        "Resource": "arn:aws:s3:::%s" % (self.bucket_name)
                     },
                     {
-                        "Sid":"",
-                        "Effect":"Allow",
-                        "Principal":{"AWS":"*"},
-                        "Action":"s3:ListBucketMultipartUploads",
-                        "Resource":"arn:aws:s3:::%s"%(self.bucket_name)                        
+                        "Sid": "",
+                        "Effect": "Allow",
+                        "Principal": {"AWS": "*"},
+                        "Action": "s3:ListBucketMultipartUploads",
+                        "Resource": "arn:aws:s3:::%s" % (self.bucket_name)
                     },
                     {
-                        "Sid":"",
-                        "Effect":"Allow",
-                        "Principal":{"AWS":"*"},
-                        "Action":[
+                        "Sid": "",
+                        "Effect": "Allow",
+                        "Principal": {"AWS": "*"},
+                        "Action": [
                             "s3:ListMultipartUploadParts",
                             "s3:AbortMultipartUpload",
                             "s3:DeleteObject",
                             "s3:PutObject"
                         ],
-                        "Resource":"arn:aws:s3:::%s/*"%(self.bucket_name)
+                        "Resource": "arn:aws:s3:::%s/*" % (self.bucket_name)
                     }
                 ]
             },
             "READ_WRITE": {
-                "Version":"2012-10-17",
-                "Statement":[
+                "Version": "2012-10-17",
+                "Statement": [
                     {
                         "Action": ["s3:GetBucketLocation"],
                         "Sid": "",
-                        "Resource":["arn:aws:s3:::%s"%(self.bucket_name)],
+                        "Resource": ["arn:aws:s3:::%s" % (self.bucket_name)],
                         "Effect": "Allow",
                         "Principal": {"AWS": "*"}
                     },
                     {
                         "Action": ["s3:ListBucket"],
                         "Sid": "",
-                        "Resource":["arn:aws:s3:::%s"%(self.bucket_name)],                        
+                        "Resource": ["arn:aws:s3:::%s" % (self.bucket_name)],
                         "Effect": "Allow",
                         "Principal": {"AWS": "*"}
                     },
                     {
                         "Action": ["s3:ListBucketMultipartUploads"],
                         "Sid": "",
-                        "Resource":["arn:aws:s3:::%s"%(self.bucket_name)],
+                        "Resource": ["arn:aws:s3:::%s" % (self.bucket_name)],
                         "Effect": "Allow",
                         "Principal": {"AWS": "*"}
                     },
@@ -178,14 +188,14 @@ class MinioStorage(Storage):
                             "s3:PutObject"
                         ],
                         "Sid": "",
-                        "Resource":["arn:aws:s3:::%s/*"%(self.bucket_name)],
+                        "Resource": ["arn:aws:s3:::%s/*" % (self.bucket_name)],
                         "Effect": "Allow",
                         "Principal": {"AWS": "*"}
                     }
                 ]
             }
         }
-        
+
         return json.dumps(Policy[type])
 
     def _save(self, name, content):
