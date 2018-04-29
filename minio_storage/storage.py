@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 import datetime
+import json
 import mimetypes
 from logging import getLogger
 from time import mktime
@@ -13,7 +14,6 @@ from django.core.exceptions import ImproperlyConfigured
 from django.core.files.storage import Storage
 from django.utils.deconstruct import deconstructible
 from minio.helpers import get_target_url
-import json
 
 from .errors import minio_error
 from .files import ReadOnlySpooledTemporaryFile
