@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import datetime
 import json
 import mimetypes
+import posixpath
 from logging import getLogger
 from time import mktime
 
@@ -23,7 +24,6 @@ try:
     from urllib.parse import urlparse
 except ImportError:  # Python 2.7 compatibility
     from urlparse import urlparse
-
 
 logger = getLogger("minio_storage")
 
@@ -62,7 +62,7 @@ class MinioStorage(Storage):
         self.presign_urls = presign_urls
 
         if auto_create_bucket and not self.client.bucket_exists(
-                                        self.bucket_name):
+                self.bucket_name):
 
             self.client.make_bucket(self.bucket_name)
 
@@ -78,7 +78,12 @@ class MinioStorage(Storage):
         super(MinioStorage, self).__init__()
 
     def _sanitize_path(self, name):
-        return name.lstrip("./")
+        v = posixpath.normpath(name).replace('\\', '/')
+        if v == ".":
+            v = ""
+        if name.endswith('/') and not v.endswith('/'):
+            v += '/'
+        return v
 
     def _examine_file(self, name, content):
         """Examines a file and produces information necessary for upload.
@@ -95,7 +100,7 @@ class MinioStorage(Storage):
 
     def _open(self, name, mode="rb"):
         try:
-            f = self.file_class(name, mode, self)
+            f = self.file_class(self._sanitize_path(name), mode, self)
         except merr.MinioError as e:
             raise minio_error(
                 "File {} could not be saved: {}".format(name, str(e)), e)
