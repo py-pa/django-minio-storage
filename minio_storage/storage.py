@@ -12,6 +12,7 @@ import minio.error as merr
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.core.files.storage import Storage
+from django.utils import timezone
 from django.utils.deconstruct import deconstructible
 from minio.helpers import get_target_url
 
@@ -40,11 +41,25 @@ class MinioStorage(Storage):
     def __init__(self, minio_client, bucket_name,
                  base_url=None, file_class=None,
                  auto_create_bucket=False, presign_urls=False,
-                 auto_create_policy=False,
+                 auto_create_policy=False, safe_delete=None,
                  *args, **kwargs):
         self.client = minio_client
         self.bucket_name = bucket_name
         self.base_url = base_url
+
+        if safe_delete is None:
+            self.safe_delete = get_setting('MINIO_STORAGE_SAFE_DELETE', False)
+        else:
+            self.safe_delete = safe_delete
+
+        self.safe_delete_bucket = None
+        self.safe_delete_path = None
+        if self.safe_delete:
+            # If safe delete is desired then the related settings are mandatory
+            self.safe_delete_bucket = get_setting(
+                'MINIO_STORAGE_SAFE_DELETE_BUCKET')
+            self.safe_delete_path = get_setting(
+                'MINIO_STORAGE_SAFE_DELETE_PATH')
 
         if file_class is not None:
             self.file_class = file_class
@@ -216,6 +231,32 @@ class MinioStorage(Storage):
 
     def delete(self, name):
         # type: (str) -> None
+        if self.safe_delete:
+            try:
+                obj = self.client.get_object(self.bucket_name, name)
+            except merr.ResponseError as error:
+                raise minio_error(
+                    "Could not obtain file {} "
+                    "to make a copy of it".format(name), error)
+
+            try:
+                content_length = int(obj.getheader('Content-Length'))
+            except ValueError as error:
+                raise minio_error(
+                    "Could not safe remove file {}".format(name),
+                    error)
+
+            # Creates the backup filename
+            target_name = "{}{}".format(
+                timezone.now().strftime(self.safe_delete_path), name)
+            try:
+                self.client.put_object(
+                    self.safe_delete_bucket, target_name, obj, content_length)
+            except merr.ResponseError as error:
+                raise minio_error(
+                    "Could not make a copy of file "
+                    "{} before removing it".format(name), error)
+
         try:
             self.client.remove_object(self.bucket_name, name)
         except merr.ResponseError as error:

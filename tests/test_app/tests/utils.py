@@ -52,7 +52,7 @@ class BaseTestMixin:
         client = self.minio_client()
 
         def obliterate_bucket(name):
-            for obj in client.list_objects(name, ""):
+            for obj in client.list_objects(name, "", True):
                 client.remove_object(name, obj.object_name)
             for obj in client.list_incomplete_uploads(name, ""):  # pragma: no cover  # noqa
                 client.remove_incomplete_upload(name, obj.objectname)
