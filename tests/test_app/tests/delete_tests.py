@@ -18,12 +18,12 @@ class DeleteTests(BaseTestMixin, TestCase):
         self.assertFalse(self.media_storage.exists(test_file))
 
 
-@override_settings(MINIO_STORAGE_SAFE_DELETE=True)
+@override_settings(MINIO_STORAGE_BACKUP_ON_DELETE=True)
 @override_settings(
-    MINIO_STORAGE_SAFE_DELETE_BUCKET=settings.MINIO_STORAGE_MEDIA_BUCKET_NAME)
-@override_settings(MINIO_STORAGE_SAFE_DELETE_PATH='Recycle Bin/%Y-%m-%d/')
+    MINIO_STORAGE_BACKUP_ON_BUCKET=settings.MINIO_STORAGE_MEDIA_BUCKET_NAME)
+@override_settings(MINIO_STORAGE_BACKUP_ON_PATH='Recycle Bin/%Y-%m-%d/')
 class SafeDeleteTests(BaseTestMixin, TestCase):
-    def test_safe_file_removal(self):
+    def test_backup_on_file_removal(self):
         test_file = self.media_storage.save("should_be_removed.txt",
                                             ContentFile(b"meh"))
         self.media_storage.delete(test_file)

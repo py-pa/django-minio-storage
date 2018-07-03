@@ -41,25 +41,27 @@ class MinioStorage(Storage):
     def __init__(self, minio_client, bucket_name,
                  base_url=None, file_class=None,
                  auto_create_bucket=False, presign_urls=False,
-                 auto_create_policy=False, safe_delete=None,
+                 auto_create_policy=False, backup_on_delete=None,
                  *args, **kwargs):
         self.client = minio_client
         self.bucket_name = bucket_name
         self.base_url = base_url
 
-        if safe_delete is None:
-            self.safe_delete = get_setting('MINIO_STORAGE_SAFE_DELETE', False)
+        if backup_on_delete is None:
+            self.backup_on_delete = get_setting(
+                'MINIO_STORAGE_BACKUP_ON_DELETE', False)
         else:
-            self.safe_delete = safe_delete
+            self.backup_on_delete = backup_on_delete
 
-        self.safe_delete_bucket = None
-        self.safe_delete_path = None
-        if self.safe_delete:
-            # If safe delete is desired then the related settings are mandatory
-            self.safe_delete_bucket = get_setting(
-                'MINIO_STORAGE_SAFE_DELETE_BUCKET')
-            self.safe_delete_path = get_setting(
-                'MINIO_STORAGE_SAFE_DELETE_PATH')
+        self.backup_on_bucket = None
+        self.backup_on_path = None
+        if self.backup_on_delete:
+            # If backup on delete is desired then the related settings
+            # are mandatory
+            self.backup_on_bucket = get_setting(
+                'MINIO_STORAGE_BACKUP_ON_BUCKET')
+            self.backup_on_path = get_setting(
+                'MINIO_STORAGE_BACKUP_ON_PATH')
 
         if file_class is not None:
             self.file_class = file_class
@@ -231,7 +233,7 @@ class MinioStorage(Storage):
 
     def delete(self, name):
         # type: (str) -> None
-        if self.safe_delete:
+        if self.backup_on_delete:
             try:
                 obj = self.client.get_object(self.bucket_name, name)
             except merr.ResponseError as error:
@@ -243,15 +245,15 @@ class MinioStorage(Storage):
                 content_length = int(obj.getheader('Content-Length'))
             except ValueError as error:
                 raise minio_error(
-                    "Could not safe remove file {}".format(name),
+                    "Could not backup removed file {}".format(name),
                     error)
 
             # Creates the backup filename
             target_name = "{}{}".format(
-                timezone.now().strftime(self.safe_delete_path), name)
+                timezone.now().strftime(self.backup_on_path), name)
             try:
                 self.client.put_object(
-                    self.safe_delete_bucket, target_name, obj, content_length)
+                    self.backup_on_bucket, target_name, obj, content_length)
             except merr.ResponseError as error:
                 raise minio_error(
                     "Could not make a copy of file "
