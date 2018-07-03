@@ -18,11 +18,10 @@ class DeleteTests(BaseTestMixin, TestCase):
         self.assertFalse(self.media_storage.exists(test_file))
 
 
-@override_settings(MINIO_STORAGE_BACKUP_ON_DELETE=True)
 @override_settings(
-    MINIO_STORAGE_BACKUP_ON_BUCKET=settings.MINIO_STORAGE_MEDIA_BUCKET_NAME)
-@override_settings(MINIO_STORAGE_BACKUP_ON_PATH='Recycle Bin/%Y-%m-%d/')
-class SafeDeleteTests(BaseTestMixin, TestCase):
+    MINIO_STORAGE_MEDIA_BACKUP_BUCKET=settings.MINIO_STORAGE_MEDIA_BUCKET_NAME)
+@override_settings(MINIO_STORAGE_MEDIA_BACKUP_FORMAT='Recycle Bin/%Y-%m-%d/')
+class BackupOnDeleteTests(BaseTestMixin, TestCase):
     def test_backup_on_file_removal(self):
         test_file = self.media_storage.save("should_be_removed.txt",
                                             ContentFile(b"meh"))
@@ -32,3 +31,13 @@ class SafeDeleteTests(BaseTestMixin, TestCase):
             'Recycle Bin/%Y-%m-%d/should_be_removed.txt')
         self.assertTrue(self.media_storage.exists(removed_filename))
         self.assertFalse(self.media_storage.exists(test_file))
+
+    def test_no_backups_for_static_files_by_default(self):
+        test_file = self.static_storage.save("should_be_removed.txt",
+                                             ContentFile(b"meh"))
+        self.static_storage.delete(test_file)
+        now = timezone.now()
+        removed_filename = now.strftime(
+            'Recycle Bin/%Y-%m-%d/should_be_removed.txt')
+        self.assertFalse(self.static_storage.exists(removed_filename))
+        self.assertFalse(self.static_storage.exists(test_file))

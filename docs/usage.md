@@ -61,22 +61,18 @@ The following settings are available:
   calculated signature so be careful with how `MINIO_STORAGE_STATIC_URL` is
   used, normally it should not have to be set at all.
 
-- `MINIO_STORAGE_BACKUP_ON_DELETE`: If set to `True`, any call to `.delete()`
-  will cause the storage to make a copy of the file somewhere else before
-  actually deleting it (default: `False`).
-
-- `MINIO_STORAGE_BACKUP_ON_BUCKET`: Bucket to be used to store deleted files.
+- `MINIO_STORAGE_MEDIA_BUCKET_NAME`: Bucket to be used to store deleted files.
   The bucket **has to exists**, the storage will not try to create it.
-  Required if `MINIO_STORAGE_BACKUP_ON_DELETE` is `True`.
+  Required if `MINIO_STORAGE_MEDIA_BACKUP_FORMAT` is set.
 
-- `MINIO_STORAGE_BACKUP_ON_PATH`: Path to be used to store deleted files,
+- `MINIO_STORAGE_MEDIA_BACKUP_FORMAT`: Path to be used to store deleted files,
   the path can contain Python's `strftime` substitutes, such as `%H`, `%c` and
   others. The object name will be appended to the resulting path, without
   actually forcing another `/` at the end, so if you set this setting to
   `backup-%Y-%m_` then the resulting object name will be (e.g.)
   `backup-2018-07_my_object.data`. If you want to store the objects inside
   folders, make sure to finish this setting with a forward slash.
-  Required if `MINIO_STORAGE_BACKUP_ON_DELETE` is `True`.
+  Required if `MINIO_STORAGE_MEDIA_BUCKET_NAME` is set.
 
 - `MINIO_STORAGE_MEDIA_USE_PRESIGNED`: Determines if the media file URLs should
   be pre-signed (default: `False`)
@@ -97,12 +93,11 @@ MINIO_STORAGE_ACCESS_KEY = 'KBP6WXGPS387090EZMG8'
 MINIO_STORAGE_SECRET_KEY = 'DRjFXylyfMqn2zilAr33xORhaYz5r9e8r37XPz3A'
 MINIO_STORAGE_USE_HTTPS = False
 MINIO_STORAGE_MEDIA_BUCKET_NAME = 'local-media'
+MINIO_STORAGE_MEDIA_BACKUP_BUCKET = 'Recycle Bin'
+MINIO_STORAGE_MEDIA_BACKUP_FORMAT = '%c/'
 MINIO_STORAGE_AUTO_CREATE_MEDIA_BUCKET = True
 MINIO_STORAGE_STATIC_BUCKET_NAME = 'local-static'
 MINIO_STORAGE_AUTO_CREATE_STATIC_BUCKET = True
-MINIO_STORAGE_BACKUP_ON_DELETE = True
-MINIO_STORAGE_BACKUP_ON_BUCKET = 'Recycle Bin'
-MINIO_STORAGE_BACKUP_ON_PATH = '%c/'
 
 # These settings should generally not be used:
 # MINIO_STORAGE_MEDIA_URL = 'http://localhost:9000/local-media'
