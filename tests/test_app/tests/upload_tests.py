@@ -82,3 +82,10 @@ class UploadTests(BaseTestMixin, TestCase):
 
     def test_static_files_end_up_in_the_right_bucket(self):
         pass
+
+    def test_upload_file_beggining_with_dot(self):
+        self.media_storage.save(".hidden_file",
+                                ContentFile(b"Not really, but whatever"))
+        self.assertTrue(self.media_storage.exists('.hidden_file'))
+        self.media_storage.delete(".hidden_file")
+        self.assertFalse(self.media_storage.exists('.hidden_file'))

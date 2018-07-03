@@ -69,7 +69,9 @@ class MinioStorage(Storage):
         super(MinioStorage, self).__init__()
 
     def _sanitize_path(self, name):
-        return name.lstrip("./")
+        if name.startswith('./'):
+            return name[2:]
+        return name
 
     def _examine_file(self, name, content):
         """Examines a file and produces information necessary for upload.
