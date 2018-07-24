@@ -12,6 +12,7 @@ import minio.error as merr
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.core.files.storage import Storage
+from django.utils import timezone
 from django.utils.deconstruct import deconstructible
 from minio.helpers import get_target_url
 
@@ -40,11 +41,19 @@ class MinioStorage(Storage):
     def __init__(self, minio_client, bucket_name,
                  base_url=None, file_class=None,
                  auto_create_bucket=False, presign_urls=False,
-                 auto_create_policy=False,
+                 auto_create_policy=False, backup_format=None,
+                 backup_bucket=None,
                  *args, **kwargs):
         self.client = minio_client
         self.bucket_name = bucket_name
         self.base_url = base_url
+
+        self.backup_format = backup_format
+        self.backup_bucket = backup_bucket
+        if bool(self.backup_format) != bool(self.backup_bucket):
+            raise ImproperlyConfigured(
+                'To enable backups, make sure to set both backup format '
+                'and backup format')
 
         if file_class is not None:
             self.file_class = file_class
@@ -216,6 +225,32 @@ class MinioStorage(Storage):
 
     def delete(self, name):
         # type: (str) -> None
+        if self.backup_format and self.backup_bucket:
+            try:
+                obj = self.client.get_object(self.bucket_name, name)
+            except merr.ResponseError as error:
+                raise minio_error(
+                    "Could not obtain file {} "
+                    "to make a copy of it".format(name), error)
+
+            try:
+                content_length = int(obj.getheader('Content-Length'))
+            except ValueError as error:
+                raise minio_error(
+                    "Could not backup removed file {}".format(name),
+                    error)
+
+            # Creates the backup filename
+            target_name = "{}{}".format(
+                timezone.now().strftime(self.backup_format), name)
+            try:
+                self.client.put_object(
+                    self.backup_bucket, target_name, obj, content_length)
+            except merr.ResponseError as error:
+                raise minio_error(
+                    "Could not make a copy of file "
+                    "{} before removing it".format(name), error)
+
         try:
             self.client.remove_object(self.bucket_name, name)
         except merr.ResponseError as error:
@@ -358,13 +393,19 @@ class MinioMediaStorage(MinioStorage):
             "MINIO_STORAGE_AUTO_CREATE_MEDIA_POLICY", False)
         presign_urls = get_setting(
             'MINIO_STORAGE_MEDIA_USE_PRESIGNED', False)
+        backup_format = get_setting(
+            "MINIO_STORAGE_MEDIA_BACKUP_FORMAT", False)
+        backup_bucket = get_setting(
+            "MINIO_STORAGE_MEDIA_BACKUP_BUCKET", False)
 
         super(MinioMediaStorage, self).__init__(
             client, bucket_name,
             auto_create_bucket=auto_create_bucket,
             auto_create_policy=auto_create_policy,
             base_url=base_url,
-            presign_urls=presign_urls)
+            presign_urls=presign_urls,
+            backup_format=backup_format,
+            backup_bucket=backup_bucket)
 
 
 @deconstructible
