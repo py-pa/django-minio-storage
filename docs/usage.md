@@ -61,7 +61,7 @@ The following settings are available:
   calculated signature so be careful with how `MINIO_STORAGE_STATIC_URL` is
   used, normally it should not have to be set at all.
 
-- `MINIO_STORAGE_MEDIA_BUCKET_NAME`: Bucket to be used to store deleted files.
+- `MINIO_STORAGE_MEDIA_BACKUP_BUCKET`: Bucket to be used to store deleted files.
   The bucket **has to exists**, the storage will not try to create it.
   Required if `MINIO_STORAGE_MEDIA_BACKUP_FORMAT` is set.
 
@@ -72,7 +72,7 @@ The following settings are available:
   `backup-%Y-%m_` then the resulting object name will be (e.g.)
   `backup-2018-07_my_object.data`. If you want to store the objects inside
   folders, make sure to finish this setting with a forward slash.
-  Required if `MINIO_STORAGE_MEDIA_BUCKET_NAME` is set.
+  Required if `MINIO_STORAGE_MEDIA_BACKUP_BUCKET` is set.
 
 - `MINIO_STORAGE_MEDIA_USE_PRESIGNED`: Determines if the media file URLs should
   be pre-signed (default: `False`)
