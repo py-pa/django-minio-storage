@@ -13,7 +13,7 @@ setup(
     setup_requires=['setuptools_scm'],
     install_requires=[
         "django>=1.8",
-        "minio>=4.0.0",
+        "minio>=4.0.3",
     ],
     extras_require={
         "test": [
