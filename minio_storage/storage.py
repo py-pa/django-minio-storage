@@ -62,7 +62,7 @@ class MinioStorage(Storage):
         self.presign_urls = presign_urls
 
         if auto_create_bucket and not self.client.bucket_exists(
-                self.bucket_name):
+            self.bucket_name):
 
             self.client.make_bucket(self.bucket_name)
 
@@ -336,6 +336,7 @@ class MinioStorage(Storage):
                     while path.endswith('/'):
                         path = path[:-1]
                     return path
+
                 url = "{}/{}".format(strip_end(self.base_url),
                                      strip_beg(name))
             else:
@@ -368,7 +369,7 @@ class MinioStorage(Storage):
         except merr.ResponseError as error:
             raise minio_error(
                 "Could not access modification time for file {}"
-                .format(name), error)
+                    .format(name), error)
 
 
 _NoValue = object()
