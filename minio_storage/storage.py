@@ -300,14 +300,23 @@ class MinioStorage(Storage):
             raise minio_error(
                 "Could not access file size for {}".format(name), error)
 
-    def url(self, name):
+    def url(self, name, expires=None):
         # type: (str) -> str
 
         # NOTE: Here be dragons, when a external base_url is used the code
         # below is both using "internal" minio clint APIs and somewhat
         # subverting how minio/S3 expects urls to be generated in the first
         # place.
-        if self.presign_urls:
+        if self.presign_urls and expires is not None:
+            url = self.client.presigned_get_object(self.bucket_name, name, expires=expires)
+            if self.base_url is not None:
+                parsed_url = urlparse(url)
+                path = parsed_url.path.split(self.bucket_name, 1)[1]
+                url = '{0}{1}?{2}{3}{4}'.format(
+                    self.base_url, path, parsed_url.params,
+                    parsed_url.query, parsed_url.fragment)
+
+        elif self.presign_urls and expires is None:
             url = self.client.presigned_get_object(self.bucket_name, name)
             if self.base_url is not None:
                 parsed_url = urlparse(url)

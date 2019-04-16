@@ -178,6 +178,20 @@ class URLTests(TestCase):
         self.assertIn("http://example11.com/foo", url)
         self.assertIn(name, url)
 
+    @override_settings(
+        MINIO_STORAGE_MEDIA_URL='http://example11.com/foo',
+        MINIO_STORAGE_MEDIA_USE_PRESIGNED=True,
+        MINIO_STORAGE_MEDIA_BUCKET_NAME='dog',
+    )
+    def test_limit_url_time(self):
+        # The url generated here probably doenst work in a real situation
+        media_storage = MinioMediaStorage()
+        name = "1/555/666/777"
+        url = media_storage.url(name, expires=datetime.timedelta(seconds=10))
+        self.assertIn('X-Amz-Signature', url)
+        self.assertIn("http://example11.com/foo", url)
+        self.assertIn(name, url)
+
 
 class RetrieveTestsWithPublicBucket(BaseTestMixin, TestCase):
 
