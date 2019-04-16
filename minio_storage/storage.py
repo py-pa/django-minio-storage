@@ -61,8 +61,8 @@ class MinioStorage(Storage):
 
         self.presign_urls = presign_urls
 
-        if auto_create_bucket and not self.client.bucket_exists(
-            self.bucket_name):
+        if auto_create_bucket and not \
+                self.client.bucket_exists(self.bucket_name):
 
             self.client.make_bucket(self.bucket_name)
 
@@ -369,8 +369,8 @@ class MinioStorage(Storage):
             return datetime.datetime.fromtimestamp(mktime(info.last_modified))
         except merr.ResponseError as error:
             raise minio_error(
-                "Could not access modification time for file {}"
-                    .format(name), error)
+                "Could not access modification time for file {}".format(name),
+                error)
 
 
 _NoValue = object()
