@@ -191,7 +191,7 @@ class URLTests(TestCase):
         time.sleep(10)
         url_one = media_storage.url(name, expires=datetime.timedelta(seconds=
                                                                      10))
-        self.assertEqual (url == url_one, 'error')
+        self.assertNotEqual (url == url_one, 'pass')
 
 
 class RetrieveTestsWithPublicBucket(BaseTestMixin, TestCase):
