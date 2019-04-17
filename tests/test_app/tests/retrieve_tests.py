@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import datetime
 import io
 import os
+import time
 
 import requests
 from django.core.files.base import ContentFile
@@ -14,6 +15,7 @@ from minio_storage.errors import MinIOError
 from minio_storage.storage import MinioMediaStorage, MinioStaticStorage
 
 from .utils import BaseTestMixin
+from unittest import mock
 
 
 @override_settings(
@@ -188,9 +190,10 @@ class URLTests(TestCase):
         media_storage = MinioMediaStorage()
         name = "1/555/666/777"
         url = media_storage.url(name, expires=datetime.timedelta(seconds=10))
-        self.assertIn('X-Amz-Signature', url)
-        self.assertIn("http://example11.com/foo", url)
-        self.assertIn(name, url)
+        time.sleep(10)
+        url_one = media_storage.url(name, expires=datetime.timedelta(seconds=
+                                                                     10))
+        self.assertEqual (url == url_one, 'error')
 
 
 class RetrieveTestsWithPublicBucket(BaseTestMixin, TestCase):

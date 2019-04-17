@@ -310,12 +310,10 @@ class MinioStorage(Storage):
         if self.presign_urls and expires is not None:
             url = self.client.presigned_get_object(self.bucket_name, name,
                                                    expires=expires)
-            if self.base_url is not None:
-                parsed_url = urlparse(url)
-                path = parsed_url.path.split(self.bucket_name, 1)[1]
-                url = '{0}{1}?{2}{3}{4}'.format(
-                    self.base_url, path, parsed_url.params,
-                    parsed_url.query, parsed_url.fragment)
+
+        elif self.presign_urls is None and expires is not None:
+            url = self.client.presigned_get_object(self.bucket_name, name,
+                                                   expires=expires)
 
         elif self.presign_urls and expires is None:
             url = self.client.presigned_get_object(self.bucket_name, name)
