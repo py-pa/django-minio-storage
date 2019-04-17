@@ -16,10 +16,9 @@ from minio_storage.storage import MinioMediaStorage, MinioStaticStorage
 
 from .utils import BaseTestMixin
 
-@override_settings(
-    MINIO_STORAGE_MEDIA_USE_PRESIGNED=True,
-    MINIO_STORAGE_STATIC_USE_PRESIGNED=True,
-)
+
+@override_settings(MINIO_STORAGE_MEDIA_USE_PRESIGNED=True,
+                   MINIO_STORAGE_STATIC_USE_PRESIGNED=True, )
 class RetrieveTestsWithRestrictedBucket(BaseTestMixin, TestCase):
 
     def test_presigned_url_generation(self):
@@ -189,9 +188,9 @@ class URLTests(TestCase):
         name = "1/555/666/777"
         url = media_storage.url(name, expires=datetime.timedelta(seconds=10))
         time.sleep(10)
-        url_one = media_storage.url(name, expires=datetime.timedelta(seconds=
-                                                                     10))
-        self.assertNotEqual (url == url_one, 'pass')
+        url_one = media_storage.url(name, expires=datetime.timedelta(
+            seconds=10))
+        self.assertNotEqual(url == url_one, 'pass')
 
 
 class RetrieveTestsWithPublicBucket(BaseTestMixin, TestCase):
