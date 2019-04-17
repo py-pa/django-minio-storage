@@ -15,8 +15,6 @@ from minio_storage.errors import MinIOError
 from minio_storage.storage import MinioMediaStorage, MinioStaticStorage
 
 from .utils import BaseTestMixin
-from unittest import mock
-
 
 @override_settings(
     MINIO_STORAGE_MEDIA_USE_PRESIGNED=True,
