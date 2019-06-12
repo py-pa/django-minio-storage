@@ -42,7 +42,7 @@ class MinioStorage(Storage):
                  base_url=None, file_class=None,
                  auto_create_bucket=False, presign_urls=False,
                  auto_create_policy=False, backup_format=None,
-                 backup_bucket=None,
+                 backup_bucket=None, auto_check_bucket=False,
                  *args, **kwargs):
         self.client = minio_client
         self.bucket_name = bucket_name
@@ -72,7 +72,7 @@ class MinioStorage(Storage):
                     self._policy("READ_ONLY")
                 )
 
-        elif not self.client.bucket_exists(self.bucket_name):
+        elif auto_check_bucket and not self.client.bucket_exists(self.bucket_name):
             raise IOError("The bucket {} does not exist".format(bucket_name))
 
         super(MinioStorage, self).__init__()
@@ -402,6 +402,8 @@ class MinioMediaStorage(MinioStorage):
             "MINIO_STORAGE_MEDIA_BACKUP_FORMAT", False)
         backup_bucket = get_setting(
             "MINIO_STORAGE_MEDIA_BACKUP_BUCKET", False)
+        auto_check_bucket = get_setting(
+            "MINIO_STORAGE_AUTO_CHECK_MEDIA_BUCKET", False)
 
         super(MinioMediaStorage, self).__init__(
             client, bucket_name,
@@ -410,7 +412,8 @@ class MinioMediaStorage(MinioStorage):
             base_url=base_url,
             presign_urls=presign_urls,
             backup_format=backup_format,
-            backup_bucket=backup_bucket)
+            backup_bucket=backup_bucket,
+            auto_check_bucket=auto_check_bucket)
 
 
 @deconstructible
