@@ -299,15 +299,19 @@ class MinioStorage(Storage):
         except merr.ResponseError as error:
             raise minio_error("Could not access file size for {}".format(name), error)
 
-    def url(self, name):
+    def url(self, name, *args, max_age=None):
         # type: (str) -> str
+        kwargs = {}
+        if max_age is not None:
+            kwargs["expires"] = max_age
 
         # NOTE: Here be dragons, when a external base_url is used the code
         # below is both using "internal" minio clint APIs and somewhat
         # subverting how minio/S3 expects urls to be generated in the first
         # place.
+
         if self.presign_urls:
-            url = self.client.presigned_get_object(self.bucket_name, name)
+            url = self.client.presigned_get_object(self.bucket_name, name, **kwargs)
             if self.base_url is not None:
                 parsed_url = urlparse(url)
                 path = parsed_url.path.split(self.bucket_name, 1)[1]

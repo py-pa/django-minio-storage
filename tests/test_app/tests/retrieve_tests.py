@@ -3,10 +3,11 @@ import io
 import os
 
 import requests
+from freezegun import freeze_time
+
 from django.core.files.base import ContentFile
 from django.test import TestCase, override_settings
 from minio.error import NoSuchKey
-
 from minio_storage.errors import MinIOError
 from minio_storage.storage import MinioMediaStorage, MinioStaticStorage
 
@@ -94,6 +95,30 @@ class RetrieveTestsWithRestrictedBucket(BaseTestMixin, TestCase):
 
     def test_file_names_are_properly_sanitized(self):
         self.media_storage.save("./meh22222.txt", io.BytesIO(b"stuff"))
+
+    def test_url_max_age(self):
+        url = self.media_storage.url(
+            "test-file", max_age=datetime.timedelta(seconds=10)
+        )
+        self.assertEqual(requests.get(url).status_code, 200)
+
+    def test_max_age_too_old(self):
+        with freeze_time(-datetime.timedelta(seconds=10)):
+            url = self.media_storage.url(
+                "test-file", max_age=datetime.timedelta(seconds=10)
+            )
+        self.assertEqual(requests.get(url).status_code, 403)
+
+    def test_no_file(self):
+        url = self.media_storage.url("no-file", max_age=datetime.timedelta(seconds=10))
+        self.assertEqual(requests.get(url).status_code, 404)
+
+    def test_max_age_no_file(self):
+        with freeze_time(-datetime.timedelta(seconds=10)):
+            url = self.media_storage.url(
+                "no-file", max_age=datetime.timedelta(seconds=10)
+            )
+        self.assertEqual(requests.get(url).status_code, 403)
 
 
 class URLTests(TestCase):

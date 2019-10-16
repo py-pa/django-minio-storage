@@ -1,6 +1,7 @@
 coverage
 mock
 requests
+freezegun
 
 # PyTest for running the tests.
 pytest==5.2.1
