@@ -7,6 +7,7 @@ import mimetypes
 import posixpath
 from logging import getLogger
 from time import mktime
+from urllib.parse import urlparse
 
 import minio
 import minio.error as merr
@@ -19,11 +20,6 @@ from minio.helpers import get_target_url
 
 from .errors import minio_error
 from .files import ReadOnlySpooledTemporaryFile
-
-try:
-    from urllib.parse import urlparse
-except ImportError:  # Python 2.7 compatibility
-    from urlparse import urlparse
 
 logger = getLogger("minio_storage")
 
@@ -43,6 +39,7 @@ class MinioStorage(Storage):
         self,
         minio_client,
         bucket_name,
+        *,
         base_url=None,
         file_class=None,
         auto_create_bucket=False,
@@ -50,7 +47,6 @@ class MinioStorage(Storage):
         auto_create_policy=False,
         backup_format=None,
         backup_bucket=None,
-        *args,
         **kwargs,
     ):
         self.client = minio_client

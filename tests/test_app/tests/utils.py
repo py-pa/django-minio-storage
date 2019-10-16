@@ -6,7 +6,6 @@ import os
 import warnings
 
 from django.core.files.base import ContentFile
-from django.utils import six
 from minio import Minio
 
 from minio_storage.storage import MinioMediaStorage, MinioStaticStorage, get_setting
@@ -15,8 +14,9 @@ warnings.simplefilter("default")
 warnings.filterwarnings(
     "ignore", message="This usage is deprecated, please use pytest.* instead"
 )
-if not six.PY2:
-    warnings.simplefilter("ignore", ResourceWarning)
+
+
+warnings.simplefilter("ignore", ResourceWarning)
 
 
 def bucket_name(name):
