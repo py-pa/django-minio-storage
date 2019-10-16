@@ -4,15 +4,12 @@ from __future__ import unicode_literals
 from django.core.exceptions import ImproperlyConfigured
 from django.test import TestCase, override_settings
 
-from minio_storage.storage import (
-    MinioMediaStorage, MinioStaticStorage, get_setting
-)
+from minio_storage.storage import MinioMediaStorage, MinioStaticStorage, get_setting
 
 from .utils import BaseTestMixin
 
 
 class BucketTests(BaseTestMixin, TestCase):
-
     @override_settings(
         MINIO_STORAGE_MEDIA_BUCKET_NAME="inexistent",
         MINIO_STORAGE_AUTO_CREATE_MEDIA_BUCKET=False,

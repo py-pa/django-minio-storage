@@ -36,14 +36,23 @@ class MinioStorage(Storage):
     https://docs.djangoproject.com/en/dev/ref/files/storage/.
 
     """
+
     file_class = ReadOnlySpooledTemporaryFile
 
-    def __init__(self, minio_client, bucket_name,
-                 base_url=None, file_class=None,
-                 auto_create_bucket=False, presign_urls=False,
-                 auto_create_policy=False, backup_format=None,
-                 backup_bucket=None,
-                 *args, **kwargs):
+    def __init__(
+        self,
+        minio_client,
+        bucket_name,
+        base_url=None,
+        file_class=None,
+        auto_create_bucket=False,
+        presign_urls=False,
+        auto_create_policy=False,
+        backup_format=None,
+        backup_bucket=None,
+        *args,
+        **kwargs,
+    ):
         self.client = minio_client
         self.bucket_name = bucket_name
         self.base_url = base_url
@@ -52,8 +61,9 @@ class MinioStorage(Storage):
         self.backup_bucket = backup_bucket
         if bool(self.backup_format) != bool(self.backup_bucket):
             raise ImproperlyConfigured(
-                'To enable backups, make sure to set both backup format '
-                'and backup format')
+                "To enable backups, make sure to set both backup format "
+                "and backup format"
+            )
 
         if file_class is not None:
             self.file_class = file_class
@@ -61,15 +71,13 @@ class MinioStorage(Storage):
 
         self.presign_urls = presign_urls
 
-        if auto_create_bucket and not self.client.bucket_exists(
-                self.bucket_name):
+        if auto_create_bucket and not self.client.bucket_exists(self.bucket_name):
 
             self.client.make_bucket(self.bucket_name)
 
             if auto_create_policy:
                 self.client.set_bucket_policy(
-                    self.bucket_name,
-                    self._policy("READ_ONLY")
+                    self.bucket_name, self._policy("READ_ONLY")
                 )
 
         elif not self.client.bucket_exists(self.bucket_name):
@@ -78,11 +86,11 @@ class MinioStorage(Storage):
         super(MinioStorage, self).__init__()
 
     def _sanitize_path(self, name):
-        v = posixpath.normpath(name).replace('\\', '/')
+        v = posixpath.normpath(name).replace("\\", "/")
         if v == ".":
             v = ""
-        if name.endswith('/') and not v.endswith('/'):
-            v += '/'
+        if name.endswith("/") and not v.endswith("/"):
+            v += "/"
         return v
 
     def _examine_file(self, name, content):
@@ -102,8 +110,7 @@ class MinioStorage(Storage):
         try:
             f = self.file_class(self._sanitize_path(name), mode, self)
         except merr.MinioError as e:
-            raise minio_error(
-                "File {} could not be saved: {}".format(name, str(e)), e)
+            raise minio_error("File {} could not be saved: {}".format(name, str(e)), e)
         return f
 
     def _policy(self, type):
@@ -120,23 +127,23 @@ class MinioStorage(Storage):
                         "Effect": "Allow",
                         "Principal": {"AWS": "*"},
                         "Action": "s3:GetBucketLocation",
-                        "Resource": "arn:aws:s3:::%s" % (self.bucket_name)
+                        "Resource": "arn:aws:s3:::%s" % (self.bucket_name),
                     },
                     {
                         "Sid": "",
                         "Effect": "Allow",
                         "Principal": {"AWS": "*"},
                         "Action": "s3:ListBucket",
-                        "Resource": "arn:aws:s3:::%s" % (self.bucket_name)
+                        "Resource": "arn:aws:s3:::%s" % (self.bucket_name),
                     },
                     {
                         "Sid": "",
                         "Effect": "Allow",
                         "Principal": {"AWS": "*"},
                         "Action": "s3:GetObject",
-                        "Resource": "arn:aws:s3:::%s/*" % (self.bucket_name)
-                    }
-                ]
+                        "Resource": "arn:aws:s3:::%s/*" % (self.bucket_name),
+                    },
+                ],
             },
             "WRITE_ONLY": {
                 "Version": "2012-10-17",
@@ -146,14 +153,14 @@ class MinioStorage(Storage):
                         "Effect": "Allow",
                         "Principal": {"AWS": "*"},
                         "Action": "s3:GetBucketLocation",
-                        "Resource": "arn:aws:s3:::%s" % (self.bucket_name)
+                        "Resource": "arn:aws:s3:::%s" % (self.bucket_name),
                     },
                     {
                         "Sid": "",
                         "Effect": "Allow",
                         "Principal": {"AWS": "*"},
                         "Action": "s3:ListBucketMultipartUploads",
-                        "Resource": "arn:aws:s3:::%s" % (self.bucket_name)
+                        "Resource": "arn:aws:s3:::%s" % (self.bucket_name),
                     },
                     {
                         "Sid": "",
@@ -163,11 +170,11 @@ class MinioStorage(Storage):
                             "s3:ListMultipartUploadParts",
                             "s3:AbortMultipartUpload",
                             "s3:DeleteObject",
-                            "s3:PutObject"
+                            "s3:PutObject",
                         ],
-                        "Resource": "arn:aws:s3:::%s/*" % (self.bucket_name)
-                    }
-                ]
+                        "Resource": "arn:aws:s3:::%s/*" % (self.bucket_name),
+                    },
+                ],
             },
             "READ_WRITE": {
                 "Version": "2012-10-17",
@@ -177,21 +184,21 @@ class MinioStorage(Storage):
                         "Sid": "",
                         "Resource": ["arn:aws:s3:::%s" % (self.bucket_name)],
                         "Effect": "Allow",
-                        "Principal": {"AWS": "*"}
+                        "Principal": {"AWS": "*"},
                     },
                     {
                         "Action": ["s3:ListBucket"],
                         "Sid": "",
                         "Resource": ["arn:aws:s3:::%s" % (self.bucket_name)],
                         "Effect": "Allow",
-                        "Principal": {"AWS": "*"}
+                        "Principal": {"AWS": "*"},
                     },
                     {
                         "Action": ["s3:ListBucketMultipartUploads"],
                         "Sid": "",
                         "Resource": ["arn:aws:s3:::%s" % (self.bucket_name)],
                         "Effect": "Allow",
-                        "Principal": {"AWS": "*"}
+                        "Principal": {"AWS": "*"},
                     },
                     {
                         "Action": [
@@ -199,15 +206,15 @@ class MinioStorage(Storage):
                             "s3:GetObject",
                             "s3:AbortMultipartUpload",
                             "s3:DeleteObject",
-                            "s3:PutObject"
+                            "s3:PutObject",
                         ],
                         "Sid": "",
                         "Resource": ["arn:aws:s3:::%s/*" % (self.bucket_name)],
                         "Effect": "Allow",
-                        "Principal": {"AWS": "*"}
-                    }
-                ]
-            }
+                        "Principal": {"AWS": "*"},
+                    },
+                ],
+            },
         }
 
         return json.dumps(Policy[type])
@@ -215,15 +222,12 @@ class MinioStorage(Storage):
     def _save(self, name, content):
         # (str, bytes) -> str
         try:
-            if hasattr(content, 'seek') and callable(content.seek):
+            if hasattr(content, "seek") and callable(content.seek):
                 content.seek(0)
-            content_size, content_type, sane_name = self._examine_file(
-                name, content)
-            self.client.put_object(self.bucket_name,
-                                   sane_name,
-                                   content,
-                                   content_size,
-                                   content_type)
+            content_size, content_type, sane_name = self._examine_file(name, content)
+            self.client.put_object(
+                self.bucket_name, sane_name, content, content_size, content_type
+            )
             return sane_name
         except merr.ResponseError as error:
             raise minio_error("File {} could not be saved".format(name), error)
@@ -235,26 +239,31 @@ class MinioStorage(Storage):
                 obj = self.client.get_object(self.bucket_name, name)
             except merr.ResponseError as error:
                 raise minio_error(
-                    "Could not obtain file {} "
-                    "to make a copy of it".format(name), error)
+                    "Could not obtain file {} " "to make a copy of it".format(name),
+                    error,
+                )
 
             try:
-                content_length = int(obj.getheader('Content-Length'))
+                content_length = int(obj.getheader("Content-Length"))
             except ValueError as error:
                 raise minio_error(
-                    "Could not backup removed file {}".format(name),
-                    error)
+                    "Could not backup removed file {}".format(name), error
+                )
 
             # Creates the backup filename
             target_name = "{}{}".format(
-                timezone.now().strftime(self.backup_format), name)
+                timezone.now().strftime(self.backup_format), name
+            )
             try:
                 self.client.put_object(
-                    self.backup_bucket, target_name, obj, content_length)
+                    self.backup_bucket, target_name, obj, content_length
+                )
             except merr.ResponseError as error:
                 raise minio_error(
                     "Could not make a copy of file "
-                    "{} before removing it".format(name), error)
+                    "{} before removing it".format(name),
+                    error,
+                )
 
         try:
             self.client.remove_object(self.bucket_name, name)
@@ -264,8 +273,7 @@ class MinioStorage(Storage):
     def exists(self, name):
         # type: (str) -> bool
         try:
-            self.client.stat_object(
-                self.bucket_name, self._sanitize_path(name))
+            self.client.stat_object(self.bucket_name, self._sanitize_path(name))
             return True
         except merr.ResponseError as error:
             # TODO - deprecate
@@ -288,8 +296,7 @@ class MinioStorage(Storage):
         except merr.NoSuchBucket:
             raise
         except merr.ResponseError as error:
-            raise minio_error(
-                "Could not list directory {}".format(prefix), error)
+            raise minio_error("Could not list directory {}".format(prefix), error)
 
     def size(self, name):
         # type: (str) -> int
@@ -297,8 +304,7 @@ class MinioStorage(Storage):
             info = self.client.stat_object(self.bucket_name, name)
             return info.size
         except merr.ResponseError as error:
-            raise minio_error(
-                "Could not access file size for {}".format(name), error)
+            raise minio_error("Could not access file size for {}".format(name), error)
 
     def url(self, name):
         # type: (str) -> str
@@ -312,29 +318,35 @@ class MinioStorage(Storage):
             if self.base_url is not None:
                 parsed_url = urlparse(url)
                 path = parsed_url.path.split(self.bucket_name, 1)[1]
-                url = '{0}{1}?{2}{3}{4}'.format(
-                    self.base_url, path, parsed_url.params,
-                    parsed_url.query, parsed_url.fragment)
+                url = "{0}{1}?{2}{3}{4}".format(
+                    self.base_url,
+                    path,
+                    parsed_url.params,
+                    parsed_url.query,
+                    parsed_url.fragment,
+                )
 
         else:
             if self.base_url is not None:
+
                 def strip_beg(path):
-                    while path.startswith('/'):
+                    while path.startswith("/"):
                         path = path[1:]
                     return path
 
                 def strip_end(path):
-                    while path.endswith('/'):
+                    while path.endswith("/"):
                         path = path[:-1]
                     return path
-                url = "{}/{}".format(strip_end(self.base_url),
-                                     strip_beg(name))
+
+                url = "{}/{}".format(strip_end(self.base_url), strip_beg(name))
             else:
-                url = get_target_url(self.client._endpoint_url,
-                                     bucket_name=self.bucket_name,
-                                     object_name=name,
-                                     # bucket_region=region,
-                                     )
+                url = get_target_url(
+                    self.client._endpoint_url,
+                    bucket_name=self.bucket_name,
+                    object_name=name,
+                    # bucket_region=region,
+                )
         return url
 
     def accessed_time(self, name):
@@ -358,14 +370,14 @@ class MinioStorage(Storage):
             return datetime.datetime.fromtimestamp(mktime(info.last_modified))
         except merr.ResponseError as error:
             raise minio_error(
-                "Could not access modification time for file {}"
-                .format(name), error)
+                "Could not access modification time for file {}".format(name), error
+            )
 
 
 _NoValue = object()
 
 
-def get_setting(name, default=_NoValue, ):
+def get_setting(name, default=_NoValue):
     result = getattr(settings, name, default)
     if result is _NoValue:
         print("Attr {} : {}".format(name, getattr(settings, name, default)))
@@ -379,10 +391,9 @@ def create_minio_client_from_settings():
     access_key = get_setting("MINIO_STORAGE_ACCESS_KEY")
     secret_key = get_setting("MINIO_STORAGE_SECRET_KEY")
     secure = get_setting("MINIO_STORAGE_USE_HTTPS", True)
-    client = minio.Minio(endpoint,
-                         access_key=access_key,
-                         secret_key=secret_key,
-                         secure=secure)
+    client = minio.Minio(
+        endpoint, access_key=access_key, secret_key=secret_key, secure=secure
+    )
     return client
 
 
@@ -393,24 +404,25 @@ class MinioMediaStorage(MinioStorage):
         bucket_name = get_setting("MINIO_STORAGE_MEDIA_BUCKET_NAME")
         base_url = get_setting("MINIO_STORAGE_MEDIA_URL", None)
         auto_create_bucket = get_setting(
-            "MINIO_STORAGE_AUTO_CREATE_MEDIA_BUCKET", False)
+            "MINIO_STORAGE_AUTO_CREATE_MEDIA_BUCKET", False
+        )
         auto_create_policy = get_setting(
-            "MINIO_STORAGE_AUTO_CREATE_MEDIA_POLICY", False)
-        presign_urls = get_setting(
-            'MINIO_STORAGE_MEDIA_USE_PRESIGNED', False)
-        backup_format = get_setting(
-            "MINIO_STORAGE_MEDIA_BACKUP_FORMAT", False)
-        backup_bucket = get_setting(
-            "MINIO_STORAGE_MEDIA_BACKUP_BUCKET", False)
+            "MINIO_STORAGE_AUTO_CREATE_MEDIA_POLICY", False
+        )
+        presign_urls = get_setting("MINIO_STORAGE_MEDIA_USE_PRESIGNED", False)
+        backup_format = get_setting("MINIO_STORAGE_MEDIA_BACKUP_FORMAT", False)
+        backup_bucket = get_setting("MINIO_STORAGE_MEDIA_BACKUP_BUCKET", False)
 
         super(MinioMediaStorage, self).__init__(
-            client, bucket_name,
+            client,
+            bucket_name,
             auto_create_bucket=auto_create_bucket,
             auto_create_policy=auto_create_policy,
             base_url=base_url,
             presign_urls=presign_urls,
             backup_format=backup_format,
-            backup_bucket=backup_bucket)
+            backup_bucket=backup_bucket,
+        )
 
 
 @deconstructible
@@ -420,15 +432,19 @@ class MinioStaticStorage(MinioStorage):
         base_url = get_setting("MINIO_STORAGE_STATIC_URL", None)
         bucket_name = get_setting("MINIO_STORAGE_STATIC_BUCKET_NAME")
         auto_create_bucket = get_setting(
-            "MINIO_STORAGE_AUTO_CREATE_STATIC_BUCKET", False)
+            "MINIO_STORAGE_AUTO_CREATE_STATIC_BUCKET", False
+        )
         auto_create_policy = get_setting(
-            "MINIO_STORAGE_AUTO_CREATE_STATIC_POLICY", False)
+            "MINIO_STORAGE_AUTO_CREATE_STATIC_POLICY", False
+        )
 
-        presign_urls = get_setting('MINIO_STORAGE_STATIC_USE_PRESIGNED', False)
+        presign_urls = get_setting("MINIO_STORAGE_STATIC_USE_PRESIGNED", False)
 
         super(MinioStaticStorage, self).__init__(
-            client, bucket_name,
+            client,
+            bucket_name,
             auto_create_bucket=auto_create_bucket,
             auto_create_policy=auto_create_policy,
             base_url=base_url,
-            presign_urls=presign_urls)
+            presign_urls=presign_urls,
+        )
