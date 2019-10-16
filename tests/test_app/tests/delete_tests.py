@@ -1,6 +1,3 @@
-# encoding: utf-8
-from __future__ import unicode_literals
-
 from django.conf import settings
 from django.core.files.base import ContentFile
 from django.test import TestCase, override_settings
