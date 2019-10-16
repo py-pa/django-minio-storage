@@ -12,8 +12,8 @@ setup(
     packages=['minio_storage'],
     setup_requires=['setuptools_scm'],
     install_requires=[
-        "django>=1.8",
-        "minio>=4.0.3",
+        "django>=1.11",
+        "minio>=4.0.21",
     ],
     extras_require={
         "test": [
@@ -28,10 +28,7 @@ setup(
         "License :: OSI Approved :: BSD License",
         "Operating System :: OS Independent",
         "Programming Language :: Python",
-        "Programming Language :: Python :: 3.3",
-        "Programming Language :: Python :: 3.4",
-        "Programming Language :: Python :: 3.5",
-        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3",
         "Framework :: Django",
     ],
 )
