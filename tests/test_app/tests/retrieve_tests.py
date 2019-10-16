@@ -42,15 +42,11 @@ class RetrieveTestsWithRestrictedBucket(BaseTestMixin, TestCase):
         test_file = self.media_storage.save("sizetest.txt", ContentFile(b"1234"))
         self.assertEqual(4, self.media_storage.size(test_file))
 
-    # TODO - temporarily diapbled due to
-    # https://github.com/minio/minio-py/issues/514
-    #
-    # def test_size_of_non_existent_throws(self):
-    #     test_file = self.media_storage.save("sizetest.txt",
-    #                                         ContentFile(b"1234"))
-    #     self.media_storage.delete(test_file)
-    #     with self.assertRaises(NoSuchKey):
-    #         self.media_storage.size(test_file)
+    def test_size_of_non_existent_throws(self):
+        test_file = self.media_storage.save("sizetest.txt", ContentFile(b"1234"))
+        self.media_storage.delete(test_file)
+        with self.assertRaises(NoSuchKey):
+            self.media_storage.size(test_file)
 
     def test_modified_time(self):
         self.assertIsInstance(
@@ -67,12 +63,9 @@ class RetrieveTestsWithRestrictedBucket(BaseTestMixin, TestCase):
             self.media_storage.created_time(self.new_file), datetime.datetime
         )
 
-    # TODO - temporarily diapbled due to
-    # https://github.com/minio/minio-py/issues/514
-    #
-    # def test_modified_time_of_non_existent_throws(self):
-    #     with self.assertRaises(NoSuchKey):
-    #         self.media_storage.modified_time("nonexistent.jpg")
+    def test_modified_time_of_non_existent_throws(self):
+        with self.assertRaises(NoSuchKey):
+            self.media_storage.modified_time("nonexistent.jpg")
 
     def test_list_dir_base(self):
         # Pre-condition
