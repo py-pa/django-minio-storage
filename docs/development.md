@@ -21,5 +21,8 @@ tox
 Or just run tests for some of them
 
 ```sh
+# list all environment
+tox -l
+# run one or more of them
 tox -e py35-django110,py35-django111
 ```
