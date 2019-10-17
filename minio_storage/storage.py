@@ -282,6 +282,14 @@ class MinioStorage(Storage):
             logger.error(error)
 
     def listdir(self, path):
+        #  [None, "", "."] is supported to mean the configured root among various
+        #  implementations of Storage implementations so we copy that behaviour even if
+        #  maybe None should raise an exception instead.
+        #
+        #  If the path prefix does not match anything full prefix that does exist this
+        #  function will just return empty results, this is different from
+        #  FileSystemStorage where an invalid directory would raise an OSError.
+
         if path in [None, "", "."]:
             path = ""
         else:
