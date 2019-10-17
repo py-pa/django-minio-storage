@@ -1,6 +1,7 @@
 import datetime
 import mimetypes
 import posixpath
+import typing as T
 import urllib
 from logging import getLogger
 from time import mktime
@@ -34,16 +35,17 @@ class MinioStorage(Storage):
 
     def __init__(
         self,
-        minio_client,
-        bucket_name,
+        minio_client: minio.Minio,
+        bucket_name: str,
         *,
-        base_url=None,
+        base_url: T.Optional[str] = None,
         file_class=None,
-        auto_create_bucket=False,
-        presign_urls=False,
-        auto_create_policy=False,
-        backup_format=None,
-        backup_bucket=None,
+        auto_create_bucket: bool = False,
+        presign_urls: bool = False,
+        auto_create_policy: bool = False,
+        policy_type: T.Optional[policy.Policy] = None,
+        backup_format: T.Optional[str] = None,
+        backup_bucket: T.Optional[str] = None,
         **kwargs,
     ):
         self.client = minio_client
@@ -162,8 +164,7 @@ class MinioStorage(Storage):
         except merr.ResponseError as error:
             raise minio_error(f"Could not remove file {name}", error)
 
-    def exists(self, name):
-        # type: (str) -> bool
+    def exists(self, name: str) -> bool:
         try:
             self.client.stat_object(self.bucket_name, self._sanitize_path(name))
             return True
@@ -180,7 +181,7 @@ class MinioStorage(Storage):
         except Exception as error:
             logger.error(error)
 
-    def listdir(self, path):
+    def listdir(self, path: str) -> T.Tuple[T.List, T.List]:
         #  [None, "", "."] is supported to mean the configured root among various
         #  implementations of Storage implementations so we copy that behaviour even if
         #  maybe None should raise an exception instead.
@@ -210,16 +211,16 @@ class MinioStorage(Storage):
         except merr.ResponseError as error:
             raise minio_error(f"Could not list directory {path}", error)
 
-    def size(self, name):
-        # type: (str) -> int
+    def size(self, name: str) -> int:
         try:
             info = self.client.stat_object(self.bucket_name, name)
             return info.size
         except merr.ResponseError as error:
             raise minio_error(f"Could not access file size for {name}", error)
 
-    def url(self, name, *args, max_age=None):
-        # type: (str) -> str
+    def url(
+        self, name: str, *args, max_age: T.Optional[datetime.timedelta] = None
+    ) -> str:
         kwargs = {}
         if max_age is not None:
             kwargs["expires"] = max_age
@@ -267,22 +268,19 @@ class MinioStorage(Storage):
                 )
         return url
 
-    def accessed_time(self, name):
-        # type: (str) -> datetime.datetime
+    def accessed_time(self, name: str) -> datetime.datetime:
         """
         Not available via the S3 API
         """
         return self.modified_time(name)
 
-    def created_time(self, name):
-        # type: (str) -> datetime.datetime
+    def created_time(self, name: str) -> datetime.datetime:
         """
         Not available via the S3 API
         """
         return self.modified_time(name)
 
-    def modified_time(self, name):
-        # type: (str) -> datetime.datetime
+    def modified_time(self, name: str) -> datetime.datetime:
         try:
             info = self.client.stat_object(self.bucket_name, name)
             return datetime.datetime.fromtimestamp(mktime(info.last_modified))

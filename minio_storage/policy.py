@@ -1,6 +1,6 @@
 import enum
 import json
-import typing
+import typing as T
 
 
 class Policy(enum.Enum):
@@ -10,7 +10,7 @@ class Policy(enum.Enum):
 
     def bucket(
         self, bucket_name: str, *, json_encode: bool = True
-    ) -> typing.Union[str, typing.Dict[str, typing.Any]]:
+    ) -> T.Union[str, T.Dict[str, T.Any]]:
         policies = {
             Policy.read_only: _read_only,
             Policy.write_only: _write_only,
@@ -22,7 +22,7 @@ class Policy(enum.Enum):
         return pol
 
 
-def _read_only(bucket_name: str) -> typing.Dict:
+def _read_only(bucket_name: str) -> T.Dict:
     return {
         "Version": "2012-10-17",
         "Statement": [
@@ -51,7 +51,7 @@ def _read_only(bucket_name: str) -> typing.Dict:
     }
 
 
-def _write_only(bucket_name: str) -> typing.Dict:
+def _write_only(bucket_name: str) -> T.Dict:
     return {
         "Version": "2012-10-17",
         "Statement": [
@@ -85,7 +85,7 @@ def _write_only(bucket_name: str) -> typing.Dict:
     }
 
 
-def _read_write(bucket_name: str) -> typing.Dict:
+def _read_write(bucket_name: str) -> T.Dict:
     return {
         "Version": "2012-10-17",
         "Statement": [

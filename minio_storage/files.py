@@ -1,9 +1,13 @@
 import tempfile
+import typing as T
 from logging import getLogger
 
 from django.core.files.base import File
 from minio import error as merr
 from minio_storage.errors import minio_error
+
+if T.TYPE_CHECKING:
+    from minio_storage.storage import Storage
 
 logger = getLogger("minio_storage")
 
@@ -11,7 +15,7 @@ logger = getLogger("minio_storage")
 class ReadOnlyMixin:
     """File class mixin which disallows .write() calls"""
 
-    def writable(self):
+    def writable(self) -> bool:
         return False
 
     def write(*args, **kwargs):
@@ -21,21 +25,21 @@ class ReadOnlyMixin:
 class NonSeekableMixin:
     """File class mixin which disallows .seek() calls"""
 
-    def seekable(self):
+    def seekable(self) -> bool:
         return False
 
-    def seek(self, *args, **kwargs):
+    def seek(self, *args, **kwargs) -> bool:
         # TODO: maybe exception is better
         # raise NotImplementedError('seek is not supported')
         return False
 
 
 class MinioStorageFile(File):
-    def __init__(self, name, mode, storage, **kwargs):
+    def __init__(self, name: str, mode: str, storage: "Storage", **kwargs):
 
-        self._storage = storage
-        self.name = name
-        self._mode = mode
+        self._storage: "Storage" = storage
+        self.name: str = name
+        self._mode: str = mode
         self.obj = storage.client.get_object(self._storage.bucket_name, name)
         self._file = None
 
@@ -47,7 +51,14 @@ be closed to be able to reuse minio connections.
 
 Note: This file class is not tested yet"""
 
-    def __init__(self, name, mode, storage, max_memory_size=None, **kwargs):
+    def __init__(
+        self,
+        name: str,
+        mode: str,
+        storage: "Storage",
+        max_memory_size: T.Optional[int] = None,
+        **kwargs,
+    ):
         if mode.find("w") > -1:
             raise NotImplementedError(
                 "ReadOnlyMinioObjectFile storage only support read modes"
@@ -90,7 +101,7 @@ class ReadOnlySpooledTemporaryFile(MinioStorageFile, ReadOnlyMixin):
     """A django File class which buffers the minio object into a local
 SpooledTemporaryFile. """
 
-    max_memory_size = 1024 * 1024 * 10
+    max_memory_size: int = 1024 * 1024 * 10
 
     def __init__(self, name, mode, storage, max_memory_size=None, **kwargs):
         if mode.find("w") > -1:
