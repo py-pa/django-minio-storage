@@ -327,7 +327,7 @@ class MinioMediaStorage(MinioStorage):
             "MINIO_STORAGE_AUTO_CREATE_MEDIA_BUCKET", False
         )
         auto_create_policy = get_setting(
-            "MINIO_STORAGE_AUTO_CREATE_MEDIA_POLICY", False
+            "MINIO_STORAGE_AUTO_CREATE_MEDIA_POLICY", "GET_ONLY"
         )
 
         policy_type = Policy.read
@@ -362,7 +362,7 @@ class MinioStaticStorage(MinioStorage):
             "MINIO_STORAGE_AUTO_CREATE_STATIC_BUCKET", False
         )
         auto_create_policy = get_setting(
-            "MINIO_STORAGE_AUTO_CREATE_STATIC_POLICY", False
+            "MINIO_STORAGE_AUTO_CREATE_STATIC_POLICY", "GET_ONLY"
         )
 
         policy_type = Policy.read
