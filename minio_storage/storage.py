@@ -281,15 +281,27 @@ class MinioStorage(Storage):
         except Exception as error:
             logger.error(error)
 
-    def listdir(self, prefix):
+    def listdir(self, path):
+        if path in [None, "", "."]:
+            path = ""
+        else:
+            path += "/"
+
+        dirs = []
+        files = []
         try:
-            # TODO: break the path
-            objects = self.client.list_objects(self.bucket_name, prefix)
-            return objects
+            objects = self.client.list_objects_v2(self.bucket_name, prefix=path)
+            for o in objects:
+                p = posixpath.relpath(o.object_name, path)
+                if o.is_dir:
+                    dirs.append(p)
+                else:
+                    files.append(p)
+            return dirs, files
         except merr.NoSuchBucket:
             raise
         except merr.ResponseError as error:
-            raise minio_error("Could not list directory {}".format(prefix), error)
+            raise minio_error("Could not list directory {}".format(path), error)
 
     def size(self, name):
         # type: (str) -> int

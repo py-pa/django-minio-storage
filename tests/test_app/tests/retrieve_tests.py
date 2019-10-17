@@ -65,14 +65,48 @@ class RetrieveTestsWithRestrictedBucket(BaseTestMixin, TestCase):
         with self.assertRaises(NoSuchKey):
             self.media_storage.modified_time("nonexistent.jpg")
 
-    def test_list_dir_base(self):
-        # Pre-condition
-        self.assertIsNotNone(self.new_file)
+    def _listdir_root(self, root):
+        self.media_storage.save("dir1/file2.txt", ContentFile(b"meh"))
+        test_dir = self.media_storage.listdir(root)
+        (dirs, files) = test_dir
+        self.assertEqual(dirs, ["dir1"])
+        self.assertEqual(files, sorted([self.new_file, self.second_file]))
+        self.assertEqual(len(files), 2)
+        self.assertEqual(len(test_dir), 2)
 
-        test_dir = self.media_storage.listdir(None)
-        files = [elem for elem in test_dir]
-        self.assertIsInstance(files, list)
-        self.assertGreaterEqual(len(files), 1)
+    def test_listdir_emptystr(self):
+        self._listdir_root("")
+
+    def test_listdir_dot(self):
+        self._listdir_root(".")
+
+    def test_listdir_none(self):
+        self._listdir_root(None)
+
+    def test_listdir_slash(self):
+        self._listdir_root("/")
+
+    def _listdir_sub(self, path):
+        self.media_storage.save("dir/file.txt", ContentFile(b"meh"))
+        self.media_storage.save("dir/file2.txt", ContentFile(b"meh"))
+        self.media_storage.save("dir/dir3/file3.txt", ContentFile(b"meh"))
+        dirs, files = self.media_storage.listdir("dir/")
+        self.assertEqual((dirs, files), (["dir3"], ["file.txt", "file2.txt"]))
+
+    def test_listdir_subdir_slash(self):
+        self._listdir_sub("dir/")
+
+    def test_listdir_subdir_noslash(self):
+        self._listdir_sub("dir")
+
+    def test_list_nonexist(self):
+        test_dir = self.media_storage.listdir("nonexist")
+        self.assertEqual(test_dir, ([], []))
+
+    def test_list_prefix(self):
+        self.media_storage.save("dir/file.txt", ContentFile(b"meh"))
+        test_dir = self.media_storage.listdir("di")
+        self.assertEqual(test_dir, ([], []))
 
     def test_file_exists(self):
         existent = self.media_storage.save("existent.txt", ContentFile(b"meh"))
