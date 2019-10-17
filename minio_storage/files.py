@@ -46,8 +46,7 @@ class ReadOnlyMinioObjectFile(MinioStorageFile, ReadOnlyMixin, NonSeekableMixin)
 means the the instance doesnt support functions like .seek() and is required to
 be closed to be able to reuse minio connections.
 
-TODO: This file class is not tested yet, defering to avoid enlarging the scope
-of the current issue too much. Tests will be added soon."""
+Note: This file class is not tested yet"""
 
     def __init__(self, name, mode, storage, max_memory_size=None, **kwargs):
         if mode.find("w") > -1:
