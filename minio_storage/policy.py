@@ -4,16 +4,18 @@ import typing as T
 
 
 class Policy(enum.Enum):
-    read_only = "READ_ONLY"
-    write_only = "WRITE_ONLY"
+    get = "GET_ONLY"
+    read = "READ_ONLY"
+    write = "WRITE_ONLY"
     read_write = "READ_WRITE"
 
     def bucket(
         self, bucket_name: str, *, json_encode: bool = True
     ) -> T.Union[str, T.Dict[str, T.Any]]:
         policies = {
-            Policy.read_only: _read_only,
-            Policy.write_only: _write_only,
+            Policy.get: _get,
+            Policy.read: _read,
+            Policy.write: _write,
             Policy.read_write: _read_write,
         }
         pol = policies[self](bucket_name)
@@ -22,64 +24,78 @@ class Policy(enum.Enum):
         return pol
 
 
-def _read_only(bucket_name: str) -> T.Dict:
+def _get(bucket_name: str) -> T.Dict:
     return {
         "Version": "2012-10-17",
         "Statement": [
             {
-                "Sid": "",
                 "Effect": "Allow",
-                "Principal": {"AWS": "*"},
-                "Action": "s3:GetBucketLocation",
-                "Resource": f"arn:aws:s3:::{bucket_name}",
+                "Principal": {"AWS": ["*"]},
+                "Action": ["s3:GetBucketLocation"],
+                "Resource": [f"arn:aws:s3:::{bucket_name}"],
             },
             {
-                "Sid": "",
                 "Effect": "Allow",
-                "Principal": {"AWS": "*"},
-                "Action": "s3:ListBucket",
-                "Resource": f"arn:aws:s3:::{bucket_name}",
-            },
-            {
-                "Sid": "",
-                "Effect": "Allow",
-                "Principal": {"AWS": "*"},
-                "Action": "s3:GetObject",
-                "Resource": f"arn:aws:s3:::{bucket_name}/*",
+                "Principal": {"AWS": ["*"]},
+                "Action": ["s3:GetObject"],
+                "Resource": [f"arn:aws:s3:::{bucket_name}/*"],
             },
         ],
     }
 
 
-def _write_only(bucket_name: str) -> T.Dict:
+def _read(bucket_name: str) -> T.Dict:
     return {
         "Version": "2012-10-17",
         "Statement": [
             {
-                "Sid": "",
                 "Effect": "Allow",
-                "Principal": {"AWS": "*"},
-                "Action": "s3:GetBucketLocation",
-                "Resource": f"arn:aws:s3:::{bucket_name}",
+                "Principal": {"AWS": ["*"]},
+                "Action": ["s3:GetBucketLocation"],
+                "Resource": [f"arn:aws:s3:::{bucket_name}"],
             },
             {
-                "Sid": "",
                 "Effect": "Allow",
-                "Principal": {"AWS": "*"},
-                "Action": "s3:ListBucketMultipartUploads",
-                "Resource": f"arn:aws:s3:::{bucket_name}",
+                "Principal": {"AWS": ["*"]},
+                "Action": ["s3:ListBucket"],
+                "Resource": [f"arn:aws:s3:::{bucket_name}"],
             },
             {
-                "Sid": "",
                 "Effect": "Allow",
-                "Principal": {"AWS": "*"},
+                "Principal": {"AWS": ["*"]},
+                "Action": ["s3:GetObject"],
+                "Resource": [f"arn:aws:s3:::{bucket_name}/*"],
+            },
+        ],
+    }
+
+
+def _write(bucket_name: str) -> T.Dict:
+    return {
+        "Version": "2012-10-17",
+        "Statement": [
+            {
+                "Effect": "Allow",
+                "Principal": {"AWS": ["*"]},
+                "Action": ["s3:GetBucketLocation"],
+                "Resource": [f"arn:aws:s3:::{bucket_name}"],
+            },
+            {
+                "Effect": "Allow",
+                "Principal": {"AWS": ["*"]},
+                "Action": ["s3:ListBucketMultipartUploads"],
+                "Resource": [f"arn:aws:s3:::{bucket_name}"],
+            },
+            {
+                "Effect": "Allow",
+                "Principal": {"AWS": ["*"]},
                 "Action": [
                     "s3:ListMultipartUploadParts",
                     "s3:AbortMultipartUpload",
                     "s3:DeleteObject",
                     "s3:PutObject",
                 ],
-                "Resource": f"arn:aws:s3:::{bucket_name}/*",
+                "Resource": [f"arn:aws:s3:::{bucket_name}/*"],
             },
         ],
     }
@@ -90,38 +106,34 @@ def _read_write(bucket_name: str) -> T.Dict:
         "Version": "2012-10-17",
         "Statement": [
             {
+                "Effect": "Allow",
+                "Principal": {"AWS": ["*"]},
                 "Action": ["s3:GetBucketLocation"],
-                "Sid": "",
                 "Resource": [f"arn:aws:s3:::{bucket_name}"],
-                "Effect": "Allow",
-                "Principal": {"AWS": "*"},
             },
             {
+                "Effect": "Allow",
+                "Principal": {"AWS": ["*"]},
                 "Action": ["s3:ListBucket"],
-                "Sid": "",
                 "Resource": [f"arn:aws:s3:::{bucket_name}"],
-                "Effect": "Allow",
-                "Principal": {"AWS": "*"},
             },
             {
+                "Effect": "Allow",
+                "Principal": {"AWS": ["*"]},
                 "Action": ["s3:ListBucketMultipartUploads"],
-                "Sid": "",
                 "Resource": [f"arn:aws:s3:::{bucket_name}"],
-                "Effect": "Allow",
-                "Principal": {"AWS": "*"},
             },
             {
+                "Effect": "Allow",
+                "Principal": {"AWS": ["*"]},
                 "Action": [
-                    "s3:ListMultipartUploadParts",
-                    "s3:GetObject",
                     "s3:AbortMultipartUpload",
                     "s3:DeleteObject",
+                    "s3:GetObject",
+                    "s3:ListMultipartUploadParts",
                     "s3:PutObject",
                 ],
-                "Sid": "",
                 "Resource": [f"arn:aws:s3:::{bucket_name}/*"],
-                "Effect": "Allow",
-                "Principal": {"AWS": "*"},
             },
         ],
     }

@@ -9,7 +9,7 @@ from django.core.files.base import ContentFile
 from django.test import TestCase, override_settings
 from minio.error import NoSuchKey
 from minio_storage.errors import MinIOError
-from minio_storage.storage import MinioMediaStorage, MinioStaticStorage
+from minio_storage.storage import MinioMediaStorage
 
 from .utils import BaseTestMixin
 
@@ -263,33 +263,3 @@ class URLTests(TestCase):
         prefix = f"{self.BASE}/{self.ENCODED}"
         self.assertTrue(url.startswith(prefix))
         self.assertTrue(len(url) > len(prefix))
-
-
-class RetrieveTestsWithPublicBucket(BaseTestMixin, TestCase):
-    def setUp(self):
-        self.media_storage = MinioMediaStorage()
-        self.static_storage = MinioStaticStorage()
-        self.new_file = self.media_storage.save("test-file", ContentFile(b"yep"))
-
-        self.media_storage.client.set_bucket_policy(
-            self.media_storage.bucket_name, self.media_storage._policy("READ_WRITE")
-        )
-
-        self.static_storage.client.set_bucket_policy(
-            self.static_storage.bucket_name, self.static_storage._policy("READ_WRITE")
-        )
-
-    def test_public_url_generation(self):
-        media_test_file_name = self.media_storage.save(
-            "weird & ÜRΛ", ContentFile(b"irrelevant")
-        )
-        url = self.media_storage.url(media_test_file_name)
-        res = requests.get(url)
-        self.assertEqual(res.content, b"irrelevant")
-
-        static_test_file_name = self.static_storage.save(
-            "weird & ÜRΛ", ContentFile(b"irrelevant")
-        )
-        url = self.static_storage.url(static_test_file_name)
-        res = requests.get(url)
-        self.assertEqual(res.content, b"irrelevant")

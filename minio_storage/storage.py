@@ -15,9 +15,9 @@ from django.core.files.storage import Storage
 from django.utils import timezone
 from django.utils.deconstruct import deconstructible
 from minio.helpers import get_target_url
-from minio_storage import policy
 from minio_storage.errors import minio_error
 from minio_storage.files import ReadOnlySpooledTemporaryFile
+from minio_storage.policy import Policy
 
 logger = getLogger("minio_storage")
 
@@ -43,7 +43,7 @@ class MinioStorage(Storage):
         auto_create_bucket: bool = False,
         presign_urls: bool = False,
         auto_create_policy: bool = False,
-        policy_type: T.Optional[policy.Policy] = None,
+        policy_type: T.Optional[Policy] = None,
         backup_format: T.Optional[str] = None,
         backup_bucket: T.Optional[str] = None,
         **kwargs,
@@ -69,10 +69,11 @@ class MinioStorage(Storage):
         if auto_create_bucket and not self.client.bucket_exists(self.bucket_name):
 
             self.client.make_bucket(self.bucket_name)
-
             if auto_create_policy:
+                if policy_type is None:
+                    policy_type = Policy.read
                 self.client.set_bucket_policy(
-                    self.bucket_name, self._policy("READ_ONLY")
+                    self.bucket_name, policy_type.bucket(self.bucket_name)
                 )
 
         elif not self.client.bucket_exists(self.bucket_name):
@@ -113,7 +114,7 @@ class MinioStorage(Storage):
         Dictionary containing basic AWS Policies in JSON format
         Policies: READ_ONLY, WRITE_ONLY, READ_WRITE
         """
-        return policy.Policy(policy_type).bucket(self.bucket_name)
+        return Policy(policy_type).bucket(self.bucket_name)
 
     def _save(self, name, content):
         # (str, bytes) -> str
@@ -128,8 +129,7 @@ class MinioStorage(Storage):
         except merr.ResponseError as error:
             raise minio_error(f"File {name} could not be saved", error)
 
-    def delete(self, name):
-        # type: (str) -> None
+    def delete(self, name: str) -> None:
         if self.backup_format and self.backup_bucket:
             try:
                 obj = self.client.get_object(self.bucket_name, name)
@@ -195,8 +195,8 @@ class MinioStorage(Storage):
         else:
             path += "/"
 
-        dirs = []
-        files = []
+        dirs: T.List[str] = []
+        files: T.List[str] = []
         try:
             objects = self.client.list_objects_v2(self.bucket_name, prefix=path)
             for o in objects:
@@ -329,6 +329,12 @@ class MinioMediaStorage(MinioStorage):
         auto_create_policy = get_setting(
             "MINIO_STORAGE_AUTO_CREATE_MEDIA_POLICY", False
         )
+
+        policy_type = Policy.read
+        if isinstance(auto_create_policy, str):
+            policy_type = Policy(auto_create_policy)
+            auto_create_policy = True
+
         presign_urls = get_setting("MINIO_STORAGE_MEDIA_USE_PRESIGNED", False)
         backup_format = get_setting("MINIO_STORAGE_MEDIA_BACKUP_FORMAT", False)
         backup_bucket = get_setting("MINIO_STORAGE_MEDIA_BACKUP_BUCKET", False)
@@ -338,6 +344,7 @@ class MinioMediaStorage(MinioStorage):
             bucket_name,
             auto_create_bucket=auto_create_bucket,
             auto_create_policy=auto_create_policy,
+            policy_type=policy_type,
             base_url=base_url,
             presign_urls=presign_urls,
             backup_format=backup_format,
@@ -358,6 +365,11 @@ class MinioStaticStorage(MinioStorage):
             "MINIO_STORAGE_AUTO_CREATE_STATIC_POLICY", False
         )
 
+        policy_type = Policy.read
+        if isinstance(auto_create_policy, str):
+            policy_type = Policy(auto_create_policy)
+            auto_create_policy = True
+
         presign_urls = get_setting("MINIO_STORAGE_STATIC_USE_PRESIGNED", False)
 
         super().__init__(
@@ -365,6 +377,7 @@ class MinioStaticStorage(MinioStorage):
             bucket_name,
             auto_create_bucket=auto_create_bucket,
             auto_create_policy=auto_create_policy,
+            policy_type=policy_type,
             base_url=base_url,
             presign_urls=presign_urls,
         )
