@@ -1,9 +1,9 @@
-Simple list of user facing changes to keep track of major changes since last release.
-
 
 --- NEXT
 
-Pending changes/TODO
+The plan is to release 0.5 soonish and hopefully 1.0 some time after that.
+
+Pending changes/TODO:
 
 - Maybe require minio-py 5.0 or later (havent looked at whats actually changed)
 - Figure out if the current set of policy presets are suitable.
