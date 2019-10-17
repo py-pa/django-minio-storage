@@ -403,13 +403,17 @@ def get_setting(name, default=_NoValue):
         return result
 
 
-def create_minio_client_from_settings():
+def create_minio_client_from_settings(*, minio_kwargs=dict()):
     endpoint = get_setting("MINIO_STORAGE_ENDPOINT")
     access_key = get_setting("MINIO_STORAGE_ACCESS_KEY")
     secret_key = get_setting("MINIO_STORAGE_SECRET_KEY")
     secure = get_setting("MINIO_STORAGE_USE_HTTPS", True)
     client = minio.Minio(
-        endpoint, access_key=access_key, secret_key=secret_key, secure=secure
+        endpoint,
+        access_key=access_key,
+        secret_key=secret_key,
+        secure=secure,
+        **minio_kwargs,
     )
     return client
 
