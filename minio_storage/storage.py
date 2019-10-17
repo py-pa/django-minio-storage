@@ -41,7 +41,7 @@ class MinioStorage(Storage):
         file_class=None,
         auto_create_bucket=False,
         presign_urls=False,
-        auto_create_policy: False,
+        auto_create_policy=False,
         backup_format=None,
         backup_bucket=None,
         **kwargs,
