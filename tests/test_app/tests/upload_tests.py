@@ -1,4 +1,3 @@
-import io
 import os
 
 import requests
@@ -32,7 +31,7 @@ class UploadTests(BaseTestMixin, TestCase):
         self.assertNotEqual(jean, ivan)
 
     def test_files_from_filesystem_are_uploaded_properly(self):
-        f = File(io.open(os.path.join(settings.BASE_DIR, "watermelon-cat.jpg"), "br"))
+        f = File(open(os.path.join(settings.BASE_DIR, "watermelon-cat.jpg"), "br"))
         saved_file = self.media_storage.save("watermelon-cat.jpg", f)
         res = requests.get(self.media_storage.url(saved_file))
         self.assertAlmostEqual(
@@ -41,7 +40,7 @@ class UploadTests(BaseTestMixin, TestCase):
 
     def test_files_are_uploaded_from_the_beginning(self):
         local_filename = os.path.join(settings.BASE_DIR, "watermelon-cat.jpg")
-        f = io.open(local_filename, "br")
+        f = open(local_filename, "br")
         f.seek(20000)
         saved_file = self.media_storage.save("watermelon-cat.jpg", f)
         file_size = os.stat(local_filename).st_size

@@ -3,7 +3,7 @@ import minio.error as merr
 
 class MinIOError(IOError):
     def __init__(self, msg, cause):
-        super(MinIOError, self).__init__(msg)
+        super().__init__(msg)
         self.cause = cause
 
 

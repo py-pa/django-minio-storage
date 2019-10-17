@@ -7,8 +7,11 @@ from django.core.files.base import ContentFile
 from django.test import TestCase, override_settings
 from django.utils.deconstruct import deconstructible
 from minio_storage.files import ReadOnlyMinioObjectFile
-from minio_storage.storage import (MinioStorage, create_minio_client_from_settings,
-                                   get_setting)
+from minio_storage.storage import (
+    MinioStorage,
+    create_minio_client_from_settings,
+    get_setting,
+)
 
 from .utils import BaseTestMixin
 

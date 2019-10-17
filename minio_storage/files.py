@@ -3,13 +3,12 @@ from logging import getLogger
 
 from django.core.files.base import File
 from minio import error as merr
-
-from .errors import minio_error
+from minio_storage.errors import minio_error
 
 logger = getLogger("minio_storage")
 
 
-class ReadOnlyMixin(object):
+class ReadOnlyMixin:
     """File class mixin which disallows .write() calls"""
 
     def writable(self):
@@ -19,7 +18,7 @@ class ReadOnlyMixin(object):
         raise NotImplementedError("this is a read only file")
 
 
-class NonSeekableMixin(object):
+class NonSeekableMixin:
     """File class mixin which disallows .seek() calls"""
 
     def seekable(self):
@@ -55,7 +54,7 @@ Note: This file class is not tested yet"""
             )
         if max_memory_size is not None:
             self.max_memory_size = max_memory_size
-        super(ReadOnlyMinioObjectFile, self).__init__(name, mode, storage)
+        super().__init__(name, mode, storage)
 
     def _get_file(self):
         if self._file is None:
@@ -67,7 +66,7 @@ Note: This file class is not tested yet"""
                 return self._file
             except merr.ResponseError as error:
                 logger.warn(error)
-                raise IOError("File {} does not exist".format(self.name))
+                raise OSError(f"File {self.name} does not exist")
             finally:
                 try:
                     obj.release_conn()
@@ -100,7 +99,7 @@ SpooledTemporaryFile. """
             )
         if max_memory_size is not None:
             self.max_memory_size = max_memory_size
-        super(ReadOnlySpooledTemporaryFile, self).__init__(name, mode, storage)
+        super().__init__(name, mode, storage)
 
     def _get_file(self):
         if self._file is None:
@@ -116,7 +115,7 @@ SpooledTemporaryFile. """
                 self._file.seek(0)
                 return self._file
             except merr.ResponseError as error:
-                raise minio_error("File {} does not exist".format(self.name), error)
+                raise minio_error(f"File {self.name} does not exist", error)
             finally:
                 try:
                     obj.release_conn()

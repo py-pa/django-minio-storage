@@ -166,7 +166,7 @@ class URLTests(TestCase):
         assert endpoint != ""
         media_storage = MinioMediaStorage()
         url = media_storage.url("22")
-        self.assertEqual(url, "http://{}/foo/22".format(endpoint))
+        self.assertEqual(url, f"http://{endpoint}/foo/22")
 
     @override_settings(
         MINIO_STORAGE_MEDIA_USE_PRESIGNED=False,
@@ -179,7 +179,7 @@ class URLTests(TestCase):
         media_storage = MinioMediaStorage()
         name = "23/23/aaa/bbb/22"
         url = media_storage.url(name)
-        self.assertEqual(url, "http://{}/foo/23/23/aaa/bbb/22".format(endpoint))
+        self.assertEqual(url, f"http://{endpoint}/foo/23/23/aaa/bbb/22")
 
     @override_settings(
         MINIO_STORAGE_MEDIA_USE_PRESIGNED=False,

@@ -14,9 +14,8 @@ from django.core.files.storage import Storage
 from django.utils import timezone
 from django.utils.deconstruct import deconstructible
 from minio.helpers import get_target_url
-
-from .errors import minio_error
-from .files import ReadOnlySpooledTemporaryFile
+from minio_storage.errors import minio_error
+from minio_storage.files import ReadOnlySpooledTemporaryFile
 
 logger = getLogger("minio_storage")
 
@@ -74,9 +73,9 @@ class MinioStorage(Storage):
                 )
 
         elif not self.client.bucket_exists(self.bucket_name):
-            raise IOError("The bucket {} does not exist".format(bucket_name))
+            raise OSError(f"The bucket {bucket_name} does not exist")
 
-        super(MinioStorage, self).__init__()
+        super().__init__()
 
     def _sanitize_path(self, name):
         v = posixpath.normpath(name).replace("\\", "/")
@@ -223,7 +222,7 @@ class MinioStorage(Storage):
             )
             return sane_name
         except merr.ResponseError as error:
-            raise minio_error("File {} could not be saved".format(name), error)
+            raise minio_error(f"File {name} could not be saved", error)
 
     def delete(self, name):
         # type: (str) -> None
@@ -239,9 +238,7 @@ class MinioStorage(Storage):
             try:
                 content_length = int(obj.getheader("Content-Length"))
             except ValueError as error:
-                raise minio_error(
-                    "Could not backup removed file {}".format(name), error
-                )
+                raise minio_error(f"Could not backup removed file {name}", error)
 
             # Creates the backup filename
             target_name = "{}{}".format(
@@ -261,7 +258,7 @@ class MinioStorage(Storage):
         try:
             self.client.remove_object(self.bucket_name, name)
         except merr.ResponseError as error:
-            raise minio_error("Could not remove file {}".format(name), error)
+            raise minio_error(f"Could not remove file {name}", error)
 
     def exists(self, name):
         # type: (str) -> bool
@@ -273,7 +270,7 @@ class MinioStorage(Storage):
             if error.code == "NoSuchKey":
                 return False
             else:
-                raise minio_error("Could not stat file {}".format(name), error)
+                raise minio_error(f"Could not stat file {name}", error)
         except merr.NoSuchKey as error:
             return False
         except merr.NoSuchBucket:
@@ -309,7 +306,7 @@ class MinioStorage(Storage):
         except merr.NoSuchBucket:
             raise
         except merr.ResponseError as error:
-            raise minio_error("Could not list directory {}".format(path), error)
+            raise minio_error(f"Could not list directory {path}", error)
 
     def size(self, name):
         # type: (str) -> int
@@ -317,7 +314,7 @@ class MinioStorage(Storage):
             info = self.client.stat_object(self.bucket_name, name)
             return info.size
         except merr.ResponseError as error:
-            raise minio_error("Could not access file size for {}".format(name), error)
+            raise minio_error(f"Could not access file size for {name}", error)
 
     def url(self, name, *args, max_age=None):
         # type: (str) -> str
@@ -335,7 +332,7 @@ class MinioStorage(Storage):
             if self.base_url is not None:
                 parsed_url = urlparse(url)
                 path = parsed_url.path.split(self.bucket_name, 1)[1]
-                url = "{0}{1}?{2}{3}{4}".format(
+                url = "{}{}?{}{}{}".format(
                     self.base_url,
                     path,
                     parsed_url.params,
@@ -387,7 +384,7 @@ class MinioStorage(Storage):
             return datetime.datetime.fromtimestamp(mktime(info.last_modified))
         except merr.ResponseError as error:
             raise minio_error(
-                "Could not access modification time for file {}".format(name), error
+                f"Could not access modification time for file {name}", error
             )
 
 
@@ -434,7 +431,7 @@ class MinioMediaStorage(MinioStorage):
         backup_format = get_setting("MINIO_STORAGE_MEDIA_BACKUP_FORMAT", False)
         backup_bucket = get_setting("MINIO_STORAGE_MEDIA_BACKUP_BUCKET", False)
 
-        super(MinioMediaStorage, self).__init__(
+        super().__init__(
             client,
             bucket_name,
             auto_create_bucket=auto_create_bucket,
@@ -461,7 +458,7 @@ class MinioStaticStorage(MinioStorage):
 
         presign_urls = get_setting("MINIO_STORAGE_STATIC_USE_PRESIGNED", False)
 
-        super(MinioStaticStorage, self).__init__(
+        super().__init__(
             client,
             bucket_name,
             auto_create_bucket=auto_create_bucket,
