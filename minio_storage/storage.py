@@ -272,7 +272,7 @@ class MinioStorage(Storage):
                 return False
             else:
                 raise minio_error(f"Could not stat file {name}", error)
-        except merr.NoSuchKey as error:
+        except merr.NoSuchKey:
             return False
         except merr.NoSuchBucket:
             raise
