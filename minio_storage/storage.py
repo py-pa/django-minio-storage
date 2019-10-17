@@ -2,6 +2,7 @@ import datetime
 import json
 import mimetypes
 import posixpath
+import urllib
 from logging import getLogger
 from time import mktime
 from urllib.parse import urlparse
@@ -353,7 +354,9 @@ class MinioStorage(Storage):
                         path = path[:-1]
                     return path
 
-                url = "{}/{}".format(strip_end(self.base_url), strip_beg(name))
+                url = "{}/{}".format(
+                    strip_end(self.base_url), urllib.parse.quote(strip_beg(name))
+                )
             else:
                 url = get_target_url(
                     self.client._endpoint_url,

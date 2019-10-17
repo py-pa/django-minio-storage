@@ -227,6 +227,43 @@ class URLTests(TestCase):
         self.assertIn("http://example11.com/foo", url)
         self.assertIn(name, url)
 
+    BASE = "http://ba se/url"
+    NAME = "Bö/ &öl@:/E"
+    ENCODED = "B%C3%B6/%20%26%C3%B6l%40%3A/E"
+
+    @override_settings(
+        MINIO_STORAGE_MEDIA_URL=None,
+        MINIO_STORAGE_MEDIA_USE_PRESIGNED=False,
+        MINIO_STORAGE_MEDIA_BUCKET_NAME="encoding",
+    )
+    def test_quote_url(self):
+        media_storage = MinioMediaStorage()
+        url = media_storage.url(self.NAME)
+        self.assertTrue(url.endswith(self.ENCODED))
+        self.assertTrue(len(url) > len(self.ENCODED))
+
+    @override_settings(
+        MINIO_STORAGE_MEDIA_URL=BASE,
+        MINIO_STORAGE_MEDIA_USE_PRESIGNED=False,
+        MINIO_STORAGE_MEDIA_BUCKET_NAME="encoding",
+    )
+    def test_quote_base_url(self):
+        media_storage = MinioMediaStorage()
+        url = media_storage.url(self.NAME)
+        self.assertEqual(url, f"{self.BASE}/{self.ENCODED}")
+
+    @override_settings(
+        MINIO_STORAGE_MEDIA_URL=BASE,
+        MINIO_STORAGE_MEDIA_USE_PRESIGNED=True,
+        MINIO_STORAGE_MEDIA_BUCKET_NAME="encoding",
+    )
+    def test_quote_base_url_presigned(self):
+        media_storage = MinioMediaStorage()
+        url = media_storage.url(self.NAME)
+        prefix = f"{self.BASE}/{self.ENCODED}"
+        self.assertTrue(url.startswith(prefix))
+        self.assertTrue(len(url) > len(prefix))
+
 
 class RetrieveTestsWithPublicBucket(BaseTestMixin, TestCase):
     def setUp(self):
