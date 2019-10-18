@@ -17,19 +17,19 @@ env:
   - MINIO_STORAGE_SECRET_KEY=weak_secret_key
 before_install:
 - docker run -d -p 9153:9000 -e MINIO_ACCESS_KEY=$MINIO_STORAGE_ACCESS_KEY -e MINIO_SECRET_KEY=$MINIO_STORAGE_SECRET_KEY minio/minio server /export
-after_success:
-- pip install codecov
-- codecov -e TOXENV,DJANGO
-deploy:
-  provider: pypi
-  user: py-pa
-  distributions: sdist bdist_wheel
-  docs_dir: site
-  password:
-    secure: O29yLKNLInnlH1fQsp1mxZzUZSuu5kdjl1m65YO9RowELrmj2bmvUgTFJYhEEyyQhzcvzPnZqgL3X9/Nqz+oEqfF5Bu9SpF6U/RgLjbUaR+m1aQlW9HiZHCglRLifXPF3lL0JHQaHdbkaLz/O4Cap5M9upqYfdXX13drfgWfe2Cdd62FlcE8eCeRdYjJ4ux3F7TqD1da8gbFxMN+gjkWzXeyEq9kAffZRKz3OXefOH4s07czuaircaFTQNb39j8bQ1/uEJ+tdLtCkyRRnTqm2a/mTqO8830NO/IH0xaSG2rS5vOWnq+OiJsYvjdmtMRAuoKvJipolYH9RZXKJUK89wcweA0L4k06F3Hp2ZY8ZvJ3fDM5gBeEmfXG+hAYQHVKod7RFUr3sp7UGVIhPdNfDHw+gXMy+MPgu0gknOm6Om6JGtx0cqO2jB6SpYK76CRa0TzCauetVfbJmTNsVNUVx8++xlkMXh8iJ+ewZ54UosIpr1Xl2suCZsPDhMEBnhrj3GsX+3FeEfNa9U0ViPUz9sUu83H4GLBoTaZQDLfvVSyIS2Q+qu0ygOz0xCqfVbkbrVGq5EpexNb7qL8LhJULamSjXHQH6+Nd7rAuOvVTRFWROX3eG4hJU4kyvBlACTQUBo6TWeYJdW2V2EHOaHfjldM4DS7GRMiVvwf5eLj8wnk=
-  on:
-    tags: true
-    python: "3.7"
-    repo: py-pa/django-minio-storage
-notifications:
-  email: false
+# after_success:
+# - pip install codecov
+# - codecov -e TOXENV,DJANGO
+# deploy:
+#   provider: pypi
+#   user: py-pa
+#   distributions: sdist bdist_wheel
+#   docs_dir: site
+#   password:
+#     secure: O29yLKNLInnlH1fQsp1mxZzUZSuu5kdjl1m65YO9RowELrmj2bmvUgTFJYhEEyyQhzcvzPnZqgL3X9/Nqz+oEqfF5Bu9SpF6U/RgLjbUaR+m1aQlW9HiZHCglRLifXPF3lL0JHQaHdbkaLz/O4Cap5M9upqYfdXX13drfgWfe2Cdd62FlcE8eCeRdYjJ4ux3F7TqD1da8gbFxMN+gjkWzXeyEq9kAffZRKz3OXefOH4s07czuaircaFTQNb39j8bQ1/uEJ+tdLtCkyRRnTqm2a/mTqO8830NO/IH0xaSG2rS5vOWnq+OiJsYvjdmtMRAuoKvJipolYH9RZXKJUK89wcweA0L4k06F3Hp2ZY8ZvJ3fDM5gBeEmfXG+hAYQHVKod7RFUr3sp7UGVIhPdNfDHw+gXMy+MPgu0gknOm6Om6JGtx0cqO2jB6SpYK76CRa0TzCauetVfbJmTNsVNUVx8++xlkMXh8iJ+ewZ54UosIpr1Xl2suCZsPDhMEBnhrj3GsX+3FeEfNa9U0ViPUz9sUu83H4GLBoTaZQDLfvVSyIS2Q+qu0ygOz0xCqfVbkbrVGq5EpexNb7qL8LhJULamSjXHQH6+Nd7rAuOvVTRFWROX3eG4hJU4kyvBlACTQUBo6TWeYJdW2V2EHOaHfjldM4DS7GRMiVvwf5eLj8wnk=
+#   on:
+#     tags: true
+#     python: "3.7"
+#     repo: py-pa/django-minio-storage
+# notifications:
+#   email: false
