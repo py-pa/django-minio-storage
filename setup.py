@@ -9,7 +9,11 @@ setup(
     author="Tom Houlé",
     author_email="tom@kafunsho.be",
     url="https://github.com/py-pa/django-minio-storage",
-    packages=["minio_storage"],
+    packages=[
+        "minio_storage",
+        "minio_storage/management/",
+        "minio_storage/management/commands/",
+    ],
     setup_requires=["setuptools_scm"],
     install_requires=["django>=1.11", "minio>=4.0.21"],
     extras_require={"test": ["coverage", "requests"]},
