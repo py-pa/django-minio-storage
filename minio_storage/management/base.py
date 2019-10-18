@@ -36,9 +36,6 @@ class StorageCommand(BaseCommand):
             raise CommandError(f"{class_name} is not an sub class of MinioStorage.")
 
         # TODO: maybe another way
-        # with patch.object(storage_class, "_init_check", return_value=None):
-        #     pass
-
         with patch.object(storage_class, "_init_check", return_value=None):
             storage = storage_class()
             return storage

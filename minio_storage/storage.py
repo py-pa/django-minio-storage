@@ -114,13 +114,6 @@ class MinioStorage(Storage):
             raise minio_error("File {} could not be saved: {}".format(name, str(e)), e)
         return f
 
-    def _policy(self, policy_type: str):
-        """
-        Dictionary containing basic AWS Policies in JSON format
-        Policies: READ_ONLY, WRITE_ONLY, READ_WRITE
-        """
-        return Policy(policy_type).bucket(self.bucket_name)
-
     def _save(self, name, content):
         # (str, bytes) -> str
         try:

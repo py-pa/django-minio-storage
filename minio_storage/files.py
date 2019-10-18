@@ -103,7 +103,14 @@ SpooledTemporaryFile. """
 
     max_memory_size: int = 1024 * 1024 * 10
 
-    def __init__(self, name, mode, storage, max_memory_size=None, **kwargs):
+    def __init__(
+        self,
+        name: str,
+        mode: str,
+        storage: "Storage",
+        max_memory_size: T.Optional[int] = None,
+        **kwargs,
+    ):
         if mode.find("w") > -1:
             raise NotImplementedError(
                 "ReadOnlySpooledTemporaryFile storage only support read modes"
