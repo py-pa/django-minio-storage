@@ -15,6 +15,10 @@ Changes:
 - MINIO_STORAGE_AUTO_CREATE_..._POLICY now has more options (see Policy enum)
 - MINIO_STORAGE_AUTO_CREATE_..._POLICY now defaults to GET_ONLY
 
+New feautures:
+
+- django management commands minio_bucket and minio_bucket_policy
+
 
 Fixes:
 

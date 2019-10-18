@@ -63,13 +63,20 @@ class MinioStorage(Storage):
         if file_class is not None:
             self.file_class = file_class
         self.auto_create_bucket = auto_create_bucket
+        self.auto_create_policy = auto_create_policy
+        self.policy_type = policy_type
 
         self.presign_urls = presign_urls
 
-        if auto_create_bucket and not self.client.bucket_exists(self.bucket_name):
+        self._init_check()
 
+        super().__init__()
+
+    def _init_check(self):
+        if self.auto_create_bucket and not self.client.bucket_exists(self.bucket_name):
             self.client.make_bucket(self.bucket_name)
-            if auto_create_policy:
+            if self.auto_create_policy:
+                policy_type = self.policy_type
                 if policy_type is None:
                     policy_type = Policy.read
                 self.client.set_bucket_policy(
@@ -77,9 +84,7 @@ class MinioStorage(Storage):
                 )
 
         elif not self.client.bucket_exists(self.bucket_name):
-            raise OSError(f"The bucket {bucket_name} does not exist")
-
-        super().__init__()
+            raise OSError(f"The bucket {self.bucket_name} does not exist")
 
     def _sanitize_path(self, name):
         v = posixpath.normpath(name).replace("\\", "/")

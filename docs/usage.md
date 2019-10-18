@@ -31,8 +31,8 @@ The following settings are available:
 
 - `MINIO_STORAGE_AUTO_CREATE_MEDIA_POLICY`: sets the buckets public policy
   right after it's been created by `MINIO_STORAGE_AUTO_CREATE_MEDIA_BUCKET`.
-  Valid values are: `GET_ONLY`, `READ_ONLY`, `WRITE_ONLY`, `READ_WRITE`.
-  (default: `GET_ONLY`)
+  Valid values are: `GET_ONLY`, `READ_ONLY`, `WRITE_ONLY`, `READ_WRITE` and
+  `NONE`. (default: `GET_ONLY`)
 
 - `MINIO_STORAGE_STATIC_BUCKET_NAME`: the bucket that will act as `STATIC`
   folder
@@ -42,8 +42,8 @@ The following settings are available:
 
 - `MINIO_STORAGE_AUTO_CREATE_STATIC_POLICY`: sets the buckets public policy
   right after it's been created by `MINIO_STORAGE_AUTO_CREATE_STATIC_BUCKET`.
-  Valid values are: `GET_ONLY`, `READ_ONLY`, `WRITE_ONLY`, `READ_WRITE`.
-  (default: `GET_ONLY`)
+  Valid values are: `GET_ONLY`, `READ_ONLY`, `WRITE_ONLY`, `READ_WRITE` and
+  `NONE`. (default: `GET_ONLY`)
 
 - `MINIO_STORAGE_MEDIA_URL`: the base URL for generating urls to objects from
   `MinioMediaStorage`. When not specified or set to `None` it's value will be
