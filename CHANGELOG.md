@@ -1,12 +1,16 @@
-
 --- NEXT
-
-The plan is to release 0.5 soonish and hopefully 1.0 some time after that.
 
 Pending changes/TODO:
 
-- Maybe require minio-py 5.0 or later (havent looked at whats actually changed)
 - Figure out if the current set of policy presets are suitable.
+
+--- 0.3.2
+
+- GET_ONLY is now the default bucket policy
+- Added thedjango  mangement commands to the package
+
+
+--- 0.3.1
 
 Changes:
 
@@ -18,14 +22,14 @@ Changes:
 New feautures:
 
 - django management commands minio_bucket and minio_bucket_policy
-
+- implement Storage.listdir(): https://github.com/py-pa/django-minio-storage/commit/9300d3d0b819672dbae788155258ff499788691c
+- add max_age to Storage.url(): https://github.com/py-pa/django-minio-storage/commit/5084b954ad0ba0afad340a8d1010ccd2e491a30c
 
 Fixes:
 
 - urlquote object name when using BASE_URL setting: https://github.com/py-pa/django-minio-storage/commit/960961932bcef8c17fbb774f0ef5fa3022af15a2
 
-- implement Storage.listdir(): https://github.com/py-pa/django-minio-storage/commit/9300d3d0b819672dbae788155258ff499788691c
-- add max_age to Storage.url(): https://github.com/py-pa/django-minio-storage/commit/5084b954ad0ba0afad340a8d1010ccd2e491a30c
+
 
 --- 0.2.2 
 
