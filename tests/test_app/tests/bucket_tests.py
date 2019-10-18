@@ -48,7 +48,7 @@ class BucketPolicyTests(BaseTestMixin, TestCase):
             return sorted(json.dumps(v))
 
         def pretty(v):
-            return json.dumps(first, sort_keys=True, indent=2)
+            return json.dumps(v, sort_keys=True, indent=2)
 
         if comparable(first) != comparable(second):
             raise ValueError(
@@ -72,7 +72,7 @@ class BucketPolicyTests(BaseTestMixin, TestCase):
         ms = MinioMediaStorage()
         self.maxDiff = 50000
         self.assertPolicyEqual(
-            Policy.read.bucket(ms.bucket_name, json_encode=False),
+            Policy.get.bucket(ms.bucket_name, json_encode=False),
             json.loads(ms.client.get_bucket_policy(ms.bucket_name)),
         )
         fn = ms.save("somefile", ContentFile(b"test"))
@@ -80,7 +80,7 @@ class BucketPolicyTests(BaseTestMixin, TestCase):
         url = ms.url(fn)
         self.assertEqual(requests.get(url).status_code, 200)
         self.assertEqual(
-            requests.get(f"{ms.client._endpoint_url}/{ms.bucket_name}").status_code, 200
+            requests.get(f"{ms.client._endpoint_url}/{ms.bucket_name}").status_code, 403
         )
 
     @override_settings(

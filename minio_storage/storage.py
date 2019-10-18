@@ -78,7 +78,7 @@ class MinioStorage(Storage):
             if self.auto_create_policy:
                 policy_type = self.policy_type
                 if policy_type is None:
-                    policy_type = Policy.read
+                    policy_type = Policy.get
                 self.client.set_bucket_policy(
                     self.bucket_name, policy_type.bucket(self.bucket_name)
                 )
@@ -328,7 +328,7 @@ class MinioMediaStorage(MinioStorage):
             "MINIO_STORAGE_AUTO_CREATE_MEDIA_POLICY", "GET_ONLY"
         )
 
-        policy_type = Policy.read
+        policy_type = Policy.get
         if isinstance(auto_create_policy, str):
             policy_type = Policy(auto_create_policy)
             auto_create_policy = True
@@ -363,7 +363,7 @@ class MinioStaticStorage(MinioStorage):
             "MINIO_STORAGE_AUTO_CREATE_STATIC_POLICY", "GET_ONLY"
         )
 
-        policy_type = Policy.read
+        policy_type = Policy.get
         if isinstance(auto_create_policy, str):
             policy_type = Policy(auto_create_policy)
             auto_create_policy = True
