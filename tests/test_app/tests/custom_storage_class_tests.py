@@ -14,6 +14,7 @@ from minio_storage.storage import (
 )
 
 from .utils import BaseTestMixin
+from .utils import bucket_name as create_test_bucket_name
 
 
 @deconstructible
@@ -66,9 +67,8 @@ class SecretStorage(MinioStorage):
 
 
 class CustomStorageTests(BaseTestMixin, TestCase):
-    @override_settings(SECRET_BUCKET_NAME="my-secret-bucket")
+    @override_settings(SECRET_BUCKET_NAME=create_test_bucket_name("my-secret-bucket"))
     def test_custom_storage(self):
-
         # Instansiate a storage class and put a file in it so that we have something to
         # work with.
         #
@@ -118,3 +118,13 @@ class CustomStorageTests(BaseTestMixin, TestCase):
             #
             with open(filename, "rb") as f:
                 self.assertEqual(f.read(), b"abcd")
+
+        #
+        # Clean up after the test
+        #
+        storage.delete(storage_filename)
+
+        #
+        # use the minio client directly to also remove bucket
+        #
+        storage.client.remove_bucket(storage.bucket_name)
