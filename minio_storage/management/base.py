@@ -7,7 +7,8 @@ from django.utils.module_loading import import_string
 
 class StorageCommand(BaseCommand):
     def add_arguments(self, parser):
-        parser.add_argument(
+        group = parser.add_argument_group("minio")
+        group.add_argument(
             "--class",
             type=str,
             default="minio_storage.storage.MinioMediaStorage",
@@ -15,7 +16,7 @@ class StorageCommand(BaseCommand):
             "(media/static are short names for default classes)",
         )
 
-        parser.add_argument(
+        group.add_argument(
             "--bucket",
             type=str,
             default=None,

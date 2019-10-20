@@ -7,7 +7,7 @@ from minio_storage.policy import Policy
 
 
 class Command(StorageCommand):
-    help = "set bucket policies"
+    help = "View and set Minio bucket policies"
 
     def add_arguments(self, parser):
         super().add_arguments(parser)
