@@ -95,14 +95,14 @@ class Command(BaseCommand):
             if options["buckets"]:
                 return self.list_buckets(storage)
 
+            list_dirs = True
+            list_files = True
+            summary = True
             if options["dirs"] or options["files"]:
                 list_dirs = options["dirs"]
                 list_files = options["files"]
                 summary = False
-            else:
-                list_dirs = True
-                list_files = True
-                summary = True
+
             return self.bucket_list(
                 storage,
                 bucket_name,
@@ -150,7 +150,7 @@ class Command(BaseCommand):
     def list_buckets(self, storage):
         objs = storage.client.list_buckets()
         for o in objs:
-            self.stdout.write(self.style.SUCCESS(f"{o.name}"))
+            self.stdout.write(f"{o.name}")
 
     def bucket_list(
         self,
@@ -190,11 +190,11 @@ class Command(BaseCommand):
                 if o.is_dir:
                     n_dirs += 1
                     if list_dirs:
-                        print(fmt(o))
+                        self.stdout.write(fmt(o))
                 else:
                     n_files += 1
                     if list_files:
-                        print(fmt(o))
+                        self.stdout.write(fmt(o))
 
             if summary:
                 print(f"{n_files} files and {n_dirs} directories", file=sys.stderr)
