@@ -21,8 +21,11 @@ class CommandsTests(BaseTestMixin, TestCase):
     def test_management_command(self):
 
         storage = self.media_storage
-        # has files, can not be deleted
-        with self.assertRaises(CommandError):
+        bucket = self.media_storage.bucket_name
+
+        call_command("minio", "check")
+
+        with self.assertRaisesRegex(CommandError, f"bucket {bucket} is not empty"):
             call_command("minio", "delete")
 
         try:
@@ -30,23 +33,27 @@ class CommandsTests(BaseTestMixin, TestCase):
         except minio.error.NoSuchBucket:
             pass
 
-        with self.assertRaises(CommandError):
+        with self.assertRaisesRegex(CommandError, f"bucket {bucket} does not exist"):
             call_command("minio", "check")
 
-        with self.assertRaises(CommandError):
+        with self.assertRaisesRegex(
+            CommandError, "The specified bucket does not exist."
+        ):
             call_command("minio", "policy")
 
-        with self.assertRaises(CommandError):
+        with self.assertRaisesRegex(CommandError, f"bucket {bucket} does not exist"):
             call_command("minio", "ls")
 
-        with self.assertRaises(CommandError):
+        with self.assertRaisesRegex(CommandError, f"bucket {bucket} does not exist"):
             call_command("minio", "delete")
 
         call_command("minio", "create")
 
         call_command("minio", "check")
 
-        with self.assertRaises(CommandError):
+        with self.assertRaisesRegex(
+            CommandError, "The specified bucket does not have a bucket policy."
+        ):
             call_command("minio", "policy")
 
         for p in [p.value for p in Policy]:
@@ -58,7 +65,7 @@ class CommandsTests(BaseTestMixin, TestCase):
 
         call_command("minio", "delete")
 
-        with self.assertRaises(CommandError):
+        with self.assertRaisesRegex(CommandError, f"bucket {bucket} does not exist"):
             call_command("minio", "check")
 
         call_command("minio", "create")
