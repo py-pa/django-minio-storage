@@ -4,7 +4,7 @@ from string import Template
 from unittest.mock import patch
 
 import minio.error
-from django.core.management.base import BaseCommand, CommandError, no_translations
+from django.core.management.base import BaseCommand, CommandError
 from django.utils.module_loading import import_string
 from minio_storage.policy import Policy
 from minio_storage.storage import MinioStorage
@@ -80,7 +80,6 @@ class Command(BaseCommand):
 
         super().add_arguments(parser)
 
-    @no_translations
     def handle(self, *args, **options):
         storage = self.storage(options)
         bucket_name = options["bucket"] or storage.bucket_name
