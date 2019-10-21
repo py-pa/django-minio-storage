@@ -1,5 +1,6 @@
 import json
 import sys
+from string import Template
 from unittest.mock import patch
 
 import minio.error
@@ -11,6 +12,14 @@ from minio_storage.storage import MinioStorage
 
 class Command(BaseCommand):
     help = "verify, list, create and delete minio buckets"
+
+    CHECK = "check"
+    CREATE = "create"
+    DELETE = "delete"
+    LIST = "ls"
+    POLICY = "policy"
+
+    FULL_FORMAT = "$name $size $modified $url $etag"
 
     def add_arguments(self, parser):
 
@@ -26,20 +35,23 @@ class Command(BaseCommand):
             "--bucket",
             type=str,
             default=None,
-            help="bucket name (will use storage class bucket if not set)",
+            help="bucket name (default: storage defined bucket if not set)",
         )
 
         commands = parser.add_subparsers(
-            dest="command", title="subcommands", description="valid subcommands"
+            dest="command",
+            title="subcommands",
+            description="valid subcommands",
+            # required=True,
         )
 
-        commands.add_parser(
-            "mb", help="make bucket (defaults to storage defined bucket)"
-        )
+        commands.add_parser(self.CHECK, help="check bucket")
 
-        commands.add_parser("rb", help="remove an empty bucket")
+        commands.add_parser(self.CREATE, help="make bucket")
 
-        ls = commands.add_parser("ls", help="list bucket objects or buckets")
+        commands.add_parser(self.DELETE, help="remove an empty bucket")
+
+        ls = commands.add_parser(self.LIST, help="list bucket objects or buckets")
         ls.add_argument("--dirs", action="store_true", help="include directories")
         ls.add_argument("--files", action="store_true", help="include files")
         ls.add_argument(
@@ -49,8 +61,15 @@ class Command(BaseCommand):
         ls.add_argument(
             "--buckets", action="store_true", help="list buckets instead of files"
         )
+        ls.add_argument(
+            "-f",
+            "--format",
+            type=str,
+            default="$name",
+            help="list format. ( $name $size $modified $url $etag )",
+        )
 
-        policy = commands.add_parser("policy", help="get or set bucket policy")
+        policy = commands.add_parser(self.POLICY, help="get or set bucket policy")
         policy.add_argument(
             "--set",
             type=str,
@@ -66,14 +85,17 @@ class Command(BaseCommand):
         storage = self.storage(options)
         bucket_name = options["bucket"] or storage.bucket_name
         command = options["command"] or ""
-        if command == "mb":
+        if command == self.CHECK:
+            return self.bucket_exists(storage, bucket_name)
+        if command == self.CREATE:
             return self.bucket_create(storage, bucket_name)
-        elif command == "rb":
+        elif command == self.DELETE:
             return self.bucket_delete(storage, bucket_name)
-        elif command == "ls":
+        elif command == self.LIST:
             if options["buckets"]:
                 return self.list_buckets(storage)
-            elif options["dirs"] or options["files"]:
+
+            if options["dirs"] or options["files"]:
                 list_dirs = options["dirs"]
                 list_files = options["files"]
             else:
@@ -86,15 +108,18 @@ class Command(BaseCommand):
                 list_dirs=list_dirs,
                 list_files=list_files,
                 recursive=options["recursive"],
+                format=options["format"],
             )
-        elif command == "policy":
+        elif command == self.POLICY:
             if options["set"] is not None:
                 return self.policy_set(
                     storage, bucket_name, policy=Policy(options["set"])
                 )
             return self.policy_get(storage, bucket_name)
-        else:
-            return self.bucket_exists(storage, bucket_name)
+        self.print_help("minio", "")
+        if command != "":
+            raise CommandError(f"don't know how to handle command: {command}")
+        raise CommandError("command name required")
 
     def storage(self, options):
         class_name = {
@@ -122,7 +147,7 @@ class Command(BaseCommand):
     def list_buckets(self, storage):
         objs = storage.client.list_buckets()
         for o in objs:
-            print(f"{o.name}")
+            self.stdout.write(self.style.SUCCESS(f"{o.name}"))
 
     def bucket_list(
         self,
@@ -133,23 +158,41 @@ class Command(BaseCommand):
         list_dirs: bool,
         list_files: bool,
         recursive: bool,
+        format: str = None,
         summary: bool = True,
     ):
         try:
             objs = storage.client.list_objects_v2(
                 bucket_name, prefix=prefix, recursive=recursive
             )
+
+            template = None
+            if format is not None and format != "$name":
+                template = Template(format)
+
+            def fmt(o):
+                if template is None:
+                    return o.object_name
+                return template.substitute(
+                    name=o.object_name,
+                    size=o.size,
+                    modified=o.last_modified,
+                    etag=o.etag,
+                    url=storage.url(o.object_name),
+                )
+
             n_files = 0
             n_dirs = 0
             for o in objs:
                 if o.is_dir:
                     n_dirs += 1
                     if list_dirs:
-                        print(f"{o.object_name}")
+                        print(fmt(o))
                 else:
                     n_files += 1
                     if list_files:
-                        print(f"{o.object_name}")
+                        print(fmt(o))
+
             if summary:
                 print(f"{n_files} files and {n_dirs} directories", file=sys.stderr)
         except minio.error.NoSuchBucket:
