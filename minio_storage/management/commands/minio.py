@@ -98,9 +98,11 @@ class Command(BaseCommand):
             if options["dirs"] or options["files"]:
                 list_dirs = options["dirs"]
                 list_files = options["files"]
+                summary = False
             else:
                 list_dirs = True
                 list_files = True
+                summary = True
             return self.bucket_list(
                 storage,
                 bucket_name,
@@ -109,6 +111,7 @@ class Command(BaseCommand):
                 list_files=list_files,
                 recursive=options["recursive"],
                 format=options["format"],
+                summary=summary,
             )
         elif command == self.POLICY:
             if options["set"] is not None:
