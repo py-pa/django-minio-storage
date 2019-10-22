@@ -222,8 +222,11 @@ class Command(BaseCommand):
             policy = json.loads(policy)
             policy = json.dumps(policy, ensure_ascii=False, indent=2)
             return policy
-        except (minio.error.NoSuchBucket, minio.error.NoSuchBucketPolicy) as e:
-            raise CommandError(e.message)
+        except minio.error.NoSuchBucket:
+            raise CommandError(f"bucket {bucket_name} does not exist")
+        except minio.error.NoSuchBucketPolicy:
+            raise CommandError(f"bucket {bucket_name} has no policy")
+
 
     def policy_set(self, storage, bucket_name, policy: Policy):
         try:

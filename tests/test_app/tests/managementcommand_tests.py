@@ -36,9 +36,7 @@ class CommandsTests(BaseTestMixin, TestCase):
         with self.assertRaisesRegex(CommandError, f"bucket {bucket} does not exist"):
             call_command("minio", "check")
 
-        with self.assertRaisesRegex(
-            CommandError, "The specified bucket does not exist."
-        ):
+        with self.assertRaisesRegex(CommandError, f"bucket {bucket} does not exist"):
             call_command("minio", "policy")
 
         with self.assertRaisesRegex(CommandError, f"bucket {bucket} does not exist"):
@@ -51,9 +49,10 @@ class CommandsTests(BaseTestMixin, TestCase):
 
         call_command("minio", "check")
 
-        with self.assertRaisesRegex(
-            CommandError, "The specified bucket does not have a bucket policy."
-        ):
+        with self.assertRaisesRegex(CommandError, f"you have already created {bucket}"):
+            call_command("minio", "create")
+
+        with self.assertRaisesRegex(CommandError, f"bucket {bucket} has no policy"):
             call_command("minio", "policy")
 
         for p in [p.value for p in Policy]:
