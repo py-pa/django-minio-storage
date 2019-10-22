@@ -1,16 +1,43 @@
 --- NEXT
 
-Pending changes/TODO:
+### 0.3.3
 
-- Figure out if the current set of policy presets are suitable.
+- reworked management commands and added tests.
 
---- 0.3.2
+```
+$ pipenv run python manage.py minio
+usage: minio  [-h] [--class CLASS] [--bucket BUCKET] [--version]
+              [-v {0,1,2,3}] [--settings SETTINGS] [--pythonpath PYTHONPATH]
+              [--traceback] [--no-color] [--force-color]
+              {check,create,delete,ls,policy} ...
+   ...
+minio:
+  --class CLASS         Storage class to modify (media/static are short names
+                        for default classes)
+  --bucket BUCKET       bucket name (default: storage defined bucket if not
+                        set)
+
+subcommands:
+  valid subcommands
+
+  {check,create,delete,ls,policy}
+    check               check bucket
+    create              make bucket
+    delete              remove an empty bucket
+    ls                  list bucket objects or buckets
+    policy              get or set bucket policy
+
+```
+
+
+
+### 0.3.2
 
 - GET_ONLY is now the default bucket policy
 - Added thedjango  mangement commands to the package
 
 
---- 0.3.1
+### 0.3.1
 
 Changes:
 
@@ -30,7 +57,7 @@ Fixes:
 - urlquote object name when using BASE_URL setting: https://github.com/py-pa/django-minio-storage/commit/960961932bcef8c17fbb774f0ef5fa3022af15a2
 
 
+## 0.2.2 
 
---- 0.2.2 
 
 
