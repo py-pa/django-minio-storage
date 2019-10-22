@@ -8,6 +8,7 @@ from django.core.management.base import BaseCommand, CommandError
 from django.utils.module_loading import import_string
 from minio_storage.policy import Policy
 from minio_storage.storage import MinioStorage
+import argparse
 
 
 class Command(BaseCommand):
@@ -38,20 +39,21 @@ class Command(BaseCommand):
             help="bucket name (default: storage defined bucket if not set)",
         )
 
-        commands = parser.add_subparsers(
+        cmds = parser.add_subparsers(
             dest="command",
             title="subcommands",
             description="valid subcommands",
             # required=True,
         )
+        cmds._parser_class = argparse.ArgumentParser  # circumvent Django 1.11 bug
 
-        commands.add_parser(self.CHECK, help="check bucket")
+        cmds.add_parser(self.CHECK, help="check bucket")
 
-        commands.add_parser(self.CREATE, help="make bucket")
+        cmds.add_parser(self.CREATE, help="make bucket")
 
-        commands.add_parser(self.DELETE, help="remove an empty bucket")
+        cmds.add_parser(self.DELETE, help="remove an empty bucket")
 
-        ls = commands.add_parser(self.LIST, help="list bucket objects or buckets")
+        ls = cmds.add_parser(self.LIST, help="list bucket objects or buckets")
         ls.add_argument("--dirs", action="store_true", help="include directories")
         ls.add_argument("--files", action="store_true", help="include files")
         ls.add_argument(
@@ -69,7 +71,7 @@ class Command(BaseCommand):
             help="list format. ( $name $size $modified $url $etag )",
         )
 
-        policy = commands.add_parser(self.POLICY, help="get or set bucket policy")
+        policy = cmds.add_parser(self.POLICY, help="get or set bucket policy")
         policy.add_argument(
             "--set",
             type=str,
