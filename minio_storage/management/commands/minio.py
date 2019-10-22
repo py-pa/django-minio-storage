@@ -227,7 +227,6 @@ class Command(BaseCommand):
         except minio.error.NoSuchBucketPolicy:
             raise CommandError(f"bucket {bucket_name} has no policy")
 
-
     def policy_set(self, storage, bucket_name, policy: Policy):
         try:
             policy = Policy(policy)
