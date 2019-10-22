@@ -5,7 +5,7 @@
 - reworked management commands and added tests.
 
 ```
-$ pipenv run python manage.py minio
+$ python manage.py minio
 usage: minio  [-h] [--class CLASS] [--bucket BUCKET] [--version]
               [-v {0,1,2,3}] [--settings SETTINGS] [--pythonpath PYTHONPATH]
               [--traceback] [--no-color] [--force-color]
