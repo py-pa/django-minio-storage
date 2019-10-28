@@ -10,7 +10,7 @@ from django.test import TestCase, override_settings
 from minio.error import NoSuchKey
 from minio_storage.errors import MinIOError
 from minio_storage.storage import MinioMediaStorage
-
+import unittest
 from .utils import BaseTestMixin
 
 
@@ -115,10 +115,12 @@ class RetrieveTestsWithRestrictedBucket(BaseTestMixin, TestCase):
     def test_file_exists_failure(self):
         self.assertFalse(self.media_storage.exists("nonexistent.txt"))
 
-    def test_opening_non_existing_file_raises_ioerror(self):
-        with self.assertRaises(IOError):
+    @unittest.skip("Skipping this test because undecided if it should raise exception")
+    def test_opening_non_existing_file_raises_oserror(self):
+        with self.assertRaises(OSError):
             self.media_storage.open("this does not exist")
 
+    @unittest.skip("Skipping this test because undecided if it should raise exception")
     def test_opening_non_existing_file_raises_minioerror(self):
         with self.assertRaises(MinIOError):
             self.media_storage.open("this does not exist")

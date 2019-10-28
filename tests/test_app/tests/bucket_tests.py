@@ -18,7 +18,7 @@ class BucketTests(BaseTestMixin, TestCase):
         MINIO_STORAGE_AUTO_CREATE_MEDIA_BUCKET=False,
     )
     def test_media_storage_cannot_be_initialized_without_bucket(self):
-        with self.assertRaises(IOError):
+        with self.assertRaises(OSError):
             MinioMediaStorage()
 
     @override_settings(
@@ -26,7 +26,7 @@ class BucketTests(BaseTestMixin, TestCase):
         MINIO_STORAGE_AUTO_CREATE_STATIC_BUCKET=False,
     )
     def test_static_storage_cannot_be_initialized_without_bucket(self):
-        with self.assertRaises(IOError):
+        with self.assertRaises(OSError):
             MinioStaticStorage()
 
     def test_get_setting_throws_early(self):

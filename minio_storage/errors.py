@@ -1,7 +1,7 @@
 import minio.error as merr
 
 
-class MinIOError(IOError):
+class MinIOError(OSError):
     def __init__(self, msg, cause):
         super().__init__(msg)
         self.cause = cause

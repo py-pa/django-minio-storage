@@ -36,11 +36,9 @@ class NonSeekableMixin:
 
 class MinioStorageFile(File):
     def __init__(self, name: str, mode: str, storage: "Storage", **kwargs):
-
         self._storage: "Storage" = storage
         self.name: str = name
         self._mode: str = mode
-        self.obj = storage.client.get_object(self._storage.bucket_name, name)
         self._file = None
 
 
