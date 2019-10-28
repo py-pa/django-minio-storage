@@ -1,5 +1,11 @@
 --- NEXT
 
+
+### 0.3.4
+
+- fixed resource leak where one extra file was opened per file and never closed: https://github.com/py-pa/django-minio-storage/commit/1532e34c7dcecbc2cf3ca0805d6fbf42b57c25ba
+
+
 ### 0.3.3
 
 - reworked management commands and added tests.
