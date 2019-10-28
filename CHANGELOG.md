@@ -3,8 +3,13 @@
 
 ### 0.3.4
 
-- fixed resource leak where one extra file was opened per file and never closed: https://github.com/py-pa/django-minio-storage/commit/1532e34c7dcecbc2cf3ca0805d6fbf42b57c25ba
+#### fixed resource leak where one extra file was opened per file and never closed
 
+https://github.com/py-pa/django-minio-storage/commit/1532e34c7dcecbc2cf3ca0805d6fbf42b57c25ba
+  
+There leaked file descriptors were only freed by the gargabe collector before
+this fix so if you have farily tight loop that does something to a lot of files
+while not generating a lot of garbage to trigger the gc.
 
 ### 0.3.3
 
