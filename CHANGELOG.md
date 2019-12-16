@@ -1,5 +1,12 @@
 --- NEXT
 
+## 0.3.5
+
+#### Add support for skipping bucket existst/policy check on start up
+https://github.com/py-pa/django-minio-storage/commit/7086f125ed74b157240bae10c589ce785ca93bbf
+
+Added settings MINIO_STORAGE_ASSUME_MEDIA_BUCKET_EXISTS and
+MINIO_STORAGE_ASSUME_STATIC_BUCKET_EXISTS
 
 ## 0.3.4
 
