@@ -46,6 +46,7 @@ class MinioStorage(Storage):
         policy_type: T.Optional[Policy] = None,
         backup_format: T.Optional[str] = None,
         backup_bucket: T.Optional[str] = None,
+        ignore_bucket_check: bool = False,
         **kwargs,
     ):
         self.client = minio_client
@@ -68,7 +69,8 @@ class MinioStorage(Storage):
 
         self.presign_urls = presign_urls
 
-        self._init_check()
+        if not ignore_bucket_check:
+            self._init_check()
 
         super().__init__()
 
@@ -337,6 +339,10 @@ class MinioMediaStorage(MinioStorage):
         backup_format = get_setting("MINIO_STORAGE_MEDIA_BACKUP_FORMAT", False)
         backup_bucket = get_setting("MINIO_STORAGE_MEDIA_BACKUP_BUCKET", False)
 
+        ignore_bucket_check = get_setting(
+            "MINIO_STORAGE_MEDIA_IGNORE_BUCKET_CHECK", False
+        )
+
         super().__init__(
             client,
             bucket_name,
@@ -347,6 +353,7 @@ class MinioMediaStorage(MinioStorage):
             presign_urls=presign_urls,
             backup_format=backup_format,
             backup_bucket=backup_bucket,
+            ignore_bucket_check=ignore_bucket_check,
         )
 
 
@@ -370,6 +377,10 @@ class MinioStaticStorage(MinioStorage):
 
         presign_urls = get_setting("MINIO_STORAGE_STATIC_USE_PRESIGNED", False)
 
+        ignore_bucket_check = get_setting(
+            "MINIO_STORAGE_STATIC_IGNORE_BUCKET_CHECK", False
+        )
+
         super().__init__(
             client,
             bucket_name,
@@ -378,4 +389,5 @@ class MinioStaticStorage(MinioStorage):
             policy_type=policy_type,
             base_url=base_url,
             presign_urls=presign_urls,
+            ignore_bucket_check=ignore_bucket_check,
         )
