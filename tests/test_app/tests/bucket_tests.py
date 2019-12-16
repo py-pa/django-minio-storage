@@ -36,7 +36,7 @@ class BucketTests(BaseTestMixin, TestCase):
     @override_settings(
         MINIO_STORAGE_MEDIA_BUCKET_NAME="inexistent",
         MINIO_STORAGE_AUTO_CREATE_MEDIA_BUCKET=False,
-        MINIO_STORAGE_MEDIA_IGNORE_BUCKET_CHECK=True,
+        MINIO_STORAGE_ASSUME_MEDIA_BUCKET_EXISTS=True,
     )
     def test_media_storage_ignore_bucket_check(self):
         try:
@@ -49,7 +49,7 @@ class BucketTests(BaseTestMixin, TestCase):
     @override_settings(
         MINIO_STORAGE_STATIC_BUCKET_NAME="inexistent",
         MINIO_STORAGE_AUTO_CREATE_STATIC_BUCKET=False,
-        MINIO_STORAGE_STATIC_IGNORE_BUCKET_CHECK=True,
+        MINIO_STORAGE_ASSUME_STATIC_BUCKET_EXISTS=True,
     )
     def test_static_storage_ignore_bucket_check(self):
         try:

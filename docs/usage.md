@@ -29,6 +29,10 @@ The following settings are available:
 - `MINIO_STORAGE_AUTO_CREATE_MEDIA_BUCKET`: whether to create the bucket if it
   does not already exist (default: `False`)
 
+- `MINIO_STORAGE_ASSUME_MEDIA_BUCKET_EXISTS`: whether to ignore media bucket 
+  creation and policy.  
+  (default: `False`)
+
 - `MINIO_STORAGE_AUTO_CREATE_MEDIA_POLICY`: sets the buckets public policy
   right after it's been created by `MINIO_STORAGE_AUTO_CREATE_MEDIA_BUCKET`.
   Valid values are: `GET_ONLY`, `READ_ONLY`, `WRITE_ONLY`, `READ_WRITE` and
@@ -39,6 +43,11 @@ The following settings are available:
 
 - `MINIO_STORAGE_AUTO_CREATE_STATIC_BUCKET`: whether to create the bucket if it
   does not already exist (default: `False`)
+
+
+- `MINIO_STORAGE_ASSUME_STATIC_BUCKET_EXISTS`: whether to ignore the static bucket 
+  creation and policy.  
+  (default: `False`)
 
 - `MINIO_STORAGE_AUTO_CREATE_STATIC_POLICY`: sets the buckets public policy
   right after it's been created by `MINIO_STORAGE_AUTO_CREATE_STATIC_BUCKET`.
