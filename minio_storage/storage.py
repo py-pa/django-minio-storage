@@ -46,6 +46,7 @@ class MinioStorage(Storage):
         policy_type: T.Optional[Policy] = None,
         backup_format: T.Optional[str] = None,
         backup_bucket: T.Optional[str] = None,
+        assume_bucket_exists: bool = False,
         **kwargs,
     ):
         self.client = minio_client
@@ -64,6 +65,7 @@ class MinioStorage(Storage):
             self.file_class = file_class
         self.auto_create_bucket = auto_create_bucket
         self.auto_create_policy = auto_create_policy
+        self.assume_bucket_exists = assume_bucket_exists
         self.policy_type = policy_type
 
         self.presign_urls = presign_urls
@@ -73,18 +75,21 @@ class MinioStorage(Storage):
         super().__init__()
 
     def _init_check(self):
-        if self.auto_create_bucket and not self.client.bucket_exists(self.bucket_name):
-            self.client.make_bucket(self.bucket_name)
-            if self.auto_create_policy:
-                policy_type = self.policy_type
-                if policy_type is None:
-                    policy_type = Policy.get
-                self.client.set_bucket_policy(
-                    self.bucket_name, policy_type.bucket(self.bucket_name)
-                )
+        if not self.assume_bucket_exists:
+            if self.auto_create_bucket and not self.client.bucket_exists(
+                self.bucket_name
+            ):
+                self.client.make_bucket(self.bucket_name)
+                if self.auto_create_policy:
+                    policy_type = self.policy_type
+                    if policy_type is None:
+                        policy_type = Policy.get
+                    self.client.set_bucket_policy(
+                        self.bucket_name, policy_type.bucket(self.bucket_name)
+                    )
 
-        elif not self.client.bucket_exists(self.bucket_name):
-            raise OSError(f"The bucket {self.bucket_name} does not exist")
+            elif not self.client.bucket_exists(self.bucket_name):
+                raise OSError(f"The bucket {self.bucket_name} does not exist")
 
     def _sanitize_path(self, name):
         v = posixpath.normpath(name).replace("\\", "/")
@@ -337,6 +342,10 @@ class MinioMediaStorage(MinioStorage):
         backup_format = get_setting("MINIO_STORAGE_MEDIA_BACKUP_FORMAT", False)
         backup_bucket = get_setting("MINIO_STORAGE_MEDIA_BACKUP_BUCKET", False)
 
+        assume_bucket_exists = get_setting(
+            "MINIO_STORAGE_ASSUME_MEDIA_BUCKET_EXISTS", False
+        )
+
         super().__init__(
             client,
             bucket_name,
@@ -347,6 +356,7 @@ class MinioMediaStorage(MinioStorage):
             presign_urls=presign_urls,
             backup_format=backup_format,
             backup_bucket=backup_bucket,
+            assume_bucket_exists=assume_bucket_exists,
         )
 
 
@@ -370,6 +380,10 @@ class MinioStaticStorage(MinioStorage):
 
         presign_urls = get_setting("MINIO_STORAGE_STATIC_USE_PRESIGNED", False)
 
+        assume_bucket_exists = get_setting(
+            "MINIO_STORAGE_ASSUME_STATIC_BUCKET_EXISTS", False
+        )
+
         super().__init__(
             client,
             bucket_name,
@@ -378,4 +392,5 @@ class MinioStaticStorage(MinioStorage):
             policy_type=policy_type,
             base_url=base_url,
             presign_urls=presign_urls,
+            assume_bucket_exists=assume_bucket_exists,
         )
