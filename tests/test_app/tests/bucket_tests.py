@@ -41,7 +41,7 @@ class BucketTests(BaseTestMixin, TestCase):
     def test_media_storage_ignore_bucket_check(self):
         try:
             MinioMediaStorage()
-        except:
+        except OSError:
             self.assertTrue(False)
         else:
             pass
@@ -54,7 +54,7 @@ class BucketTests(BaseTestMixin, TestCase):
     def test_static_storage_ignore_bucket_check(self):
         try:
             MinioStaticStorage()
-        except:
+        except OSError:
             self.assertTrue(False)
         else:
             pass
