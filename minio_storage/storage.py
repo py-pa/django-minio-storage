@@ -193,10 +193,11 @@ class MinioStorage(Storage):
         #  function will just return empty results, this is different from
         #  FileSystemStorage where an invalid directory would raise an OSError.
 
-        if path in [None, "", "."]:
+        if path in [None, "", ".", "/"]:
             path = ""
         else:
-            path += "/"
+            if not path.endswith("/"):
+                path += "/"
 
         dirs: T.List[str] = []
         files: T.List[str] = []
