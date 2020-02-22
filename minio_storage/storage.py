@@ -15,6 +15,7 @@ from django.core.files.storage import Storage
 from django.utils import timezone
 from django.utils.deconstruct import deconstructible
 from minio.helpers import get_target_url
+
 from minio_storage.errors import minio_error
 from minio_storage.files import ReadOnlySpooledTemporaryFile
 from minio_storage.policy import Policy
@@ -44,6 +45,7 @@ class MinioStorage(Storage):
         presign_urls: bool = False,
         auto_create_policy: bool = False,
         policy_type: T.Optional[Policy] = None,
+        object_metadata: T.Optional[T.Dict[str, str]] = None,
         backup_format: T.Optional[str] = None,
         backup_bucket: T.Optional[str] = None,
         assume_bucket_exists: bool = False,
@@ -67,8 +69,8 @@ class MinioStorage(Storage):
         self.auto_create_policy = auto_create_policy
         self.assume_bucket_exists = assume_bucket_exists
         self.policy_type = policy_type
-
         self.presign_urls = presign_urls
+        self.object_metadata = object_metadata
 
         self._init_check()
 
@@ -126,7 +128,12 @@ class MinioStorage(Storage):
                 content.seek(0)
             content_size, content_type, sane_name = self._examine_file(name, content)
             self.client.put_object(
-                self.bucket_name, sane_name, content, content_size, content_type
+                self.bucket_name,
+                sane_name,
+                content,
+                content_size,
+                content_type,
+                metadata=self.object_metadata,
             )
             return sane_name
         except merr.ResponseError as error:
@@ -347,6 +354,9 @@ class MinioMediaStorage(MinioStorage):
             "MINIO_STORAGE_ASSUME_MEDIA_BUCKET_EXISTS", False
         )
 
+        object_metadata = get_setting("MINIO_STORAGE_MEDIA_OBJECT_METADATA", None)
+        print("SETTING", object_metadata)
+
         super().__init__(
             client,
             bucket_name,
@@ -358,6 +368,7 @@ class MinioMediaStorage(MinioStorage):
             backup_format=backup_format,
             backup_bucket=backup_bucket,
             assume_bucket_exists=assume_bucket_exists,
+            object_metadata=object_metadata,
         )
 
 
@@ -385,6 +396,8 @@ class MinioStaticStorage(MinioStorage):
             "MINIO_STORAGE_ASSUME_STATIC_BUCKET_EXISTS", False
         )
 
+        object_metadata = get_setting("MINIO_STORAGE_STATIC_OBJECT_METADATA", None)
+
         super().__init__(
             client,
             bucket_name,
@@ -394,4 +407,5 @@ class MinioStaticStorage(MinioStorage):
             base_url=base_url,
             presign_urls=presign_urls,
             assume_bucket_exists=assume_bucket_exists,
+            object_metadata=object_metadata,
         )

@@ -1,11 +1,11 @@
 import os
 
 import requests
-
 from django.conf import settings
 from django.core.files.base import ContentFile, File
 from django.test import TestCase, override_settings
 from minio.error import InvalidAccessKeyId
+
 from minio_storage.storage import MinioMediaStorage
 
 from .utils import BaseTestMixin
@@ -82,3 +82,25 @@ class UploadTests(BaseTestMixin, TestCase):
         self.assertTrue(self.media_storage.exists(".hidden_file"))
         self.media_storage.delete(".hidden_file")
         self.assertFalse(self.media_storage.exists(".hidden_file"))
+
+    def test_metadata(self):
+        ivan = self.media_storage.save("pelican.txt", ContentFile(b"Ivan le Pelican"))
+        res = self.media_storage.client.stat_object(
+            self.media_storage.bucket_name, ivan
+        )
+        self.assertEqual(res.metadata, {"Content-Type": "text/plain"})
+
+
+@override_settings(
+    MINIO_STORAGE_MEDIA_OBJECT_METADATA={"Cache-Control": "max-age=1000"},
+)
+class TestDefaultObjectMetadata(BaseTestMixin, TestCase):
+    def test_default_metadata(self):
+        ivan = self.media_storage.save("pelican.txt", ContentFile(b"Ivan le Pelican"))
+        res = self.media_storage.client.stat_object(
+            self.media_storage.bucket_name, ivan
+        )
+        self.assertEqual(
+            res.metadata,
+            {"Cache-Control": "max-age=1000", "Content-Type": "text/plain"},
+        )

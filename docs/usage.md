@@ -37,6 +37,11 @@ The following settings are available:
   right after it's been created by `MINIO_STORAGE_AUTO_CREATE_MEDIA_BUCKET`.
   Valid values are: `GET_ONLY`, `READ_ONLY`, `WRITE_ONLY`, `READ_WRITE` and
   `NONE`. (default: `GET_ONLY`)
+  
+- `MINIO_STORAGE_MEDIA_OBJECT_METADATA`: set default additional metadata for
+  every object persisted during save operations. The value is a dict with
+  string keys and values, example: `{"Cache-Control": "max-age=1000"}`.
+  (default: `None`)
 
 - `MINIO_STORAGE_STATIC_BUCKET_NAME`: the bucket that will act as `STATIC`
   folder
@@ -53,6 +58,11 @@ The following settings are available:
   right after it's been created by `MINIO_STORAGE_AUTO_CREATE_STATIC_BUCKET`.
   Valid values are: `GET_ONLY`, `READ_ONLY`, `WRITE_ONLY`, `READ_WRITE` and
   `NONE`. (default: `GET_ONLY`)
+  
+- `MINIO_STORAGE_STATIC_OBJECT_METADATA`: set default additional metadata for
+  every object persisted during save operations. The value is a dict with
+  string keys and values, example: `{"Cache-Control": "max-age=1000"}`.
+  (default: `None`)
 
 - `MINIO_STORAGE_MEDIA_URL`: the base URL for generating urls to objects from
   `MinioMediaStorage`. When not specified or set to `None` it's value will be
@@ -103,6 +113,7 @@ MINIO_STORAGE_ENDPOINT = 'minio:9000'
 MINIO_STORAGE_ACCESS_KEY = 'KBP6WXGPS387090EZMG8'
 MINIO_STORAGE_SECRET_KEY = 'DRjFXylyfMqn2zilAr33xORhaYz5r9e8r37XPz3A'
 MINIO_STORAGE_USE_HTTPS = False
+MINIO_STORAGE_MEDIA_OBJECT_METADATA = {"Cache-Control": "max-age=1000"}
 MINIO_STORAGE_MEDIA_BUCKET_NAME = 'local-media'
 MINIO_STORAGE_MEDIA_BACKUP_BUCKET = 'Recycle Bin'
 MINIO_STORAGE_MEDIA_BACKUP_FORMAT = '%c/'

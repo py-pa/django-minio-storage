@@ -1,5 +1,19 @@
 --- NEXT
 
+### support adding default meta data
+
+Also new settings: MINIO_STORAGE_MEDIA_OBJECT_METADATA and MINIO_STORAGE_STATIC_OBJECT_METADATA
+
+example:
+
+MINIO_STORAGE_MEDIA_OBJECT_METADATA  = {"Cache-Control": "max-age=1000"}
+
+### fix issue with directory listing names
+
+Minio has changed in the last months to be more picky about path names so we
+now enure that we don't create path prefixes with a // suffix.
+
+
 ## 0.3.5
 
 #### Add support for skipping bucket existst/policy check on start up
