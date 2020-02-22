@@ -1,12 +1,15 @@
---- NEXT
+## 0.3.6
 
 ### support adding default meta data
 
-Also new settings: MINIO_STORAGE_MEDIA_OBJECT_METADATA and MINIO_STORAGE_STATIC_OBJECT_METADATA
+Also new settings: MINIO_STORAGE_MEDIA_OBJECT_METADATA and
+MINIO_STORAGE_STATIC_OBJECT_METADATA
 
 example:
 
+```py
 MINIO_STORAGE_MEDIA_OBJECT_METADATA  = {"Cache-Control": "max-age=1000"}
+```
 
 ### fix issue with directory listing names
 
