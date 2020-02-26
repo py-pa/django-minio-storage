@@ -1,3 +1,7 @@
+## 0.3.7
+
+Removed accidentally left over debug print from previous release
+
 ## 0.3.6
 
 ### support adding default meta data
