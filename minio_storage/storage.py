@@ -307,7 +307,7 @@ _NoValue = object()
 def get_setting(name, default=_NoValue):
     result = getattr(settings, name, default)
     if result is _NoValue:
-        print("Attr {} : {}".format(name, getattr(settings, name, default)))
+        # print("Attr {} : {}".format(name, getattr(settings, name, default)))
         raise ImproperlyConfigured
     else:
         return result
@@ -355,7 +355,7 @@ class MinioMediaStorage(MinioStorage):
         )
 
         object_metadata = get_setting("MINIO_STORAGE_MEDIA_OBJECT_METADATA", None)
-        print("SETTING", object_metadata)
+        # print("SETTING", object_metadata)
 
         super().__init__(
             client,
