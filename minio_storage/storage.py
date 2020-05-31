@@ -121,8 +121,7 @@ class MinioStorage(Storage):
             raise minio_error("File {} could not be saved: {}".format(name, str(e)), e)
         return f
 
-    def _save(self, name, content):
-        # (str, bytes) -> str
+    def _save(self, name: str, content: bytes) -> str:
         try:
             if hasattr(content, "seek") and callable(content.seek):
                 content.seek(0)
