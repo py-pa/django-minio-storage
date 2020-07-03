@@ -184,6 +184,18 @@ class URLTests(TestCase):
         self.assertEqual(url, f"http://{endpoint}/foo/23/23/aaa/bbb/22")
 
     @override_settings(
+        MINIO_STORAGE_MEDIA_USE_PRESIGNED=True,
+        MINIO_STORAGE_MEDIA_URL=None,
+        MINIO_STORAGE_MEDIA_BUCKET_NAME="foo",
+    )
+    def test_presigned_no_base_url(self):
+        endpoint = os.getenv("MINIO_STORAGE_ENDPOINT", "minio:9000")
+        assert endpoint != ""
+        media_storage = MinioMediaStorage()
+        url = media_storage.url("22")
+        self.assertRegex(url, rf"^http://{endpoint}/foo/22\?")
+
+    @override_settings(
         MINIO_STORAGE_MEDIA_USE_PRESIGNED=False,
         MINIO_STORAGE_MEDIA_URL="https://example23.com/foo",
         MINIO_STORAGE_MEDIA_BUCKET_NAME="bar",
@@ -209,11 +221,10 @@ class URLTests(TestCase):
         MINIO_STORAGE_MEDIA_BUCKET_NAME="bar",
     )
     def test_presigned_base_url(self):
-        # The url generated here probably doenst work in a real situation
         media_storage = MinioMediaStorage()
         url = media_storage.url("1")
         self.assertIn("X-Amz-Signature", url)
-        self.assertIn("http://example11.com/foo", url)
+        self.assertRegex(url, r"^http://example11.com/foo/1\?")
 
     @override_settings(
         MINIO_STORAGE_MEDIA_URL="http://example11.com/foo",
@@ -221,15 +232,12 @@ class URLTests(TestCase):
         MINIO_STORAGE_MEDIA_BUCKET_NAME="bar",
     )
     def test_presigned_base_url_subpath(self):
-        # The url generated here probably doenst work in a real situation
         media_storage = MinioMediaStorage()
-        name = "1/555/666/777"
-        url = media_storage.url(name)
+        url = media_storage.url("1/555/666/777")
         self.assertIn("X-Amz-Signature", url)
-        self.assertIn("http://example11.com/foo", url)
-        self.assertIn(name, url)
+        self.assertRegex(url, r"^http://example11.com/foo/1/555/666/777\?")
 
-    BASE = "http://ba se/url"
+    BASE = "http://base/url"
     NAME = "Bö/ &öl@:/E"
     ENCODED = "B%C3%B6/%20%26%C3%B6l%40%3A/E"
 
