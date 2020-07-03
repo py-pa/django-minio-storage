@@ -68,19 +68,17 @@ The following settings are available:
   `MinioMediaStorage`. When not specified or set to `None` it's value will be
   combined from `MINIO_STORAGE_ENDPOINT` and `MINIO_STORAGE_MEDIA_BUCKET_NAME`.
   `MINIO_STORAGE_MEDIA_URL` should contain the full base url including the
-  bucket name without a trailing slash. Please not that when using presigned
-  URLs, the URL itself is a part of the calculated signature so be careful with
-  how `MINIO_STORAGE_MEDIA_URL` is used, normally it should not have to be set
-  at all.
+  bucket name without a trailing slash. Normally, this should not have to be
+  set, but may be useful when the storage and end user must access the server
+  from different endpoints.
 
 - `MINIO_STORAGE_STATIC_URL`: the base URL for generating URLs to objects from
   `MinioStaticStorage`. When not specified or set to `None` it's value will be
   combined from `MINIO_STORAGE_ENDPOINT` and
   `MINIO_STORAGE_STATIC_BUCKET_NAME`. `MINIO_STORAGE_STATIC_URL` should contain
-  the full base url including the bucket name without a trailing slash. Please
-  not that when using presigned URLs, the URL itself is a part of the
-  calculated signature so be careful with how `MINIO_STORAGE_STATIC_URL` is
-  used, normally it should not have to be set at all.
+  the full base url including the bucket name without a trailing slash.
+  Normally, this should not have to be set, but may be useful when the storage
+  and end user must access the server from different endpoints.
 
 - `MINIO_STORAGE_MEDIA_BACKUP_BUCKET`: Bucket to be used to store deleted files.
   The bucket **has to exists**, the storage will not try to create it.

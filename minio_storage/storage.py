@@ -5,7 +5,7 @@ import typing as T
 import urllib
 from logging import getLogger
 from time import mktime
-from urllib.parse import urlparse
+from urllib.parse import urlsplit, urlunsplit
 
 import minio
 import minio.error as merr
@@ -231,27 +231,57 @@ class MinioStorage(Storage):
     def url(
         self, name: str, *args, max_age: T.Optional[datetime.timedelta] = None
     ) -> str:
-        kwargs = {}
-        if max_age is not None:
-            kwargs["expires"] = max_age
-
-        # NOTE: Here be dragons, when a external base_url is used the code
-        # below is both using "internal" minio clint APIs and somewhat
-        # subverting how minio/S3 expects urls to be generated in the first
-        # place.
-
         if self.presign_urls:
-            url = self.client.presigned_get_object(self.bucket_name, name, **kwargs)
-            if self.base_url is not None:
-                parsed_url = urlparse(url)
-                path = parsed_url.path.split(self.bucket_name, 1)[1]
-                url = "{}{}?{}{}{}".format(
-                    self.base_url,
-                    path,
-                    parsed_url.params,
-                    parsed_url.query,
-                    parsed_url.fragment,
+            kwargs = {}
+            if max_age is not None:
+                kwargs["expires"] = max_age
+
+            if self.base_url is None:
+                client = self.client
+            else:
+                base_url_parts = urlsplit(self.base_url)
+                # Clone from the normal client, but with base_url as the endpoint
+                client = minio.Minio(
+                    base_url_parts.netloc,
+                    access_key=self.client._access_key,
+                    secret_key=self.client._secret_key,
+                    session_token=self.client._session_token,
+                    secure=base_url_parts.scheme == 'https',
+                    region=self.client._region,
+                    http_client=self.client._http
                 )
+                if hasattr(client, '_credentials'):
+                    # Client credentials do not exist prior to minio-py 5.0.7, but they
+                    # should be reused otherwise
+                    client._credentials = self.client._credentials
+                # Autodetecting the bucket region requires an HTTP call, which may fail,
+                # since the server may not be actually reachable at base_url
+                client._set_bucket_region(
+                    self.bucket_name,
+                    self.client._get_bucket_region(self.bucket_name)
+                )
+
+            url = client.presigned_get_object(self.bucket_name, name, **kwargs)
+
+            if self.base_url is not None:
+                url_parts = urlsplit(url)
+
+                # It's assumed that self.base_url will contain bucket information,
+                # which could be different, so remove the bucket_name component (with 1
+                # extra character for the leading "/") from the generated URL
+                url_key_path = url_parts.path[len(self.bucket_name) + 1:]
+
+                # Prefix the URL with any path content from base_url
+                new_url_path = base_url_parts.path + url_key_path
+
+                # Reconstruct the URL with an updated path
+                url = urlunsplit((
+                    url_parts.scheme,
+                    url_parts.netloc,
+                    new_url_path,
+                    url_parts.query,
+                    url_parts.fragment
+                ))
 
         else:
             if self.base_url is not None:
