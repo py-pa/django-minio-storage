@@ -262,42 +262,47 @@ class MinioStorage(Storage):
         except merr.ResponseError as error:
             raise minio_error(f"Could not access file size for {name}", error)
 
+    def _presigned_url(
+        self, name: str, max_age: T.Optional[datetime.timedelta] = None
+    ) -> str:
+        kwargs = {}
+        if max_age is not None:
+            kwargs["expires"] = max_age
+
+        client = (
+            self.client
+            if self.base_url is None else
+            self.base_url_client
+        )
+        url = client.presigned_get_object(self.bucket_name, name, **kwargs)
+
+        if self.base_url is not None:
+            url_parts = urlsplit(url)
+            base_url_parts = urlsplit(self.base_url)
+
+            # It's assumed that self.base_url will contain bucket information,
+            # which could be different, so remove the bucket_name component (with 1
+            # extra character for the leading "/") from the generated URL
+            url_key_path = url_parts.path[len(self.bucket_name) + 1:]
+
+            # Prefix the URL with any path content from base_url
+            new_url_path = base_url_parts.path + url_key_path
+
+            # Reconstruct the URL with an updated path
+            url = urlunsplit((
+                url_parts.scheme,
+                url_parts.netloc,
+                new_url_path,
+                url_parts.query,
+                url_parts.fragment
+            ))
+        return url
+
     def url(
         self, name: str, *args, max_age: T.Optional[datetime.timedelta] = None
     ) -> str:
         if self.presign_urls:
-            kwargs = {}
-            if max_age is not None:
-                kwargs["expires"] = max_age
-
-            client = (
-                self.client
-                if self.base_url is None else
-                self.base_url_client
-            )
-            url = client.presigned_get_object(self.bucket_name, name, **kwargs)
-
-            if self.base_url is not None:
-                url_parts = urlsplit(url)
-                base_url_parts = urlsplit(self.base_url)
-
-                # It's assumed that self.base_url will contain bucket information,
-                # which could be different, so remove the bucket_name component (with 1
-                # extra character for the leading "/") from the generated URL
-                url_key_path = url_parts.path[len(self.bucket_name) + 1:]
-
-                # Prefix the URL with any path content from base_url
-                new_url_path = base_url_parts.path + url_key_path
-
-                # Reconstruct the URL with an updated path
-                url = urlunsplit((
-                    url_parts.scheme,
-                    url_parts.netloc,
-                    new_url_path,
-                    url_parts.query,
-                    url_parts.fragment
-                ))
-
+            url = self._presigned_url(name, max_age=max_age)
         else:
             if self.base_url is not None:
 
