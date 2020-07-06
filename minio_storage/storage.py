@@ -74,6 +74,14 @@ class MinioStorage(Storage):
 
         self._init_check()
 
+        # A base_url_client is only necessary when using presign_urls
+        if self.presign_urls and self.base_url:
+            # Do this after _init_check, so client's bucket region cache will
+            # already be populated
+            self.base_url_client = self._create_base_url_client(
+                self.client, self.bucket_name, self.base_url
+            )
+
         super().__init__()
 
     def _init_check(self):
@@ -92,6 +100,32 @@ class MinioStorage(Storage):
 
             elif not self.client.bucket_exists(self.bucket_name):
                 raise OSError(f"The bucket {self.bucket_name} does not exist")
+
+    @staticmethod
+    def _create_base_url_client(client: minio.Minio, bucket_name: str, base_url: str):
+        """
+        Clone a Minio client, using a different endpoint from `base_url`.
+        """
+        base_url_parts = urlsplit(base_url)
+
+        # Clone from the normal client, but with base_url as the endpoint
+        base_url_client = minio.Minio(
+            base_url_parts.netloc,
+            access_key=client._access_key,
+            secret_key=client._secret_key,
+            session_token=client._session_token,
+            secure=base_url_parts.scheme == 'https',
+            # The bucket region may be auto-detected by client (via an HTTP
+            # request), so don't just use client._region
+            region=client._get_bucket_region(bucket_name),
+            http_client=client._http
+        )
+        if hasattr(client, '_credentials'):
+            # Client credentials do not exist prior to minio-py 5.0.7, but
+            # they should be reused if possible
+            base_url_client._credentials = client._credentials
+
+        return base_url_client
 
     def _sanitize_path(self, name):
         v = posixpath.normpath(name).replace("\\", "/")
@@ -236,35 +270,16 @@ class MinioStorage(Storage):
             if max_age is not None:
                 kwargs["expires"] = max_age
 
-            if self.base_url is None:
-                client = self.client
-            else:
-                base_url_parts = urlsplit(self.base_url)
-                # Clone from the normal client, but with base_url as the endpoint
-                client = minio.Minio(
-                    base_url_parts.netloc,
-                    access_key=self.client._access_key,
-                    secret_key=self.client._secret_key,
-                    session_token=self.client._session_token,
-                    secure=base_url_parts.scheme == 'https',
-                    region=self.client._region,
-                    http_client=self.client._http
-                )
-                if hasattr(client, '_credentials'):
-                    # Client credentials do not exist prior to minio-py 5.0.7, but they
-                    # should be reused otherwise
-                    client._credentials = self.client._credentials
-                # Autodetecting the bucket region requires an HTTP call, which may fail,
-                # since the server may not be actually reachable at base_url
-                client._set_bucket_region(
-                    self.bucket_name,
-                    self.client._get_bucket_region(self.bucket_name)
-                )
-
+            client = (
+                self.client
+                if self.base_url is None else
+                self.base_url_client
+            )
             url = client.presigned_get_object(self.bucket_name, name, **kwargs)
 
             if self.base_url is not None:
                 url_parts = urlsplit(url)
+                base_url_parts = urlsplit(self.base_url)
 
                 # It's assumed that self.base_url will contain bucket information,
                 # which could be different, so remove the bucket_name component (with 1
