@@ -39,12 +39,7 @@ class BucketTests(BaseTestMixin, TestCase):
         MINIO_STORAGE_ASSUME_MEDIA_BUCKET_EXISTS=True,
     )
     def test_media_storage_ignore_bucket_check(self):
-        try:
-            MinioMediaStorage()
-        except OSError:
-            self.assertTrue(False)
-        else:
-            pass
+        MinioMediaStorage()
 
     @override_settings(
         MINIO_STORAGE_STATIC_BUCKET_NAME="inexistent",
@@ -52,12 +47,7 @@ class BucketTests(BaseTestMixin, TestCase):
         MINIO_STORAGE_ASSUME_STATIC_BUCKET_EXISTS=True,
     )
     def test_static_storage_ignore_bucket_check(self):
-        try:
-            MinioStaticStorage()
-        except OSError:
-            self.assertTrue(False)
-        else:
-            pass
+        MinioStaticStorage()
 
 
 class BucketPolicyTests(BaseTestMixin, TestCase):
