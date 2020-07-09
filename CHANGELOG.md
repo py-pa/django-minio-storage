@@ -1,3 +1,7 @@
+## 0.3.8
+
+Improved presigned urls with non standard base urls
+
 ## 0.3.7
 
 Removed accidentally left over debug print from previous release
