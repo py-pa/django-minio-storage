@@ -1,7 +1,7 @@
 # encoding: utf-8
 from setuptools import setup
 
-with open('README.md') as f:
+with open("README.md") as f:
     long_description = f.read()
 
 setup(
@@ -10,7 +10,7 @@ setup(
     use_scm_version=True,
     description="Django file storage using the minio python client",
     long_description=long_description,
-    long_description_content_type='text/markdown',
+    long_description_content_type="text/markdown",
     author="Tom Houlé",
     author_email="tom@kafunsho.be",
     url="https://github.com/py-pa/django-minio-storage",

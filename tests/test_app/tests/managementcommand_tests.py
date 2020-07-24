@@ -5,6 +5,7 @@ from django.core.files.base import ContentFile
 from django.core.management import call_command
 from django.core.management.base import CommandError
 from django.test import TestCase, override_settings
+
 from minio_storage.policy import Policy
 
 from .utils import BaseTestMixin, bucket_name

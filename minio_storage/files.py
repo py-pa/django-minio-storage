@@ -4,6 +4,7 @@ from logging import getLogger
 
 from django.core.files.base import File
 from minio import error as merr
+
 from minio_storage.errors import minio_error
 
 if T.TYPE_CHECKING:

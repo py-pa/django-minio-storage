@@ -1,11 +1,11 @@
 import json
 
-import requests
-
 import minio
+import requests
 from django.core.exceptions import ImproperlyConfigured
 from django.core.files.base import ContentFile
 from django.test import TestCase, override_settings
+
 from minio_storage.policy import Policy
 from minio_storage.storage import MinioMediaStorage, MinioStaticStorage, get_setting
 

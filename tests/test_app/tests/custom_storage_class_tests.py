@@ -6,6 +6,7 @@ import tempfile
 from django.core.files.base import ContentFile
 from django.test import TestCase, override_settings
 from django.utils.deconstruct import deconstructible
+
 from minio_storage.files import ReadOnlyMinioObjectFile
 from minio_storage.storage import (
     MinioStorage,

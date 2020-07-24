@@ -114,13 +114,13 @@ class MinioStorage(Storage):
             access_key=client._access_key,
             secret_key=client._secret_key,
             session_token=client._session_token,
-            secure=base_url_parts.scheme == 'https',
+            secure=base_url_parts.scheme == "https",
             # The bucket region may be auto-detected by client (via an HTTP
             # request), so don't just use client._region
             region=client._get_bucket_region(bucket_name),
-            http_client=client._http
+            http_client=client._http,
         )
-        if hasattr(client, '_credentials'):
+        if hasattr(client, "_credentials"):
             # Client credentials do not exist prior to minio-py 5.0.7, but
             # they should be reused if possible
             base_url_client._credentials = client._credentials
@@ -269,11 +269,7 @@ class MinioStorage(Storage):
         if max_age is not None:
             kwargs["expires"] = max_age
 
-        client = (
-            self.client
-            if self.base_url is None else
-            self.base_url_client
-        )
+        client = self.client if self.base_url is None else self.base_url_client
         url = client.presigned_get_object(self.bucket_name, name, **kwargs)
 
         if self.base_url is not None:
@@ -283,19 +279,21 @@ class MinioStorage(Storage):
             # It's assumed that self.base_url will contain bucket information,
             # which could be different, so remove the bucket_name component (with 1
             # extra character for the leading "/") from the generated URL
-            url_key_path = url_parts.path[len(self.bucket_name) + 1:]
+            url_key_path = url_parts.path[len(self.bucket_name) + 1 :]
 
             # Prefix the URL with any path content from base_url
             new_url_path = base_url_parts.path + url_key_path
 
             # Reconstruct the URL with an updated path
-            url = urlunsplit((
-                url_parts.scheme,
-                url_parts.netloc,
-                new_url_path,
-                url_parts.query,
-                url_parts.fragment
-            ))
+            url = urlunsplit(
+                (
+                    url_parts.scheme,
+                    url_parts.netloc,
+                    new_url_path,
+                    url_parts.query,
+                    url_parts.fragment,
+                )
+            )
         return url
 
     def url(

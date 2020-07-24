@@ -1,16 +1,17 @@
 import datetime
 import io
 import os
+import unittest
 
 import requests
-from freezegun import freeze_time
-
 from django.core.files.base import ContentFile
 from django.test import TestCase, override_settings
+from freezegun import freeze_time
 from minio.error import NoSuchKey
+
 from minio_storage.errors import MinIOError
 from minio_storage.storage import MinioMediaStorage
-import unittest
+
 from .utils import BaseTestMixin
 
 
