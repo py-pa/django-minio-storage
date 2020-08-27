@@ -45,10 +45,10 @@ class MinioStorageFile(File):
 
 class ReadOnlyMinioObjectFile(MinioStorageFile, ReadOnlyMixin, NonSeekableMixin):
     """A django File class which directly exposes the underlying minio object. This
-means the the instance doesnt support functions like .seek() and is required to
-be closed to be able to reuse minio connections.
+    means the the instance doesnt support functions like .seek() and is required to
+    be closed to be able to reuse minio connections.
 
-Note: This file class is not tested yet"""
+    Note: This file class is not tested yet"""
 
     def __init__(
         self,
@@ -98,7 +98,7 @@ Note: This file class is not tested yet"""
 
 class ReadOnlySpooledTemporaryFile(MinioStorageFile, ReadOnlyMixin):
     """A django File class which buffers the minio object into a local
-SpooledTemporaryFile. """
+    SpooledTemporaryFile."""
 
     max_memory_size: int = 1024 * 1024 * 10
 
