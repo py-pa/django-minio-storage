@@ -1,3 +1,7 @@
+## 0.3.9
+
+The minio client is now deconstructable by Django, fixes migrations.
+
 ## 0.3.8
 
 Improved presigned urls with non standard base urls
