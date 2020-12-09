@@ -20,7 +20,7 @@ setup(
         "minio_storage/management/commands/",
     ],
     setup_requires=["setuptools_scm"],
-    install_requires=["django>=1.11", "minio>=4.0.21"],
+    install_requires=["django>=1.11", "minio>=4.0.21,<7"],
     extras_require={"test": ["coverage", "requests"]},
     classifiers=[
         "Development Status :: 4 - Beta",
