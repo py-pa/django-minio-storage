@@ -4,7 +4,6 @@ import posixpath
 import typing as T
 import urllib
 from logging import getLogger
-from time import mktime
 from urllib.parse import urlsplit, urlunsplit
 
 import minio
@@ -14,7 +13,6 @@ from django.core.exceptions import ImproperlyConfigured
 from django.core.files.storage import Storage
 from django.utils import timezone
 from django.utils.deconstruct import deconstructible
-from minio.helpers import get_target_url
 
 from minio_storage.errors import minio_error
 from minio_storage.files import ReadOnlySpooledTemporaryFile
@@ -109,15 +107,16 @@ class MinioStorage(Storage):
         base_url_parts = urlsplit(base_url)
 
         # Clone from the normal client, but with base_url as the endpoint
+        credentials = client._provider.retrieve()
         base_url_client = minio.Minio(
             base_url_parts.netloc,
-            access_key=client._access_key,
-            secret_key=client._secret_key,
-            session_token=client._session_token,
+            access_key=credentials.access_key,
+            secret_key=credentials.secret_key,
+            session_token=credentials.session_token,
             secure=base_url_parts.scheme == "https",
             # The bucket region may be auto-detected by client (via an HTTP
             # request), so don't just use client._region
-            region=client._get_bucket_region(bucket_name),
+            region=client._get_region(bucket_name, None),
             http_client=client._http,
         )
         if hasattr(client, "_credentials"):
@@ -151,7 +150,7 @@ class MinioStorage(Storage):
     def _open(self, name, mode="rb"):
         try:
             f = self.file_class(self._sanitize_path(name), mode, self)
-        except merr.MinioError as e:
+        except merr.MinioException as e:
             raise minio_error("File {} could not be saved: {}".format(name, str(e)), e)
         return f
 
@@ -169,14 +168,14 @@ class MinioStorage(Storage):
                 metadata=self.object_metadata,
             )
             return sane_name
-        except merr.ResponseError as error:
+        except merr.InvalidResponseError as error:
             raise minio_error(f"File {name} could not be saved", error)
 
     def delete(self, name: str) -> None:
         if self.backup_format and self.backup_bucket:
             try:
                 obj = self.client.get_object(self.bucket_name, name)
-            except merr.ResponseError as error:
+            except merr.InvalidResponseError as error:
                 raise minio_error(
                     "Could not obtain file {} " "to make a copy of it".format(name),
                     error,
@@ -195,7 +194,7 @@ class MinioStorage(Storage):
                 self.client.put_object(
                     self.backup_bucket, target_name, obj, content_length
                 )
-            except merr.ResponseError as error:
+            except merr.InvalidResponseError as error:
                 raise minio_error(
                     "Could not make a copy of file "
                     "{} before removing it".format(name),
@@ -204,22 +203,22 @@ class MinioStorage(Storage):
 
         try:
             self.client.remove_object(self.bucket_name, name)
-        except merr.ResponseError as error:
+        except merr.InvalidResponseError as error:
             raise minio_error(f"Could not remove file {name}", error)
 
     def exists(self, name: str) -> bool:
         try:
             self.client.stat_object(self.bucket_name, self._sanitize_path(name))
             return True
-        except merr.ResponseError as error:
+        except merr.InvalidResponseError as error:
             # TODO - deprecate
             if error.code == "NoSuchKey":
                 return False
             else:
                 raise minio_error(f"Could not stat file {name}", error)
-        except merr.NoSuchKey:
+        except merr.S3Error:
             return False
-        except merr.NoSuchBucket:
+        except merr.S3Error:
             raise
         except Exception as error:
             logger.error(error)
@@ -242,7 +241,7 @@ class MinioStorage(Storage):
         dirs: T.List[str] = []
         files: T.List[str] = []
         try:
-            objects = self.client.list_objects_v2(self.bucket_name, prefix=path)
+            objects = self.client.list_objects(self.bucket_name, prefix=path)
             for o in objects:
                 p = posixpath.relpath(o.object_name, path)
                 if o.is_dir:
@@ -250,16 +249,16 @@ class MinioStorage(Storage):
                 else:
                     files.append(p)
             return dirs, files
-        except merr.NoSuchBucket:
+        except merr.S3Error:
             raise
-        except merr.ResponseError as error:
+        except merr.InvalidResponseError as error:
             raise minio_error(f"Could not list directory {path}", error)
 
     def size(self, name: str) -> int:
         try:
             info = self.client.stat_object(self.bucket_name, name)
             return info.size
-        except merr.ResponseError as error:
+        except merr.InvalidResponseError as error:
             raise minio_error(f"Could not access file size for {name}", error)
 
     def _presigned_url(
@@ -279,7 +278,7 @@ class MinioStorage(Storage):
             # It's assumed that self.base_url will contain bucket information,
             # which could be different, so remove the bucket_name component (with 1
             # extra character for the leading "/") from the generated URL
-            url_key_path = url_parts.path[len(self.bucket_name) + 1 :]
+            url_key_path = url_parts.path[len(self.bucket_name) + 1:]
 
             # Prefix the URL with any path content from base_url
             new_url_path = base_url_parts.path + url_key_path
@@ -302,29 +301,32 @@ class MinioStorage(Storage):
         if self.presign_urls:
             url = self._presigned_url(name, max_age=max_age)
         else:
+            def strip_beg(path):
+                while path.startswith("/"):
+                    path = path[1:]
+                return path
+
+            def strip_end(path):
+                while path.endswith("/"):
+                    path = path[:-1]
+                return path
+
             if self.base_url is not None:
-
-                def strip_beg(path):
-                    while path.startswith("/"):
-                        path = path[1:]
-                    return path
-
-                def strip_end(path):
-                    while path.endswith("/"):
-                        path = path[:-1]
-                    return path
 
                 url = "{}/{}".format(
                     strip_end(self.base_url), urllib.parse.quote(strip_beg(name))
                 )
             else:
-                url = get_target_url(
-                    self.client._endpoint_url,
-                    bucket_name=self.bucket_name,
-                    object_name=name,
-                    # bucket_region=region,
+                url = "{}/{}/{}".format(
+                    strip_end(self.endpoint_url),
+                    self.bucket_name,
+                    urllib.parse.quote(strip_beg(name)),
                 )
         return url
+
+    @property
+    def endpoint_url(self):
+        return self.client._base_url._url.geturl()
 
     def accessed_time(self, name: str) -> datetime.datetime:
         """
@@ -341,8 +343,8 @@ class MinioStorage(Storage):
     def modified_time(self, name: str) -> datetime.datetime:
         try:
             info = self.client.stat_object(self.bucket_name, name)
-            return datetime.datetime.fromtimestamp(mktime(info.last_modified))
-        except merr.ResponseError as error:
+            return info.last_modified
+        except merr.InvalidResponseError as error:
             raise minio_error(
                 f"Could not access modification time for file {name}", error
             )

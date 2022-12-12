@@ -4,7 +4,7 @@ import requests
 from django.conf import settings
 from django.core.files.base import ContentFile, File
 from django.test import TestCase, override_settings
-from minio.error import InvalidAccessKeyId
+from minio.error import S3Error
 
 from minio_storage.storage import MinioMediaStorage
 
@@ -22,7 +22,7 @@ class UploadTests(BaseTestMixin, TestCase):
         MINIO_STORAGE_ACCESS_KEY="wrong_key", MINIO_STORAGE_SECRET_KEY="wrong_secret"
     )
     def test_file_upload_fail_incorrect_keys(self):
-        with self.assertRaises(InvalidAccessKeyId):
+        with self.assertRaises(S3Error):
             MinioMediaStorage()
 
     def test_two_files_with_the_same_name_can_be_uploaded(self):
@@ -88,7 +88,12 @@ class UploadTests(BaseTestMixin, TestCase):
         res = self.media_storage.client.stat_object(
             self.media_storage.bucket_name, ivan
         )
-        self.assertEqual(res.metadata, {"Content-Type": "text/plain"})
+        metadata_attrs = {
+            "Accept-Ranges", "Content-Length", "Content-Security-Policy", "Content-Type",
+            "ETag", "Last-Modified", "Server", "Strict-Transport-Security", "Vary",
+            "X-Amz-Request-Id", "X-Content-Type-Options", "X-Xss-Protection", "Date"
+        }
+        self.assertEqual(res.metadata.keys(), metadata_attrs)
 
 
 @override_settings(
@@ -100,7 +105,5 @@ class TestDefaultObjectMetadata(BaseTestMixin, TestCase):
         res = self.media_storage.client.stat_object(
             self.media_storage.bucket_name, ivan
         )
-        self.assertEqual(
-            res.metadata,
-            {"Cache-Control": "max-age=1000", "Content-Type": "text/plain"},
-        )
+
+        self.assertEqual(res.metadata["Cache-Control"], "max-age=1000")

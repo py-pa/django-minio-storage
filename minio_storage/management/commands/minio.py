@@ -167,7 +167,7 @@ class Command(BaseCommand):
         summary: bool = True,
     ):
         try:
-            objs = storage.client.list_objects_v2(
+            objs = storage.client.list_objects(
                 bucket_name, prefix=prefix, recursive=recursive
             )
 
@@ -200,24 +200,25 @@ class Command(BaseCommand):
 
             if summary:
                 print(f"{n_files} files and {n_dirs} directories", file=sys.stderr)
-        except minio.error.NoSuchBucket:
+        except minio.error.S3Error:
             raise CommandError(f"bucket {bucket_name} does not exist")
 
     def bucket_create(self, storage, bucket_name):
         try:
             storage.client.make_bucket(bucket_name)
             print(f"created bucket: {bucket_name}", file=sys.stderr)
-        except minio.error.BucketAlreadyOwnedByYou:
+        except minio.error.S3Error:
             raise CommandError(f"you have already created {bucket_name}")
         return
 
     def bucket_delete(self, storage, bucket_name):
         try:
             storage.client.remove_bucket(bucket_name)
-        except minio.error.NoSuchBucket:
-            raise CommandError(f"bucket {bucket_name} does not exist")
-        except minio.error.BucketNotEmpty:
-            raise CommandError(f"bucket {bucket_name} is not empty")
+        except minio.error.S3Error as err:
+            if err.code == 'BucketNotEmpty':
+                raise CommandError(f"bucket {bucket_name} is not empty")
+            elif err.code == 'NoSuchBucket':
+                raise CommandError(f"bucket {bucket_name} does not exist")
 
     def policy_get(self, storage, bucket_name):
         try:
@@ -225,14 +226,15 @@ class Command(BaseCommand):
             policy = json.loads(policy)
             policy = json.dumps(policy, ensure_ascii=False, indent=2)
             return policy
-        except minio.error.NoSuchBucket:
-            raise CommandError(f"bucket {bucket_name} does not exist")
-        except minio.error.NoSuchBucketPolicy:
-            raise CommandError(f"bucket {bucket_name} has no policy")
+        except minio.error.S3Error as err:
+            if err.code == 'NoSuchBucket':
+                raise CommandError(f"bucket {bucket_name} does not exist")
+            elif err.code == 'NoSuchBucketPolicy':
+                raise CommandError(f"bucket {bucket_name} has no policy")
 
     def policy_set(self, storage, bucket_name, policy: Policy):
         try:
             policy = Policy(policy)
             storage.client.set_bucket_policy(bucket_name, policy.bucket(bucket_name))
-        except minio.error.NoSuchBucket as e:
+        except minio.error.S3Error as e:
             raise CommandError(e.message)

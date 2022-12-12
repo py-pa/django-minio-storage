@@ -77,7 +77,7 @@ class BucketPolicyTests(BaseTestMixin, TestCase):
     )
     def test_auto_create_no_policy(self):
         ms = MinioMediaStorage()
-        with self.assertRaises(minio.error.NoSuchBucketPolicy):
+        with self.assertRaises(minio.error.S3Error):
             ms.client.get_bucket_policy(ms.bucket_name)
 
     @override_settings(
@@ -96,7 +96,7 @@ class BucketPolicyTests(BaseTestMixin, TestCase):
         url = ms.url(fn)
         self.assertEqual(requests.get(url).status_code, 200)
         self.assertEqual(
-            requests.get(f"{ms.client._endpoint_url}/{ms.bucket_name}").status_code, 403
+            requests.get(f"{ms.endpoint_url}/{ms.bucket_name}").status_code, 403
         )
 
     @override_settings(
@@ -114,7 +114,7 @@ class BucketPolicyTests(BaseTestMixin, TestCase):
         self.assertEqual(ms.open(fn).read(), b"test")
         self.assertEqual(requests.get(ms.url(fn)).status_code, 200)
         self.assertEqual(
-            requests.get(f"{ms.client._endpoint_url}/{ms.bucket_name}").status_code, 403
+            requests.get(f"{ms.endpoint_url}/{ms.bucket_name}").status_code, 403
         )
 
     @override_settings(
@@ -132,7 +132,7 @@ class BucketPolicyTests(BaseTestMixin, TestCase):
         self.assertEqual(ms.open(fn).read(), b"test")
         self.assertEqual(requests.get(ms.url(fn)).status_code, 403)
         self.assertEqual(
-            requests.get(f"{ms.client._endpoint_url}/{ms.bucket_name}").status_code, 403
+            requests.get(f"{ms.endpoint_url}/{ms.bucket_name}").status_code, 403
         )
 
     @override_settings(
