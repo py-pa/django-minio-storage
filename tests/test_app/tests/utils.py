@@ -53,6 +53,4 @@ class BaseTestMixin:
 
         for obj in client.list_objects(name, "", True):
             client.remove_object(name, obj.object_name)
-        for obj in client.list_incomplete_uploads(name, ""):  # pragma: no cover  # noqa
-            client.remove_incomplete_upload(name, obj.objectname)
         client.remove_bucket(name)

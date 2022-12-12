@@ -7,7 +7,7 @@ import requests
 from django.core.files.base import ContentFile
 from django.test import TestCase, override_settings
 from freezegun import freeze_time
-from minio.error import NoSuchKey
+from minio.error import S3Error
 
 from minio_storage.errors import MinIOError
 from minio_storage.storage import MinioMediaStorage
@@ -44,7 +44,7 @@ class RetrieveTestsWithRestrictedBucket(BaseTestMixin, TestCase):
     def test_size_of_non_existent_throws(self):
         test_file = self.media_storage.save("sizetest.txt", ContentFile(b"1234"))
         self.media_storage.delete(test_file)
-        with self.assertRaises(NoSuchKey):
+        with self.assertRaises(S3Error):
             self.media_storage.size(test_file)
 
     def test_modified_time(self):
@@ -63,7 +63,7 @@ class RetrieveTestsWithRestrictedBucket(BaseTestMixin, TestCase):
         )
 
     def test_modified_time_of_non_existent_throws(self):
-        with self.assertRaises(NoSuchKey):
+        with self.assertRaises(S3Error):
             self.media_storage.modified_time("nonexistent.jpg")
 
     def _listdir_root(self, root):
@@ -128,7 +128,7 @@ class RetrieveTestsWithRestrictedBucket(BaseTestMixin, TestCase):
         try:
             self.media_storage.open("this does not exist")
         except MinIOError as e:
-            assert e.cause.__class__ == NoSuchKey
+            assert e.cause.__class__ == S3Error
 
     def test_file_names_are_properly_sanitized(self):
         self.media_storage.save("./meh22222.txt", io.BytesIO(b"stuff"))

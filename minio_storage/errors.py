@@ -9,22 +9,10 @@ class MinIOError(OSError):
 
 reraise = {}
 for v in (
-    merr.APINotImplemented,
-    merr.AccessDenied,
-    merr.AccountProblem,
-    merr.CredentialNotSupported,
-    merr.CrossLocationLoggingProhibited,
-    merr.ExpiredToken,
-    merr.InvalidAccessKeyId,
-    merr.InvalidAddressingHeader,
-    merr.InvalidBucketError,
-    merr.InvalidBucketName,
-    merr.InvalidDigest,
-    merr.InvalidEncryptionAlgorithmError,
-    merr.InvalidEndpointError,
-    merr.InvalidSecurity,
-    merr.InvalidToken,
-    merr.NoSuchBucket,
+    merr.MinioException,
+    merr.InvalidResponseError,
+    merr.ServerError,
+    merr.S3Error,
 ):
     reraise[v] = {"err": v}
 

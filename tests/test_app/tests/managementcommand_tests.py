@@ -31,7 +31,7 @@ class CommandsTests(BaseTestMixin, TestCase):
 
         try:
             self.obliterate_bucket(self.media_storage.bucket_name)
-        except minio.error.NoSuchBucket:
+        except minio.error.S3Error:
             pass
 
         with self.assertRaisesRegex(CommandError, f"bucket {bucket} does not exist"):
