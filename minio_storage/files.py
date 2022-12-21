@@ -74,7 +74,7 @@ class ReadOnlyMinioObjectFile(MinioStorageFile, ReadOnlyMixin, NonSeekableMixin)
                 )
                 self._file = obj
                 return self._file
-            except merr.ResponseError as error:
+            except merr.InvalidResponseError as error:
                 logger.warn(error)
                 raise OSError(f"File {self.name} does not exist")
             finally:
@@ -131,7 +131,7 @@ class ReadOnlySpooledTemporaryFile(MinioStorageFile, ReadOnlyMixin):
                     self._file.write(d)
                 self._file.seek(0)
                 return self._file
-            except merr.ResponseError as error:
+            except merr.InvalidResponseError as error:
                 raise minio_error(f"File {self.name} does not exist", error)
             finally:
                 try:
