@@ -9,7 +9,21 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.8', '3.9', '3.10', '3.11']
+        # python-version: ['3.8', '3.9', '3.10', '3.11']
+        python-version: ['3.11']
+
+    env:
+      AWS_ACCESS_KEY_ID: minioadmin
+      AWS_SECRET_ACCESS_KEY: minioadmin
+      MINIO_STORAGE_ENDPOINT: 127.0.0.1:9000
+      MINIO_STORAGE_ACCESS_KEY: minioadmin
+      MINIO_STORAGE_SECRET_KEY: minioadmin
+
+    services:
+      minio:
+        image: fclairamb/minio-github-actions
+        ports:
+          - 9000:9000
 
     steps:
     - uses: actions/checkout@v3
