@@ -151,7 +151,7 @@ class MinioStorage(Storage):
         try:
             f = self.file_class(self._sanitize_path(name), mode, self)
         except merr.MinioException as e:
-            raise minio_error("File {} could not be saved: {}".format(name, str(e)), e)
+            raise minio_error(f"File {name} could not be saved: {str(e)}", e)
         return f
 
     def _save(self, name: str, content: bytes) -> str:
