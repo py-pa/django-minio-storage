@@ -10,7 +10,7 @@ project uses the minio python client instead. Inspiration has been drawn from
 
 # Compatibility
 
-CI is currenlty executed on Python 3.6+ and Django 1.11+.
+CI is currenlty executed on Python 3.8+ and Django 3.2+.
 
 The goal is to have a thoroughly tested, small code base that delegates as much
 as possible to the minio client.
