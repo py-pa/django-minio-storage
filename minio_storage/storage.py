@@ -278,7 +278,7 @@ class MinioStorage(Storage):
             # It's assumed that self.base_url will contain bucket information,
             # which could be different, so remove the bucket_name component (with 1
             # extra character for the leading "/") from the generated URL
-            url_key_path = url_parts.path[len(self.bucket_name) + 1:]
+            url_key_path = url_parts.path[len(self.bucket_name) + 1 :]
 
             # Prefix the URL with any path content from base_url
             new_url_path = base_url_parts.path + url_key_path
@@ -301,6 +301,7 @@ class MinioStorage(Storage):
         if self.presign_urls:
             url = self._presigned_url(name, max_age=max_age)
         else:
+
             def strip_beg(path):
                 while path.startswith("/"):
                     path = path[1:]
@@ -312,7 +313,6 @@ class MinioStorage(Storage):
                 return path
 
             if self.base_url is not None:
-
                 url = "{}/{}".format(
                     strip_end(self.base_url), urllib.parse.quote(strip_beg(name))
                 )

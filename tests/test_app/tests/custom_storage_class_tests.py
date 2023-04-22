@@ -42,7 +42,6 @@ class SecretStorage(MinioStorage):
     file_class = ReadOnlyMinioObjectFile
 
     def __init__(self, bucket_name=None):
-
         # we can create the minio client ourselves or use
         # create_minio_client_from_settings convinience function while providing it with
         # extra args.
@@ -82,7 +81,6 @@ class CustomStorageTests(BaseTestMixin, TestCase):
         # with statement here.
         #
         with tempfile.TemporaryDirectory() as workspace:
-
             # A filename to use for the file inside the working directory.
             #
             filename = os.path.join(workspace, "secret.txt")
@@ -96,7 +94,6 @@ class CustomStorageTests(BaseTestMixin, TestCase):
             with open(filename, "wb") as out_file, storage.open(
                 storage_filename
             ) as storage_file:
-
                 # Copy the stream from the http stream to the out_file
                 #
                 shutil.copyfileobj(storage_file.file, out_file)

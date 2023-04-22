@@ -24,7 +24,6 @@ class Command(BaseCommand):
     FULL_FORMAT = "$name $size $modified $url $etag"
 
     def add_arguments(self, parser):
-
         group = parser.add_argument_group("minio")
         group.add_argument(
             "--class",
@@ -215,9 +214,9 @@ class Command(BaseCommand):
         try:
             storage.client.remove_bucket(bucket_name)
         except minio.error.S3Error as err:
-            if err.code == 'BucketNotEmpty':
+            if err.code == "BucketNotEmpty":
                 raise CommandError(f"bucket {bucket_name} is not empty")
-            elif err.code == 'NoSuchBucket':
+            elif err.code == "NoSuchBucket":
                 raise CommandError(f"bucket {bucket_name} does not exist")
 
     def policy_get(self, storage, bucket_name):
@@ -227,9 +226,9 @@ class Command(BaseCommand):
             policy = json.dumps(policy, ensure_ascii=False, indent=2)
             return policy
         except minio.error.S3Error as err:
-            if err.code == 'NoSuchBucket':
+            if err.code == "NoSuchBucket":
                 raise CommandError(f"bucket {bucket_name} does not exist")
-            elif err.code == 'NoSuchBucketPolicy':
+            elif err.code == "NoSuchBucketPolicy":
                 raise CommandError(f"bucket {bucket_name} has no policy")
 
     def policy_set(self, storage, bucket_name, policy: Policy):

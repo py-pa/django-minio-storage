@@ -20,7 +20,6 @@ class CommandsTests(BaseTestMixin, TestCase):
         MINIO_STORAGE_AUTO_CREATE_MEDIA_POLICY=False,
     )
     def test_management_command(self):
-
         storage = self.media_storage
         bucket = self.media_storage.bucket_name
 
