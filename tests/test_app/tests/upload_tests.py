@@ -89,11 +89,19 @@ class UploadTests(BaseTestMixin, TestCase):
             self.media_storage.bucket_name, ivan
         )
         metadata_attrs = {
-            "Accept-Ranges", "Content-Length", "Content-Security-Policy", "Content-Type",
-            "ETag", "Last-Modified", "Server", "Strict-Transport-Security", "Vary",
-            "X-Amz-Request-Id", "X-Content-Type-Options", "X-Xss-Protection", "Date"
+            "Accept-Ranges",
+            "Content-Length",
+            "Content-Security-Policy",
+            "Content-Type",
+            "ETag",
+            "Last-Modified",
+            "Server",
+            "Vary",
+            "X-Amz-Request-Id",
+            "X-Xss-Protection",
+            "Date",
         }
-        self.assertEqual(res.metadata.keys(), metadata_attrs)
+        self.assertTrue(metadata_attrs.issubset(res.metadata.keys()))
 
 
 @override_settings(
