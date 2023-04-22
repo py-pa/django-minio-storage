@@ -20,6 +20,7 @@ setup(
         "minio_storage/management/commands/",
     ],
     setup_requires=["setuptools_scm"],
+    python_requires=">=3.8",
     install_requires=["django>=1.11", "minio>=7.1.12"],
     extras_require={"test": ["coverage", "requests"]},
     classifiers=[
