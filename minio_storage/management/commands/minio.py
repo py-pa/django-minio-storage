@@ -199,15 +199,15 @@ class Command(BaseCommand):
 
             if summary:
                 print(f"{n_files} files and {n_dirs} directories", file=sys.stderr)
-        except minio.error.S3Error:
-            raise CommandError(f"bucket {bucket_name} does not exist")
+        except minio.error.S3Error as e:
+            raise CommandError(f"error reading bucket {bucket_name}") from e
 
     def bucket_create(self, storage, bucket_name):
         try:
             storage.client.make_bucket(bucket_name)
             print(f"created bucket: {bucket_name}", file=sys.stderr)
-        except minio.error.S3Error:
-            raise CommandError(f"you have already created {bucket_name}")
+        except minio.error.S3Error as e:
+            raise CommandError(f"error creating {bucket_name}") from e
         return
 
     def bucket_delete(self, storage, bucket_name):
@@ -236,4 +236,4 @@ class Command(BaseCommand):
             policy = Policy(policy)
             storage.client.set_bucket_policy(bucket_name, policy.bucket(bucket_name))
         except minio.error.S3Error as e:
-            raise CommandError(e.message)
+            raise CommandError(e.message) from e
