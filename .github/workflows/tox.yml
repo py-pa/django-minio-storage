@@ -19,7 +19,6 @@ jobs:
       MINIO_STORAGE_ENDPOINT: 127.0.0.1:9000
       MINIO_STORAGE_ACCESS_KEY: minioadmin
       MINIO_STORAGE_SECRET_KEY: minioadmin
-      SETUPTOOLS_SCM_PRETEND_VERSION: 0.0.1
 
     services:
       minio:
@@ -29,6 +28,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v4
       with:
