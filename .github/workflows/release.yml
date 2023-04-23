@@ -5,10 +5,7 @@ on:
     tags:
       - v0.**
       - v1.**
-  workflow_run:
-    workflows: ["tox"]
-    types:
-      - completed
+
 jobs:
   pypi-publish:
     name: Upload release to PyPI
