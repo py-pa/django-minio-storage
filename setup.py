@@ -7,7 +7,11 @@ with open("README.md") as f:
 setup(
     name="django-minio-storage",
     license="MIT",
-    use_scm_version=True,
+    use_scm_version={
+        "write_to": "_version.py",
+        "write_to_template": '__version__ = "{version}"',
+        "tag_regex": r"^v(?P<prefix>v)?(?P<version>[^\+]+)(?P<suffix>.*)?$",
+    },
     description="Django file storage using the minio python client",
     long_description=long_description,
     long_description_content_type="text/markdown",
