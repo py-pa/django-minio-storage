@@ -19,6 +19,7 @@ jobs:
       MINIO_STORAGE_ENDPOINT: 127.0.0.1:9000
       MINIO_STORAGE_ACCESS_KEY: minioadmin
       MINIO_STORAGE_SECRET_KEY: minioadmin
+      SETUPTOOLS_SCM_PRETEND_VERSION: 0.0.1
 
     services:
       minio:
