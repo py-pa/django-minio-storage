@@ -1,3 +1,4 @@
+/minio_storage/version.py
 *.pyc
 pycache
 htmlcov

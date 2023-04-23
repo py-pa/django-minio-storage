@@ -8,7 +8,7 @@ setup(
     name="django-minio-storage",
     license="MIT",
     use_scm_version={
-        "write_to": "_version.py",
+        "write_to": "minio_storage/version.py",
         "write_to_template": '__version__ = "{version}"',
         "tag_regex": r"^v(?P<prefix>v)?(?P<version>[^\+]+)(?P<suffix>.*)?$",
     },
