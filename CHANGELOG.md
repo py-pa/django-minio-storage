@@ -1,4 +1,4 @@
-## 0.4.0
+## 0.5.0
 
 Switched the minio-py client library version from `<7` to `>=7`.
 
