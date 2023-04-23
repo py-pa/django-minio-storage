@@ -1,3 +1,11 @@
+## 0.4.0
+
+Switched the minio-py client library version from `<7` to `>=7`.
+
+Minimum Django version is now 3.2
+
+Minimum Python version is now 3.8
+
 ## 0.3.9
 
 The minio client is now deconstructable by Django, fixes migrations.
