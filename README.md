@@ -1,5 +1,5 @@
 [![PyPI version](https://badge.fury.io/py/django-minio-storage.svg)](https://badge.fury.io/py/django-minio-storage)
-![PyPI - Downloads](https://img.shields.io/pypi/dm/django-minio-storage)
+[![PyPI - Downloads](https://img.shields.io/pypi/dm/django-minio-storage)](https://pypistats.org/packages/django-minio-storage)
 [![Documentation Status](http://readthedocs.org/projects/django-minio-storage/badge/?version=latest)](http://django-minio-storage.readthedocs.io/en/latest/?badge=latest)
 
 
