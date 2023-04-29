@@ -19,18 +19,18 @@ from .utils import bucket_name as create_test_bucket_name
 
 
 @deconstructible
-class SecretStorage(MinioStorage):
-    """The SecretStorage MinioStorage subclass can be used directly, as a storage in
+class PrivateStorage(MinioStorage):
+    """The PrivateStorage MinioStorage subclass can be used directly, as a storage in
     settings.DEFAULT_FILE_STORAGE or after instantiated used individually on any django
     FileField:
 
     from django.db import models
 
-    ss = SecretStorage(bucket_name='invoices')
+    private_storage = PrivateStorage(bucket_name='invoices')
 
     class Invoice(models.Model):
         ...
-        pdf = models.FileField(storage=ss)
+        pdf = models.FileField(storage=private_storage)
 
     """
 
@@ -51,7 +51,7 @@ class SecretStorage(MinioStorage):
         # or use our own Django setting
         #
         if bucket_name is None:
-            bucket_name = get_setting("SECRET_BUCKET_NAME")
+            bucket_name = get_setting("PRIVATE_BUCKET_NAME")
 
         # Run the super constructor and make a choice to only use presigned urls with
         # this bucket so that we can keep files more private here than how media files
@@ -67,12 +67,12 @@ class SecretStorage(MinioStorage):
 
 
 class CustomStorageTests(BaseTestMixin, TestCase):
-    @override_settings(SECRET_BUCKET_NAME=create_test_bucket_name("my-secret-bucket"))
+    @override_settings(PRIVATE_BUCKET_NAME=create_test_bucket_name("my-private-bucket"))
     def test_custom_storage(self):
         # Instansiate a storage class and put a file in it so that we have something to
         # work with.
         #
-        storage = SecretStorage()
+        storage = PrivateStorage()
         storage_filename = storage.save("secret.txt", ContentFile(b"abcd"))
 
         # Create a temporary workspace directory.

@@ -66,15 +66,6 @@ class UploadTests(BaseTestMixin, TestCase):
     def test_upload_and_get_back_file_with_funky_name(self):
         self.media_storage.save("áčďěščřžýŽŇůúť.txt", ContentFile(b"12345"))
 
-    def test_uploaded_and_downloaded_file_sizes_match(self):
-        pass
-
-    def test_uploaded_files_end_up_in_the_right_bucket(self):
-        pass
-
-    def test_static_files_end_up_in_the_right_bucket(self):
-        pass
-
     def test_upload_file_beggining_with_dot(self):
         self.media_storage.save(
             ".hidden_file", ContentFile(b"Not really, but whatever")

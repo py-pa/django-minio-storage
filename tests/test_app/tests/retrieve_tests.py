@@ -1,7 +1,6 @@
 import datetime
 import io
 import os
-import unittest
 
 import requests
 from django.core.files.base import ContentFile
@@ -9,7 +8,6 @@ from django.test import TestCase, override_settings
 from freezegun import freeze_time
 from minio.error import S3Error
 
-from minio_storage.errors import MinIOError
 from minio_storage.storage import MinioMediaStorage
 
 from .utils import BaseTestMixin
@@ -41,7 +39,7 @@ class RetrieveTestsWithRestrictedBucket(BaseTestMixin, TestCase):
         test_file = self.media_storage.save("sizetest.txt", ContentFile(b"1234"))
         self.assertEqual(4, self.media_storage.size(test_file))
 
-    def test_size_of_non_existent_throws(self):
+    def test_size_of_non_existent_raises_exception(self):
         test_file = self.media_storage.save("sizetest.txt", ContentFile(b"1234"))
         self.media_storage.delete(test_file)
         with self.assertRaises(S3Error):
@@ -62,7 +60,7 @@ class RetrieveTestsWithRestrictedBucket(BaseTestMixin, TestCase):
             self.media_storage.created_time(self.new_file), datetime.datetime
         )
 
-    def test_modified_time_of_non_existent_throws(self):
+    def test_modified_time_of_non_existent_raises_exception(self):
         with self.assertRaises(S3Error):
             self.media_storage.modified_time("nonexistent.jpg")
 
@@ -116,19 +114,10 @@ class RetrieveTestsWithRestrictedBucket(BaseTestMixin, TestCase):
     def test_file_exists_failure(self):
         self.assertFalse(self.media_storage.exists("nonexistent.txt"))
 
-    @unittest.skip("Skipping this test because undecided if it should raise exception")
-    def test_opening_non_existing_file_raises_oserror(self):
-        with self.assertRaises(OSError):
-            self.media_storage.open("this does not exist")
-
-    @unittest.skip("Skipping this test because undecided if it should raise exception")
-    def test_opening_non_existing_file_raises_minioerror(self):
-        with self.assertRaises(MinIOError):
-            self.media_storage.open("this does not exist")
-        try:
-            self.media_storage.open("this does not exist")
-        except MinIOError as e:
-            assert e.cause.__class__ == S3Error
+    def test_reading_non_existing_file_raises_exception(self):
+        with self.assertRaises(Exception):
+            f = self.media_storage.open("this does not exist")
+            f.read()
 
     def test_file_names_are_properly_sanitized(self):
         self.media_storage.save("./meh22222.txt", io.BytesIO(b"stuff"))

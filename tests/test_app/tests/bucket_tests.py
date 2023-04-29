@@ -29,7 +29,7 @@ class BucketTests(BaseTestMixin, TestCase):
         with self.assertRaises(OSError):
             MinioStaticStorage()
 
-    def test_get_setting_throws_early(self):
+    def test_get_setting_raises_exception(self):
         with self.assertRaises(ImproperlyConfigured):
             get_setting("INEXISTENT_SETTING")
 
