@@ -3,6 +3,7 @@ import mimetypes
 import posixpath
 import typing as T
 import urllib
+import urllib3
 from logging import getLogger
 from urllib.parse import urlsplit, urlunsplit
 
@@ -367,6 +368,20 @@ def create_minio_client_from_settings(*, minio_kwargs=dict()):
     access_key = get_setting("MINIO_STORAGE_ACCESS_KEY")
     secret_key = get_setting("MINIO_STORAGE_SECRET_KEY")
     secure = get_setting("MINIO_STORAGE_USE_HTTPS", True)
+    region = get_setting("MINIO_STORAGE_REGION", 'us-east-1')
+    # Eventually handle the need for a HTTP proxy
+    http_client = None
+    if get_setting("MINIO_STORAGE_HTTP_PROXY"):
+        http_client = urllib3.ProxyManager(
+            get_setting("MINIO_STORAGE_HTTP_PROXY"),
+            timeout=urllib3.Timeout.DEFAULT_TIMEOUT,
+            retries=urllib3.Retry(
+                total=5,
+                backoff_factor=0.2,
+                status_forcelist=[500, 502, 503, 504],
+            )
+        )
+
     # Making this client deconstructible allows it to be passed directly as
     # an argument to MinioStorage, since Django needs to be able to
     # deconstruct all Storage constructor arguments for Storages referenced in
@@ -376,6 +391,8 @@ def create_minio_client_from_settings(*, minio_kwargs=dict()):
         access_key=access_key,
         secret_key=secret_key,
         secure=secure,
+        region=region,
+        http_client=http_client,
         **minio_kwargs,
     )
     return client
