@@ -1,6 +1,7 @@
 import argparse
 import json
 import sys
+import typing as T
 from string import Template
 from unittest.mock import patch
 
@@ -162,7 +163,7 @@ class Command(BaseCommand):
         list_dirs: bool,
         list_files: bool,
         recursive: bool,
-        format: str = None,
+        format: T.Optional[str] = None,
         summary: bool = True,
     ):
         try:

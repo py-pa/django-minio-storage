@@ -8,11 +8,11 @@
   ],
   "reportMissingImports": true,
   "reportMissingTypeStubs": false,
-  "strictParameterNoneValue": false,
-  "reportInvalidStringEscapeSequence": "warning",
-  "reportUnboundVariable": "warning",
-  "reportOptionalMemberAccess": "warning",
-  "reportOptionalIterable": "warning",
+  "strictParameterNoneValue": true,
+  "reportInvalidStringEscapeSequence": "error",
+  "reportUnboundVariable": "error",
+  "reportOptionalMemberAccess": "error",
+  "reportOptionalIterable": "error",
   "pythonVersion": "3.8",
   "pythonPlatform": "Linux"
 }

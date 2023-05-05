@@ -64,7 +64,8 @@ class ReadOnlyMinioObjectFile(MinioStorageFile, ReadOnlyMixin, NonSeekableMixin)
             self.max_memory_size = max_memory_size
         super().__init__(name, mode, storage)
 
-    def _get_file(self):
+    @property
+    def file(self):
         if self._file is None:
             try:
                 obj = self._storage.client.get_object(
@@ -82,10 +83,9 @@ class ReadOnlyMinioObjectFile(MinioStorageFile, ReadOnlyMixin, NonSeekableMixin)
                     logger.error(str(e))
         return self._file
 
+    @file.setter
     def _set_file(self, value):
         self._file = value
-
-    file = property(_get_file, _set_file)
 
     def close(self):
         try:
@@ -116,7 +116,8 @@ class ReadOnlySpooledTemporaryFile(MinioStorageFile, ReadOnlyMixin):
             self.max_memory_size = max_memory_size
         super().__init__(name, mode, storage)
 
-    def _get_file(self):
+    @property
+    def file(self):
         if self._file is None:
             try:
                 obj = self._storage.client.get_object(
@@ -138,10 +139,9 @@ class ReadOnlySpooledTemporaryFile(MinioStorageFile, ReadOnlyMixin):
                     logger.error(str(e))
         return self._file
 
+    @file.setter
     def _set_file(self, value):
         self._file = value
-
-    file = property(_get_file, _set_file)
 
     def close(self):
         if self._file is not None:
