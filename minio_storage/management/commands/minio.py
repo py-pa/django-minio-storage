@@ -1,4 +1,3 @@
-import argparse
 import json
 import sys
 import typing as T
@@ -46,12 +45,8 @@ class Command(BaseCommand):
             description="valid subcommands",
             # required=True,
         )
-        cmds._parser_class = argparse.ArgumentParser  # circumvent Django 1.11 bug
-
         cmds.add_parser(self.CHECK, help="check bucket")
-
         cmds.add_parser(self.CREATE, help="make bucket")
-
         cmds.add_parser(self.DELETE, help="remove an empty bucket")
 
         ls = cmds.add_parser(self.LIST, help="list bucket objects or buckets")
@@ -141,7 +136,7 @@ class Command(BaseCommand):
 
         # TODO: maybe another way
         with patch.object(storage_class, "_init_check", return_value=None):
-            storage = storage_class()
+            storage = storage_class()  # type: ignore
             return storage
 
     def bucket_exists(self, storage, bucket_name):

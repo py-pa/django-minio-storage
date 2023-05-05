@@ -12,6 +12,7 @@ from django.core.exceptions import ImproperlyConfigured
 from django.core.files.storage import Storage
 from django.utils import timezone
 from django.utils.deconstruct import deconstructible
+from minio.datatypes import Object
 
 from minio_storage.errors import minio_error
 from minio_storage.files import ReadOnlySpooledTemporaryFile
@@ -106,12 +107,9 @@ class MinioStorage(Storage):
         base_url_parts = urlsplit(base_url)
 
         # Clone from the normal client, but with base_url as the endpoint
-        credentials = client._provider.retrieve()
         base_url_client = minio.Minio(
             base_url_parts.netloc,
-            access_key=credentials.access_key,
-            secret_key=credentials.secret_key,
-            session_token=credentials.session_token,
+            credentials=client._provider,
             secure=base_url_parts.scheme == "https",
             # The bucket region may be auto-detected by client (via an HTTP
             # request), so don't just use client._region
@@ -250,8 +248,8 @@ class MinioStorage(Storage):
 
     def size(self, name: str) -> int:
         try:
-            info = self.client.stat_object(self.bucket_name, name)
-            return info.size
+            info: Object = self.client.stat_object(self.bucket_name, name)
+            return info.size  # type: ignore
         except merr.InvalidResponseError as error:
             raise minio_error(f"Could not access file size for {name}", error)
 
@@ -293,7 +291,7 @@ class MinioStorage(Storage):
 
     def url(
         self, name: str, *args, max_age: T.Optional[datetime.timedelta] = None
-    ) -> T.Optional[str]:
+    ) -> str:
         url = ""
         if self.presign_urls:
             url = self._presigned_url(name, max_age=max_age)
@@ -317,7 +315,9 @@ class MinioStorage(Storage):
                     self.bucket_name,
                     quote(strip_beg(name)),
                 )
-        return url
+        if url:
+            return url
+        raise OSError(f"could not produce URL for {name}")
 
     @property
     def endpoint_url(self):
@@ -337,12 +337,14 @@ class MinioStorage(Storage):
 
     def modified_time(self, name: str) -> datetime.datetime:
         try:
-            info = self.client.stat_object(self.bucket_name, name)
-            return info.last_modified
+            info: Object = self.client.stat_object(self.bucket_name, name)
+            if info.last_modified:
+                return info.last_modified  # type: ignore
         except merr.InvalidResponseError as error:
             raise minio_error(
                 f"Could not access modification time for file {name}", error
             )
+        raise OSError(f"Could not access modification time for file {name}")
 
 
 _NoValue = object()

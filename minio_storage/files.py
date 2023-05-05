@@ -8,7 +8,7 @@ from minio import error as merr
 from minio_storage.errors import minio_error
 
 if T.TYPE_CHECKING:
-    from minio_storage.storage import Storage
+    from minio_storage.storage import MinioStorage
 
 logger = getLogger("minio_storage")
 
@@ -36,8 +36,8 @@ class NonSeekableMixin:
 
 
 class MinioStorageFile(File):
-    def __init__(self, name: str, mode: str, storage: "Storage", **kwargs):
-        self._storage: "Storage" = storage
+    def __init__(self, name: str, mode: str, storage: "MinioStorage", **kwargs):
+        self._storage: "MinioStorage" = storage
         self.name: str = name
         self._mode: str = mode
         self._file = None
@@ -52,7 +52,7 @@ class ReadOnlyMinioObjectFile(MinioStorageFile, ReadOnlyMixin, NonSeekableMixin)
         self,
         name: str,
         mode: str,
-        storage: "Storage",
+        storage: "MinioStorage",
         max_memory_size: T.Optional[int] = None,
         **kwargs,
     ):
@@ -66,6 +66,7 @@ class ReadOnlyMinioObjectFile(MinioStorageFile, ReadOnlyMixin, NonSeekableMixin)
 
     @property
     def file(self):
+        obj = None
         if self._file is None:
             try:
                 obj = self._storage.client.get_object(
@@ -78,7 +79,8 @@ class ReadOnlyMinioObjectFile(MinioStorageFile, ReadOnlyMixin, NonSeekableMixin)
                 raise OSError(f"File {self.name} does not exist")
             finally:
                 try:
-                    obj.release_conn()
+                    if obj:
+                        obj.release_conn()
                 except Exception as e:
                     logger.error(str(e))
         return self._file
@@ -104,7 +106,7 @@ class ReadOnlySpooledTemporaryFile(MinioStorageFile, ReadOnlyMixin):
         self,
         name: str,
         mode: str,
-        storage: "Storage",
+        storage: "MinioStorage",
         max_memory_size: T.Optional[int] = None,
         **kwargs,
     ):
@@ -119,6 +121,7 @@ class ReadOnlySpooledTemporaryFile(MinioStorageFile, ReadOnlyMixin):
     @property
     def file(self):
         if self._file is None:
+            obj = None
             try:
                 obj = self._storage.client.get_object(
                     self._storage.bucket_name, self.name
@@ -134,7 +137,8 @@ class ReadOnlySpooledTemporaryFile(MinioStorageFile, ReadOnlyMixin):
                 raise minio_error(f"File {self.name} does not exist", error)
             finally:
                 try:
-                    obj.release_conn()
+                    if obj:
+                        obj.release_conn()
                 except Exception as e:
                     logger.error(str(e))
         return self._file
