@@ -96,14 +96,15 @@ class CustomStorageTests(BaseTestMixin, TestCase):
             ) as storage_file:
                 # Copy the stream from the http stream to the out_file
                 #
-                shutil.copyfileobj(storage_file.file, out_file)
+                shutil.copyfileobj(storage_file.file, out_file)  # type: ignore
 
                 #
                 # We are not using the ReadOnlyMinioObjectFile type so we can't seek in
                 # it.
                 #
                 with self.assertRaises(io.UnsupportedOperation):
-                    storage_file.file.seek()
+                    if storage_file.file:
+                        storage_file.file.seek(0)
 
             workspace_files = os.listdir(workspace)
             print(workspace_files)  # prints: ['secret.txt']

@@ -92,7 +92,7 @@ class UploadTests(BaseTestMixin, TestCase):
             "X-Xss-Protection",
             "Date",
         }
-        self.assertTrue(metadata_attrs.issubset(res.metadata.keys()))
+        self.assertTrue(metadata_attrs.issubset(res.metadata.keys()))  # type: ignore
 
 
 @override_settings(
@@ -105,4 +105,4 @@ class TestDefaultObjectMetadata(BaseTestMixin, TestCase):
             self.media_storage.bucket_name, ivan
         )
 
-        self.assertEqual(res.metadata["Cache-Control"], "max-age=1000")
+        self.assertEqual(res.metadata["Cache-Control"], "max-age=1000")  # type: ignore
