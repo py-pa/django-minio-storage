@@ -1,0 +1,18 @@
+{
+  "include": [
+    "minio_storage",
+    "tests"
+  ],
+  "exclude": [
+    "**/migrations"
+  ],
+  "reportMissingImports": true,
+  "reportMissingTypeStubs": false,
+  "strictParameterNoneValue": false,
+  "reportInvalidStringEscapeSequence": "warning",
+  "reportUnboundVariable": "warning",
+  "reportOptionalMemberAccess": "warning",
+  "reportOptionalIterable": "warning",
+  "pythonVersion": "3.8",
+  "pythonPlatform": "Linux"
+}

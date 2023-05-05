@@ -2,9 +2,8 @@ import datetime
 import mimetypes
 import posixpath
 import typing as T
-import urllib
 from logging import getLogger
-from urllib.parse import urlsplit, urlunsplit
+from urllib.parse import quote, urlsplit, urlunsplit
 
 import minio
 import minio.error as merr
@@ -119,10 +118,6 @@ class MinioStorage(Storage):
             region=client._get_region(bucket_name, None),
             http_client=client._http,
         )
-        if hasattr(client, "_credentials"):
-            # Client credentials do not exist prior to minio-py 5.0.7, but
-            # they should be reused if possible
-            base_url_client._credentials = client._credentials
 
         return base_url_client
 
@@ -154,7 +149,7 @@ class MinioStorage(Storage):
             raise minio_error(f"File {name} could not be saved: {str(e)}", e)
         return f
 
-    def _save(self, name: str, content: bytes) -> str:
+    def _save(self, name: str, content: T.BinaryIO) -> str:
         try:
             if hasattr(content, "seek") and callable(content.seek):
                 content.seek(0)
@@ -212,16 +207,15 @@ class MinioStorage(Storage):
             return True
         except merr.InvalidResponseError as error:
             # TODO - deprecate
-            if error.code == "NoSuchKey":
+            if error._code == "NoSuchKey":
                 return False
             else:
                 raise minio_error(f"Could not stat file {name}", error)
         except merr.S3Error:
             return False
-        except merr.S3Error:
-            raise
         except Exception as error:
             logger.error(error)
+        return False
 
     def listdir(self, path: str) -> T.Tuple[T.List, T.List]:
         #  [None, "", "."] is supported to mean the configured root among various
@@ -263,7 +257,7 @@ class MinioStorage(Storage):
 
     def _presigned_url(
         self, name: str, max_age: T.Optional[datetime.timedelta] = None
-    ) -> str:
+    ) -> T.Optional[str]:
         kwargs = {}
         if max_age is not None:
             kwargs["expires"] = max_age
@@ -293,11 +287,14 @@ class MinioStorage(Storage):
                     url_parts.fragment,
                 )
             )
-        return url
+        if url:
+            return str(url)
+        return None
 
     def url(
         self, name: str, *args, max_age: T.Optional[datetime.timedelta] = None
-    ) -> str:
+    ) -> T.Optional[str]:
+        url = ""
         if self.presign_urls:
             url = self._presigned_url(name, max_age=max_age)
         else:
@@ -313,14 +310,12 @@ class MinioStorage(Storage):
                 return path
 
             if self.base_url is not None:
-                url = "{}/{}".format(
-                    strip_end(self.base_url), urllib.parse.quote(strip_beg(name))
-                )
+                url = "{}/{}".format(strip_end(self.base_url), quote(strip_beg(name)))
             else:
                 url = "{}/{}/{}".format(
                     strip_end(self.endpoint_url),
                     self.bucket_name,
-                    urllib.parse.quote(strip_beg(name)),
+                    quote(strip_beg(name)),
                 )
         return url
 
@@ -353,7 +348,7 @@ class MinioStorage(Storage):
 _NoValue = object()
 
 
-def get_setting(name, default=_NoValue):
+def get_setting(name: str, default=_NoValue) -> T.Any:
     result = getattr(settings, name, default)
     if result is _NoValue:
         # print("Attr {} : {}".format(name, getattr(settings, name, default)))

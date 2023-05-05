@@ -26,11 +26,11 @@ class Policy(enum.Enum):
         return pol
 
 
-def _none(bucket_name: str) -> T.Dict:
+def _none(bucket_name: str) -> T.Dict[str, T.Any]:
     return {"Version": "2012-10-17", "Statement": []}
 
 
-def _get(bucket_name: str) -> T.Dict:
+def _get(bucket_name: str) -> T.Dict[str, T.Any]:
     return {
         "Version": "2012-10-17",
         "Statement": [
@@ -44,7 +44,7 @@ def _get(bucket_name: str) -> T.Dict:
     }
 
 
-def _read(bucket_name: str) -> T.Dict:
+def _read(bucket_name: str) -> T.Dict[str, T.Any]:
     return {
         "Version": "2012-10-17",
         "Statement": [
@@ -70,7 +70,7 @@ def _read(bucket_name: str) -> T.Dict:
     }
 
 
-def _write(bucket_name: str) -> T.Dict:
+def _write(bucket_name: str) -> T.Dict[str, T.Any]:
     return {
         "Version": "2012-10-17",
         "Statement": [
@@ -101,7 +101,7 @@ def _write(bucket_name: str) -> T.Dict:
     }
 
 
-def _read_write(bucket_name: str) -> T.Dict:
+def _read_write(bucket_name: str) -> T.Dict[str, T.Any]:
     return {
         "Version": "2012-10-17",
         "Statement": [
