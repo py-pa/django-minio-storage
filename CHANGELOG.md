@@ -1,3 +1,7 @@
+## 0.5.2
+
+Add/fix more type hints.
+
 ## 0.5.1
 
 Fix type hints
