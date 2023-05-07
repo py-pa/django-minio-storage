@@ -100,7 +100,7 @@ class ReadOnlySpooledTemporaryFile(MinioStorageFile, ReadOnlyMixin):
     """A django File class which buffers the minio object into a local
     SpooledTemporaryFile."""
 
-    max_memory_size: int = 1024 * 1024 * 10
+    max_memory_size: int = 10 * 1024 * 1024
 
     def __init__(
         self,
