@@ -15,8 +15,8 @@ setup(
     description="Django file storage using the minio python client",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    author="Tom Houlé",
-    author_email="tom@kafunsho.be",
+    author="Thomas Frössman",
+    author_email="thomasf@jossystem.se",
     url="https://github.com/py-pa/django-minio-storage",
     packages=[
         "minio_storage",
