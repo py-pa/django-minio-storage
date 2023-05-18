@@ -1,3 +1,4 @@
+import dataclasses
 import datetime
 import mimetypes
 import posixpath
@@ -378,47 +379,171 @@ def create_minio_client_from_settings(*, minio_kwargs=dict()):
     return client
 
 
+NoValue = object()
+
+SettingsGenerator = T.Callable[[], "Settings"]
+
+
+@dataclasses.dataclass
+class Settings:
+    bucket: T.Union[T.Literal[NoValue], None, str] = NoValue
+    # file_class: T.Union[T.Literal[NoValue], None, str] = NoValue
+
+    base_url: T.Union[T.Literal[NoValue], None, str] = NoValue
+    auto_create_bucket: T.Union[T.Literal[NoValue], None, str] = NoValue
+    auto_create_policy: T.Union[T.Literal[NoValue], None, str] = NoValue
+
+    # minio client settings
+    endpoint: T.Union[T.Literal[NoValue], str] = NoValue
+    access_key: T.Union[T.Literal[NoValue], str] = NoValue
+    secret_key: T.Union[T.Literal[NoValue], str] = NoValue
+    secure: T.Union[T.Literal[NoValue], bool] = NoValue
+
+    policy_type: T.Union[T.Literal[NoValue], None, str] = NoValue
+    presign_urls: T.Union[T.Literal[NoValue], bool] = NoValue
+    assume_bucket_exists: T.Union[T.Literal[NoValue], None, bool] = NoValue
+    backup_format: T.Union[T.Literal[NoValue], None, str] = NoValue
+    backup_bucket: T.Union[T.Literal[NoValue], None, str] = NoValue
+    object_metadata: T.Union[T.Literal[NoValue], None, T.Dict] = NoValue
+
+    def dict(self) -> T.Dict:
+        result = {}
+        for field in dataclasses.fields(self):
+            v = getattr(self, field.name)
+            if v is not NoValue:
+                result[field.name] = v
+        return result
+
+    def storage_kwargs(self) -> T.Dict:
+        result = {}
+        for field in dataclasses.fields(self):
+            if field.name in [
+                "endpoint",
+                "access_key",
+                "secret_key",
+                "secure",
+                "bucket",
+            ]:
+                continue
+            v = getattr(self, field.name)
+            if v is not NoValue:
+                result[field.name] = v
+
+        return result
+
+    def minio_client(self, **kwargs) -> minio.Minio:
+        kw = {}
+        kw.update(kwargs)
+        for field in ["access_key", "secret_key", "secure"]:
+            v = getattr(self, field, NoValue)
+            if v is not NoValue:
+                kw[field] = v
+        client = minio.Minio(self.endpoint, **kw)
+        return client
+
+    # @property
+    def validate(self):
+        pass
+
+    @classmethod
+    def from_django_settings(cls, name: str) -> "Settings":
+        """create Settings object instance from django settings."""
+        result = cls()
+        setting = getattr(settings, name, NoValue)
+        if setting is NoValue:
+            return cls
+        field_names = [v.name for v in dataclasses.fields(result)]
+        for field in field_names:
+            v = getattr(setting, field, NoValue)
+            if result is not NoValue:
+                setattr(result, field, v)
+
+    @classmethod
+    def merge(cls, *settings: "Settings"):
+        """merge multiple Settings object instances."""
+        result = cls()
+        field_names = [v.name for v in dataclasses.fields(result)]
+        for s in settings:
+            for field in field_names:
+                v = getattr(s, field)
+                if v is not NoValue:
+                    setattr(result, field, v)
+        return result
+
+    @classmethod
+    def create(cls, *generators: SettingsGenerator):
+        return cls.merge(*[sg() for sg in generators])
+
+
+def default_settings() -> T.Callable[[], Settings]:
+    def f() -> Settings:
+        return Settings(
+            auto_create_bucket=False,
+            auto_create_policy="GET_ONLY",
+            presign_urls=False,
+            assume_bucket_exists=False,
+            secure=False,
+        )
+
+    return f
+
+
+def django_settings(name: str) -> T.Callable[[], Settings]:
+    def f() -> Settings:
+        return Settings.from_django_settings(name)
+
+    return f
+
+
+def django_settings_compat(name: str) -> T.Callable[[], Settings]:
+    """The old style configuration"""
+
+    def f() -> Settings:
+        s = Settings()
+
+        def get_setting(field, name):
+            v = getattr(settings, name, NoValue)
+            if v is not NoValue:
+                setattr(s, field, v)
+
+        get_setting("endpoint", "MINIO_STORAGE_ENDPOINT")
+        get_setting("access_key", "MINIO_STORAGE_ACCESS_KEY")
+        get_setting("secret_key", "MINIO_STORAGE_SECRET_KEY")
+        get_setting("use_https", "MINIO_STORAGE_USE_HTTPS")
+
+        get_setting("bucket", f"MINIO_STORAGE_{name}_BUCKET_NAME")
+        get_setting("base_url", f"MINIO_STORAGE_{name}_URL")
+        get_setting("auto_create_bucket", f"MINIO_STORAGE_AUTO_CREATE_{name}_BUCKET")
+        get_setting("auto_create_policy", f"MINIO_STORAGE_AUTO_CREATE_{name}_POLICY")
+        get_setting("presign_urls", f"MINIO_STORAGE_{name}_USE_PRESIGNED")
+        get_setting("backup_format", f"MINIO_STORAGE_{name}_BACKUP_FORMAT")
+        get_setting("backup_bucket", f"MINIO_STORAGE_{name}_BACKUP_BUCKET")
+        get_setting(
+            "assume_bucket_exists", f"MINIO_STORAGE_{name}_ASSUME_BUCKET_EXISTS"
+        )
+        get_setting("object_metadata", f"MINIO_STORAGE_{name}_OBJECT_METADATA")
+
+        return s
+
+    return f
+
+
 @deconstructible
 class MinioMediaStorage(MinioStorage):
     def __init__(self):
-        client = create_minio_client_from_settings()
-        bucket_name = get_setting("MINIO_STORAGE_MEDIA_BUCKET_NAME")
-        base_url = get_setting("MINIO_STORAGE_MEDIA_URL", None)
-        auto_create_bucket = get_setting(
-            "MINIO_STORAGE_AUTO_CREATE_MEDIA_BUCKET", False
+        settings = Settings.create(
+            default_settings(),
+            django_settings_compat("MEDIA"),
+            django_settings("MINIO"),
+            django_settings("MINIO_MEDIA"),
         )
-        auto_create_policy = get_setting(
-            "MINIO_STORAGE_AUTO_CREATE_MEDIA_POLICY", "GET_ONLY"
-        )
-
-        policy_type = Policy.get
-        if isinstance(auto_create_policy, str):
-            policy_type = Policy(auto_create_policy)
-            auto_create_policy = True
-
-        presign_urls = get_setting("MINIO_STORAGE_MEDIA_USE_PRESIGNED", False)
-        backup_format = get_setting("MINIO_STORAGE_MEDIA_BACKUP_FORMAT", False)
-        backup_bucket = get_setting("MINIO_STORAGE_MEDIA_BACKUP_BUCKET", False)
-
-        assume_bucket_exists = get_setting(
-            "MINIO_STORAGE_ASSUME_MEDIA_BUCKET_EXISTS", False
-        )
-
-        object_metadata = get_setting("MINIO_STORAGE_MEDIA_OBJECT_METADATA", None)
-        # print("SETTING", object_metadata)
+        client = settings.minio_client()
+        kwargs = settings.storage_kwargs()
 
         super().__init__(
             client,
-            bucket_name,
-            auto_create_bucket=auto_create_bucket,
-            auto_create_policy=auto_create_policy,
-            policy_type=policy_type,
-            base_url=base_url,
-            presign_urls=presign_urls,
-            backup_format=backup_format,
-            backup_bucket=backup_bucket,
-            assume_bucket_exists=assume_bucket_exists,
-            object_metadata=object_metadata,
+            settings.bucket,
+            **kwargs,
         )
 
 
