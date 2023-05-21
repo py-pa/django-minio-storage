@@ -1,3 +1,7 @@
+## 0.5.3
+
+Migrate package meta data to pyproject.toml
+
 ## 0.5.2
 
 Add/fix more type hints.
