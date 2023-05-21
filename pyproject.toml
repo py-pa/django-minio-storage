@@ -1,3 +1,44 @@
+[project]
+name = "django-minio-storage"
+description = "Django file storage using the minio python client"
+license = {file = "LICENSE"}
+requires-python = ">=3.8"
+dependencies = [
+  "django>=3.2",
+  "minio>=7.1.12",
+]
+classifiers=[
+  "Development Status :: 4 - Beta",
+  "Environment :: Web Environment",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: BSD License",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3",
+  "Framework :: Django",
+]
+authors = [
+  {name = "Thomas Frössman", email = "thomasf@jossystem.se"},
+  {name = "Tom Houlé", email = "tom@kafunsho.be"},
+]
+maintainers = [
+  {name = "Thomas Frössman", email = "thomasf@jossystem.se"},
+]
+readme = "README.md"
+dynamic = ["version"]
+
+[build-system]
+requires = ["setuptools>=62", "setuptools_scm[toml]>=6.2"]
+
+[project.urls]
+Homepage = "https://github.com/py-pa/django-minio-storage"
+Repository = "https://github.com/py-pa/django-minio-storage"
+Documentation = "https://django-minio-storage.readthedocs.io/"
+
 [tool.black]
 target_version = ['py38']
 
+[tool.setuptools_scm]
+write_to =  "minio_storage/version.py"
+write_to_template = '__version__ = "{version}"'
+tag_regex =  "^v(?P<prefix>v)?(?P<version>[^\\+]+)(?P<suffix>.*)?$"
