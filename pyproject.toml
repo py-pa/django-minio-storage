@@ -42,3 +42,7 @@ target_version = ['py38']
 write_to =  "minio_storage/version.py"
 write_to_template = '__version__ = "{version}"'
 tag_regex =  "^v(?P<prefix>v)?(?P<version>[^\\+]+)(?P<suffix>.*)?$"
+
+[tool.isort]
+profile = "black"
+skip = [".tox", "migrations", "node_modules", ".git", ".eggs"]
