@@ -144,7 +144,7 @@ class MinioStorage(Storage):
         try:
             f = self.file_class(self._sanitize_path(name), mode, self)
         except merr.MinioException as e:
-            raise minio_error(f"File {name} could not be saved: {str(e)}", e)
+            raise minio_error(f"File {name} could not be saved: {str(e)}", e) from e
         return f
 
     def _save(self, name: str, content: T.BinaryIO) -> str:
@@ -162,7 +162,7 @@ class MinioStorage(Storage):
             )
             return sane_name
         except merr.InvalidResponseError as error:
-            raise minio_error(f"File {name} could not be saved", error)
+            raise minio_error(f"File {name} could not be saved", error) from error
 
     def delete(self, name: str) -> None:
         if self.backup_format and self.backup_bucket:
@@ -172,12 +172,14 @@ class MinioStorage(Storage):
                 raise minio_error(
                     "Could not obtain file {} " "to make a copy of it".format(name),
                     error,
-                )
+                ) from error
 
             try:
                 content_length = int(obj.getheader("Content-Length"))
             except ValueError as error:
-                raise minio_error(f"Could not backup removed file {name}", error)
+                raise minio_error(
+                    f"Could not backup removed file {name}", error
+                ) from error
 
             # Creates the backup filename
             target_name = "{}{}".format(
@@ -192,12 +194,12 @@ class MinioStorage(Storage):
                     "Could not make a copy of file "
                     "{} before removing it".format(name),
                     error,
-                )
+                ) from error
 
         try:
             self.client.remove_object(self.bucket_name, name)
         except merr.InvalidResponseError as error:
-            raise minio_error(f"Could not remove file {name}", error)
+            raise minio_error(f"Could not remove file {name}", error) from error
 
     def exists(self, name: str) -> bool:
         try:
@@ -208,7 +210,7 @@ class MinioStorage(Storage):
             if error._code == "NoSuchKey":
                 return False
             else:
-                raise minio_error(f"Could not stat file {name}", error)
+                raise minio_error(f"Could not stat file {name}", error) from error
         except merr.S3Error:
             return False
         except Exception as error:
@@ -244,14 +246,16 @@ class MinioStorage(Storage):
         except merr.S3Error:
             raise
         except merr.InvalidResponseError as error:
-            raise minio_error(f"Could not list directory {path}", error)
+            raise minio_error(f"Could not list directory {path}", error) from error
 
     def size(self, name: str) -> int:
         try:
             info: Object = self.client.stat_object(self.bucket_name, name)
             return info.size  # type: ignore
         except merr.InvalidResponseError as error:
-            raise minio_error(f"Could not access file size for {name}", error)
+            raise minio_error(
+                f"Could not access file size for {name}", error
+            ) from error
 
     def _presigned_url(
         self, name: str, max_age: T.Optional[datetime.timedelta] = None
@@ -270,7 +274,7 @@ class MinioStorage(Storage):
             # It's assumed that self.base_url will contain bucket information,
             # which could be different, so remove the bucket_name component (with 1
             # extra character for the leading "/") from the generated URL
-            url_key_path = url_parts.path[len(self.bucket_name) + 1 :]
+            url_key_path = url_parts.path[len(self.bucket_name) + 1 :]  # noqa: E203
 
             # Prefix the URL with any path content from base_url
             new_url_path = base_url_parts.path + url_key_path
@@ -308,7 +312,7 @@ class MinioStorage(Storage):
                 return path
 
             if self.base_url is not None:
-                url = "{}/{}".format(strip_end(self.base_url), quote(strip_beg(name)))
+                url = f"{strip_end(self.base_url)}/{quote(strip_beg(name))}"
             else:
                 url = "{}/{}/{}".format(
                     strip_end(self.endpoint_url),
@@ -343,7 +347,7 @@ class MinioStorage(Storage):
         except merr.InvalidResponseError as error:
             raise minio_error(
                 f"Could not access modification time for file {name}", error
-            )
+            ) from error
         raise OSError(f"Could not access modification time for file {name}")
 
 
@@ -359,7 +363,8 @@ def get_setting(name: str, default=_NoValue) -> T.Any:
         return result
 
 
-def create_minio_client_from_settings(*, minio_kwargs=dict()):
+def create_minio_client_from_settings(*, minio_kwargs=None):
+    minio_kwargs = minio_kwargs or {}
     endpoint = get_setting("MINIO_STORAGE_ENDPOINT")
     access_key = get_setting("MINIO_STORAGE_ACCESS_KEY")
     secret_key = get_setting("MINIO_STORAGE_SECRET_KEY")

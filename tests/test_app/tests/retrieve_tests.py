@@ -115,7 +115,7 @@ class RetrieveTestsWithRestrictedBucket(BaseTestMixin, TestCase):
         self.assertFalse(self.media_storage.exists("nonexistent.txt"))
 
     def test_reading_non_existing_file_raises_exception(self):
-        with self.assertRaises(Exception):
+        with self.assertRaises(S3Error):
             f = self.media_storage.open("this does not exist")
             f.read()
 
