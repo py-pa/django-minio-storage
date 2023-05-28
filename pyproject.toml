@@ -46,3 +46,26 @@ tag_regex =  "^v(?P<prefix>v)?(?P<version>[^\\+]+)(?P<suffix>.*)?$"
 [tool.isort]
 profile = "black"
 skip = [".tox", "migrations", "node_modules", ".git", ".eggs"]
+
+[tool.ruff]
+line-length = 88
+select = [
+    "E",
+    "F",
+    "W",
+    "I",
+    "B",
+    "UP",
+    "DJ",
+]
+ignore = ["E203"]
+exclude = [
+    "docs",
+    "migrations",
+    ".git",
+    ".ropeproject",
+    ".cache",
+    ".tox",
+    ".eggs",
+    "minio_storage/version.py",
+]

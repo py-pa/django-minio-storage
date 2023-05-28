@@ -129,8 +129,8 @@ class Command(BaseCommand):
 
         try:
             storage_class = import_string(class_name)
-        except ImportError:
-            raise CommandError(f"could not find storage class: {class_name}")
+        except ImportError as err:
+            raise CommandError(f"could not find storage class: {class_name}") from err
         if not issubclass(storage_class, MinioStorage):
             raise CommandError(f"{class_name} is not an sub class of MinioStorage.")
 
@@ -211,9 +211,9 @@ class Command(BaseCommand):
             storage.client.remove_bucket(bucket_name)
         except minio.error.S3Error as err:
             if err.code == "BucketNotEmpty":
-                raise CommandError(f"bucket {bucket_name} is not empty")
+                raise CommandError(f"bucket {bucket_name} is not empty") from err
             elif err.code == "NoSuchBucket":
-                raise CommandError(f"bucket {bucket_name} does not exist")
+                raise CommandError(f"bucket {bucket_name} does not exist") from err
 
     def policy_get(self, storage, bucket_name):
         try:
@@ -223,9 +223,9 @@ class Command(BaseCommand):
             return policy
         except minio.error.S3Error as err:
             if err.code == "NoSuchBucket":
-                raise CommandError(f"bucket {bucket_name} does not exist")
+                raise CommandError(f"bucket {bucket_name} does not exist") from err
             elif err.code == "NoSuchBucketPolicy":
-                raise CommandError(f"bucket {bucket_name} has no policy")
+                raise CommandError(f"bucket {bucket_name} has no policy") from err
 
     def policy_set(self, storage, bucket_name, policy: Policy):
         try:
