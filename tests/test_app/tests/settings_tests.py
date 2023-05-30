@@ -9,7 +9,12 @@ class SettingsTests(TestCase):
         MINIO_STORAGE_AUTO_CREATE_STATIC_BUCKET=True,
         MINIO_STORAGE_STATIC_BUCKET_NAME="settings-test",
     )
-    def test_settings_region(self):
+    def test_settings_with_region(self):
         ms = MinioMediaStorage()
         region = ms.client._get_region("settings-test", None)
         self.assertEqual(region, "eu-central-666")
+
+    def test_settings_without_region(self):
+        ms = MinioMediaStorage()
+        region = ms.client._get_region("settings-test", None)
+        self.assertEqual(region, "us-east-1")
