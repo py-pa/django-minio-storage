@@ -369,6 +369,7 @@ def create_minio_client_from_settings(*, minio_kwargs=None):
     access_key = get_setting("MINIO_STORAGE_ACCESS_KEY")
     secret_key = get_setting("MINIO_STORAGE_SECRET_KEY")
     secure = get_setting("MINIO_STORAGE_USE_HTTPS", True)
+    region = get_setting("MINIO_STORAGE_REGION", None)
     # Making this client deconstructible allows it to be passed directly as
     # an argument to MinioStorage, since Django needs to be able to
     # deconstruct all Storage constructor arguments for Storages referenced in
@@ -378,6 +379,7 @@ def create_minio_client_from_settings(*, minio_kwargs=None):
         access_key=access_key,
         secret_key=secret_key,
         secure=secure,
+        region=region,
         **minio_kwargs,
     )
     return client
