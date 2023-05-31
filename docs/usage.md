@@ -18,6 +18,8 @@ The following settings are available:
   `minio.example.org:9000` (note that there is no scheme)).
 
 - `MINIO_STORAGE_ACCESS_KEY` and `MINIO_STORAGE_SECRET_KEY` (mandatory)
+  
+- `MINIO_STORAGE_REGION`: Allows you to specify the region. By setting this configuration option, an additional HTTP request to Minio for region checking can be prevented, resulting in improved performance and reduced latency for generating presigned URLs.
 
 - `MINIO_STORAGE_USE_HTTPS`: whether to use TLS or not (default: `True`). This
   affect both how how Django internally communicates with the Minio server AND
