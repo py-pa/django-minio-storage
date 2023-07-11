@@ -48,15 +48,27 @@ profile = "black"
 skip = [".tox", "migrations", "node_modules", ".git", ".eggs"]
 
 [tool.ruff]
+target-version = 'py38'
 line-length = 88
 select = [
+    "B",
+    "C4",
+    "C9",
+    "DJ",
     "E",
     "F",
-    "W",
     "I",
-    "B",
+    "ISC",
+    "NPY",
+    "PLC",
+    "PLE",
+    "PLW",
+    "RUF010",
+    "RUF013",
+    "S5",
+    "S6",
     "UP",
-    "DJ",
+    "W",
 ]
 ignore = ["E203"]
 exclude = [
