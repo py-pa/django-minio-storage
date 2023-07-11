@@ -144,7 +144,7 @@ class MinioStorage(Storage):
         try:
             f = self.file_class(self._sanitize_path(name), mode, self)
         except merr.MinioException as e:
-            raise minio_error(f"File {name} could not be saved: {str(e)}", e) from e
+            raise minio_error(f"File {name} could not be saved: {e!s}", e) from e
         return f
 
     def _save(self, name: str, content: T.BinaryIO) -> str:
@@ -170,7 +170,7 @@ class MinioStorage(Storage):
                 obj = self.client.get_object(self.bucket_name, name)
             except merr.InvalidResponseError as error:
                 raise minio_error(
-                    "Could not obtain file {} " "to make a copy of it".format(name),
+                    f"Could not obtain file {name} to make a copy of it",
                     error,
                 ) from error
 
