@@ -182,9 +182,7 @@ class MinioStorage(Storage):
                 ) from error
 
             # Creates the backup filename
-            target_name = "{}{}".format(
-                timezone.now().strftime(self.backup_format), name
-            )
+            target_name = f"{timezone.now().strftime(self.backup_format)}{name}"
             try:
                 self.client.put_object(
                     self.backup_bucket, target_name, obj, content_length
