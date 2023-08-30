@@ -5,7 +5,7 @@ license = {file = "LICENSE"}
 requires-python = ">=3.8"
 dependencies = [
   "django>=3.2",
-  "minio>=7.1.12",
+  "minio>=7.1.16",
 ]
 classifiers=[
   "Development Status :: 4 - Beta",

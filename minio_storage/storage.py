@@ -113,7 +113,7 @@ class MinioStorage(Storage):
             secure=base_url_parts.scheme == "https",
             # The bucket region may be auto-detected by client (via an HTTP
             # request), so don't just use client._region
-            region=client._get_region(bucket_name, None),
+            region=client._get_region(bucket_name),
             http_client=client._http,
         )
 
