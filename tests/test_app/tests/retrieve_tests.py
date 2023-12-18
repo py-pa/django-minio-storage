@@ -119,6 +119,16 @@ class RetrieveTestsWithRestrictedBucket(BaseTestMixin, TestCase):
             f = self.media_storage.open("this does not exist")
             f.read()
 
+    def test_reading_respects_binary_mode_flag(self):
+        self.media_storage.save("test.txt", io.BytesIO(b"stuff"))
+        f = self.media_storage.open("test.txt", "rb")
+        self.assertEqual(f.read(), b"stuff")
+
+    def test_reading_respects_text_mode_flag(self):
+        self.media_storage.save("test.txt", io.BytesIO(b"stuff"))
+        f = self.media_storage.open("test.txt", "r")
+        self.assertEqual(f.read(), "stuff")
+
     def test_file_names_are_properly_sanitized(self):
         self.media_storage.save("./meh22222.txt", io.BytesIO(b"stuff"))
 
