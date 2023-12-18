@@ -42,6 +42,21 @@ class MinioStorageFile(File):
         self._mode: str = mode
         self._file = None
 
+    def read(self, *args, **kwargs):
+        if "b" in self._mode:
+            return super().read(*args, **kwargs)
+        else:
+            return super().read(*args, **kwargs).decode()
+
+    def readline(self, *args, **kwargs):
+        if "b" in self._mode:
+            return super().readline(*args, **kwargs)
+        else:
+            return super().readline(*args, **kwargs).decode()
+
+    def readlines(self, *args, **kwargs):
+        return list(self)
+
 
 class ReadOnlyMinioObjectFile(MinioStorageFile, ReadOnlyMixin, NonSeekableMixin):
     """A django File class which directly exposes the underlying minio object. This
