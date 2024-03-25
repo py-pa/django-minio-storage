@@ -115,6 +115,7 @@ class MinioStorage(Storage):
             # request), so don't just use client._region
             region=client._get_region(bucket_name),
             http_client=client._http,
+            cert_check=get_setting("MINIO_CERT_CHECK",True)
         )
 
         return base_url_client
