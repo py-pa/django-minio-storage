@@ -368,6 +368,7 @@ def create_minio_client_from_settings(*, minio_kwargs=None):
         "access_key": get_setting("MINIO_STORAGE_ACCESS_KEY"),
         "secret_key": get_setting("MINIO_STORAGE_SECRET_KEY"),
         "secure": get_setting("MINIO_STORAGE_USE_HTTPS", True),
+        "cert_check": get_setting("MINIO_STORAGE_CERT_CHECK",True),
     }
     region = get_setting("MINIO_STORAGE_REGION", None)
     if region:
