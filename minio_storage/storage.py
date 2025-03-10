@@ -9,6 +9,7 @@ import minio
 import minio.error as merr
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
+from django.core.files.base import File
 from django.core.files.storage import Storage
 from django.utils import timezone
 from django.utils.deconstruct import deconstructible
@@ -38,7 +39,7 @@ class MinioStorage(Storage):
         bucket_name: str,
         *,
         base_url: T.Optional[str] = None,
-        file_class=None,
+        file_class: T.Optional[T.Type[File]] = None,
         auto_create_bucket: bool = False,
         presign_urls: bool = False,
         auto_create_policy: bool = False,
@@ -388,82 +389,134 @@ def create_minio_client_from_settings(*, minio_kwargs=None):
 
 @deconstructible
 class MinioMediaStorage(MinioStorage):
-    def __init__(self):
-        client = create_minio_client_from_settings()
-        bucket_name = get_setting("MINIO_STORAGE_MEDIA_BUCKET_NAME")
-        base_url = get_setting("MINIO_STORAGE_MEDIA_URL", None)
-        auto_create_bucket = get_setting(
-            "MINIO_STORAGE_AUTO_CREATE_MEDIA_BUCKET", False
-        )
-        auto_create_policy = get_setting(
+    def __init__(  # noqa: C901
+        self,
+        *,
+        minio_client: T.Optional[minio.Minio] = None,
+        bucket_name: T.Optional[str] = None,
+        base_url: T.Optional[str] = None,
+        file_class: T.Optional[T.Type[File]] = None,
+        auto_create_bucket: T.Optional[bool] = None,
+        presign_urls: T.Optional[bool] = None,
+        auto_create_policy: T.Optional[bool] = None,
+        policy_type: T.Optional[Policy] = None,
+        object_metadata: T.Optional[T.Dict[str, str]] = None,
+        backup_format: T.Optional[str] = None,
+        backup_bucket: T.Optional[str] = None,
+        assume_bucket_exists: T.Optional[bool] = None,
+    ):
+        if minio_client is None:
+            minio_client = create_minio_client_from_settings()
+        if bucket_name is None:
+            bucket_name = get_setting("MINIO_STORAGE_MEDIA_BUCKET_NAME")
+        if base_url is None:
+            base_url = get_setting("MINIO_STORAGE_MEDIA_URL", None)
+        if auto_create_bucket is None:
+            auto_create_bucket = get_setting(
+                "MINIO_STORAGE_AUTO_CREATE_MEDIA_BUCKET", False
+            )
+        if presign_urls is None:
+            presign_urls = get_setting("MINIO_STORAGE_MEDIA_USE_PRESIGNED", False)
+        auto_create_policy_setting = get_setting(
             "MINIO_STORAGE_AUTO_CREATE_MEDIA_POLICY", "GET_ONLY"
         )
-
-        policy_type = Policy.get
-        if isinstance(auto_create_policy, str):
-            policy_type = Policy(auto_create_policy)
-            auto_create_policy = True
-
-        presign_urls = get_setting("MINIO_STORAGE_MEDIA_USE_PRESIGNED", False)
-        backup_format = get_setting("MINIO_STORAGE_MEDIA_BACKUP_FORMAT", False)
-        backup_bucket = get_setting("MINIO_STORAGE_MEDIA_BACKUP_BUCKET", False)
-
-        assume_bucket_exists = get_setting(
-            "MINIO_STORAGE_ASSUME_MEDIA_BUCKET_EXISTS", False
-        )
-
-        object_metadata = get_setting("MINIO_STORAGE_MEDIA_OBJECT_METADATA", None)
-        # print("SETTING", object_metadata)
-
+        if auto_create_policy is None:
+            auto_create_policy = (
+                True
+                if isinstance(auto_create_policy_setting, str)
+                else auto_create_policy_setting
+            )
+        if policy_type is None:
+            policy_type = (
+                Policy(auto_create_policy_setting)
+                if isinstance(auto_create_policy_setting, str)
+                else Policy.get
+            )
+        if object_metadata is None:
+            object_metadata = get_setting("MINIO_STORAGE_MEDIA_OBJECT_METADATA", None)
+        if backup_format is None:
+            backup_format = get_setting("MINIO_STORAGE_MEDIA_BACKUP_FORMAT", None)
+        if backup_bucket is None:
+            backup_bucket = get_setting("MINIO_STORAGE_MEDIA_BACKUP_BUCKET", None)
+        if assume_bucket_exists is None:
+            assume_bucket_exists = get_setting(
+                "MINIO_STORAGE_ASSUME_MEDIA_BUCKET_EXISTS", False
+            )
         super().__init__(
-            client,
+            minio_client,
             bucket_name,
+            base_url=base_url,
+            file_class=file_class,
             auto_create_bucket=auto_create_bucket,
+            presign_urls=presign_urls,
             auto_create_policy=auto_create_policy,
             policy_type=policy_type,
-            base_url=base_url,
-            presign_urls=presign_urls,
+            object_metadata=object_metadata,
             backup_format=backup_format,
             backup_bucket=backup_bucket,
             assume_bucket_exists=assume_bucket_exists,
-            object_metadata=object_metadata,
         )
 
 
 @deconstructible
 class MinioStaticStorage(MinioStorage):
-    def __init__(self):
-        client = create_minio_client_from_settings()
-        base_url = get_setting("MINIO_STORAGE_STATIC_URL", None)
-        bucket_name = get_setting("MINIO_STORAGE_STATIC_BUCKET_NAME")
-        auto_create_bucket = get_setting(
-            "MINIO_STORAGE_AUTO_CREATE_STATIC_BUCKET", False
-        )
-        auto_create_policy = get_setting(
+    def __init__(
+        self,
+        *,
+        minio_client: T.Optional[minio.Minio] = None,
+        bucket_name: T.Optional[str] = None,
+        base_url: T.Optional[str] = None,
+        file_class: T.Optional[T.Type[File]] = None,
+        auto_create_bucket: T.Optional[bool] = None,
+        presign_urls: T.Optional[bool] = None,
+        auto_create_policy: T.Optional[bool] = None,
+        policy_type: T.Optional[Policy] = None,
+        object_metadata: T.Optional[T.Dict[str, str]] = None,
+        assume_bucket_exists: T.Optional[bool] = None,
+    ):
+        if minio_client is None:
+            minio_client = create_minio_client_from_settings()
+        if bucket_name is None:
+            bucket_name = get_setting("MINIO_STORAGE_STATIC_BUCKET_NAME")
+        if base_url is None:
+            base_url = get_setting("MINIO_STORAGE_STATIC_URL", None)
+        if auto_create_bucket is None:
+            auto_create_bucket = get_setting(
+                "MINIO_STORAGE_AUTO_CREATE_STATIC_BUCKET", False
+            )
+        if presign_urls is None:
+            presign_urls = get_setting("MINIO_STORAGE_STATIC_USE_PRESIGNED", False)
+        auto_create_policy_setting = get_setting(
             "MINIO_STORAGE_AUTO_CREATE_STATIC_POLICY", "GET_ONLY"
         )
-
-        policy_type = Policy.get
-        if isinstance(auto_create_policy, str):
-            policy_type = Policy(auto_create_policy)
-            auto_create_policy = True
-
-        presign_urls = get_setting("MINIO_STORAGE_STATIC_USE_PRESIGNED", False)
-
-        assume_bucket_exists = get_setting(
-            "MINIO_STORAGE_ASSUME_STATIC_BUCKET_EXISTS", False
-        )
-
-        object_metadata = get_setting("MINIO_STORAGE_STATIC_OBJECT_METADATA", None)
-
+        if auto_create_policy is None:
+            auto_create_policy = (
+                True
+                if isinstance(auto_create_policy_setting, str)
+                else auto_create_policy_setting
+            )
+        if policy_type is None:
+            policy_type = (
+                Policy(auto_create_policy_setting)
+                if isinstance(auto_create_policy_setting, str)
+                else Policy.get
+            )
+        if object_metadata is None:
+            object_metadata = get_setting("MINIO_STORAGE_STATIC_OBJECT_METADATA", None)
+        if assume_bucket_exists is None:
+            assume_bucket_exists = get_setting(
+                "MINIO_STORAGE_ASSUME_STATIC_BUCKET_EXISTS", False
+            )
         super().__init__(
-            client,
+            minio_client,
             bucket_name,
+            base_url=base_url,
+            file_class=file_class,
             auto_create_bucket=auto_create_bucket,
+            presign_urls=presign_urls,
             auto_create_policy=auto_create_policy,
             policy_type=policy_type,
-            base_url=base_url,
-            presign_urls=presign_urls,
-            assume_bucket_exists=assume_bucket_exists,
             object_metadata=object_metadata,
+            # backup_format and backup_bucket are not valid for static storage
+            assume_bucket_exists=assume_bucket_exists,
         )
