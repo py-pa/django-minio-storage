@@ -9,17 +9,18 @@ import minio
 import minio.error as merr
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
-from django.core.files.base import File
 from django.core.files.storage import Storage
 from django.utils import timezone
 from django.utils.deconstruct import deconstructible
 from minio.datatypes import Object
 
 from minio_storage.errors import minio_error
-from minio_storage.files import ReadOnlySpooledTemporaryFile
+from minio_storage.files import MinioStorageFile, ReadOnlySpooledTemporaryFile
 from minio_storage.policy import Policy
 
 logger = getLogger("minio_storage")
+
+ObjectMetadataType = T.Mapping[str, T.Union[str, T.List[str], T.Tuple[str]]]
 
 
 @deconstructible
@@ -39,12 +40,12 @@ class MinioStorage(Storage):
         bucket_name: str,
         *,
         base_url: T.Optional[str] = None,
-        file_class: T.Optional[T.Type[File]] = None,
+        file_class: T.Optional[T.Type[MinioStorageFile]] = None,
         auto_create_bucket: bool = False,
         presign_urls: bool = False,
         auto_create_policy: bool = False,
         policy_type: T.Optional[Policy] = None,
-        object_metadata: T.Optional[T.Dict[str, str]] = None,
+        object_metadata: T.Optional[ObjectMetadataType] = None,
         backup_format: T.Optional[str] = None,
         backup_bucket: T.Optional[str] = None,
         assume_bucket_exists: bool = False,
@@ -141,7 +142,7 @@ class MinioStorage(Storage):
         sane_name = self._sanitize_path(name)
         return (content_size, content_type, sane_name)
 
-    def _open(self, name, mode="rb"):
+    def _open(self, name: str, mode: str = "rb") -> MinioStorageFile:
         try:
             f = self.file_class(self._sanitize_path(name), mode, self)
         except merr.MinioException as e:
@@ -159,7 +160,10 @@ class MinioStorage(Storage):
                 content,
                 content_size,
                 content_type,
-                metadata=self.object_metadata,
+                # Minio is annotated to expect a Dict, rather than a Mapping; we
+                # annotate this type as Mapping, since only Mapping is covariant, which
+                # is more friendly to users.
+                metadata=self.object_metadata,  # type: ignore[arg-type]
             )
             return sane_name
         except merr.InvalidResponseError as error:
@@ -176,7 +180,7 @@ class MinioStorage(Storage):
                 ) from error
 
             try:
-                content_length = int(obj.getheader("Content-Length"))
+                content_length = int(obj.headers.get("Content-Length", ""))
             except ValueError as error:
                 raise minio_error(
                     f"Could not backup removed file {name}", error
@@ -186,12 +190,16 @@ class MinioStorage(Storage):
             target_name = f"{timezone.now().strftime(self.backup_format)}{name}"
             try:
                 self.client.put_object(
-                    self.backup_bucket, target_name, obj, content_length
+                    self.backup_bucket,
+                    target_name,
+                    # This is expected to be a BinaryIO, but the actual
+                    # BaseHTTPResponse "obj" still provides ".read() -> bytes".
+                    obj,  # type: ignore[arg-type]
+                    content_length,
                 )
             except merr.InvalidResponseError as error:
                 raise minio_error(
-                    "Could not make a copy of file "
-                    "{} before removing it".format(name),
+                    f"Could not make a copy of file {name} before removing it",
                     error,
                 ) from error
 
@@ -236,6 +244,7 @@ class MinioStorage(Storage):
         try:
             objects = self.client.list_objects(self.bucket_name, prefix=path)
             for o in objects:
+                assert o.object_name is not None
                 p = posixpath.relpath(o.object_name, path)
                 if o.is_dir:
                     dirs.append(p)
@@ -250,11 +259,12 @@ class MinioStorage(Storage):
     def size(self, name: str) -> int:
         try:
             info: Object = self.client.stat_object(self.bucket_name, name)
-            return info.size  # type: ignore
         except merr.InvalidResponseError as error:
             raise minio_error(
                 f"Could not access file size for {name}", error
             ) from error
+        assert info.size is not None
+        return info.size
 
     def _presigned_url(
         self, name: str, max_age: T.Optional[datetime.timedelta] = None
@@ -292,9 +302,22 @@ class MinioStorage(Storage):
             return str(url)
         return None
 
+    # Django allows "name" to be None, but types should indicate that this is disallowed
+    @T.overload
     def url(
-        self, name: str, *args, max_age: T.Optional[datetime.timedelta] = None
+        self, name: None, *, max_age: T.Optional[datetime.timedelta] = ...
+    ) -> T.NoReturn:
+        ...
+
+    @T.overload
+    def url(self, name: str, *, max_age: T.Optional[datetime.timedelta] = ...) -> str:
+        ...
+
+    def url(
+        self, name: T.Optional[str], *, max_age: T.Optional[datetime.timedelta] = None
     ) -> str:
+        if name is None:
+            raise ValueError("name may not be None")
         url = ""
         if self.presign_urls:
             url = self._presigned_url(name, max_age=max_age)
@@ -341,13 +364,13 @@ class MinioStorage(Storage):
     def modified_time(self, name: str) -> datetime.datetime:
         try:
             info: Object = self.client.stat_object(self.bucket_name, name)
-            if info.last_modified:
-                return info.last_modified  # type: ignore
         except merr.InvalidResponseError as error:
             raise minio_error(
                 f"Could not access modification time for file {name}", error
             ) from error
-        raise OSError(f"Could not access modification time for file {name}")
+        if info.last_modified is None:
+            raise OSError(f"Could not access modification time for file {name}")
+        return info.last_modified
 
 
 _NoValue = object()
@@ -395,12 +418,12 @@ class MinioMediaStorage(MinioStorage):
         minio_client: T.Optional[minio.Minio] = None,
         bucket_name: T.Optional[str] = None,
         base_url: T.Optional[str] = None,
-        file_class: T.Optional[T.Type[File]] = None,
+        file_class: T.Optional[T.Type[MinioStorageFile]] = None,
         auto_create_bucket: T.Optional[bool] = None,
         presign_urls: T.Optional[bool] = None,
         auto_create_policy: T.Optional[bool] = None,
         policy_type: T.Optional[Policy] = None,
-        object_metadata: T.Optional[T.Dict[str, str]] = None,
+        object_metadata: T.Optional[ObjectMetadataType] = None,
         backup_format: T.Optional[str] = None,
         backup_bucket: T.Optional[str] = None,
         assume_bucket_exists: T.Optional[bool] = None,
@@ -409,14 +432,17 @@ class MinioMediaStorage(MinioStorage):
             minio_client = create_minio_client_from_settings()
         if bucket_name is None:
             bucket_name = get_setting("MINIO_STORAGE_MEDIA_BUCKET_NAME")
+            assert bucket_name is not None
         if base_url is None:
             base_url = get_setting("MINIO_STORAGE_MEDIA_URL", None)
         if auto_create_bucket is None:
             auto_create_bucket = get_setting(
                 "MINIO_STORAGE_AUTO_CREATE_MEDIA_BUCKET", False
             )
+            assert auto_create_bucket is not None
         if presign_urls is None:
             presign_urls = get_setting("MINIO_STORAGE_MEDIA_USE_PRESIGNED", False)
+            assert presign_urls is not None
         auto_create_policy_setting = get_setting(
             "MINIO_STORAGE_AUTO_CREATE_MEDIA_POLICY", "GET_ONLY"
         )
@@ -426,12 +452,14 @@ class MinioMediaStorage(MinioStorage):
                 if isinstance(auto_create_policy_setting, str)
                 else auto_create_policy_setting
             )
+            assert auto_create_policy is not None
         if policy_type is None:
             policy_type = (
                 Policy(auto_create_policy_setting)
                 if isinstance(auto_create_policy_setting, str)
                 else Policy.get
             )
+            assert policy_type is not None
         if object_metadata is None:
             object_metadata = get_setting("MINIO_STORAGE_MEDIA_OBJECT_METADATA", None)
         if backup_format is None:
@@ -442,6 +470,8 @@ class MinioMediaStorage(MinioStorage):
             assume_bucket_exists = get_setting(
                 "MINIO_STORAGE_ASSUME_MEDIA_BUCKET_EXISTS", False
             )
+            assert assume_bucket_exists is not None
+
         super().__init__(
             minio_client,
             bucket_name,
@@ -466,26 +496,29 @@ class MinioStaticStorage(MinioStorage):
         minio_client: T.Optional[minio.Minio] = None,
         bucket_name: T.Optional[str] = None,
         base_url: T.Optional[str] = None,
-        file_class: T.Optional[T.Type[File]] = None,
+        file_class: T.Optional[T.Type[MinioStorageFile]] = None,
         auto_create_bucket: T.Optional[bool] = None,
         presign_urls: T.Optional[bool] = None,
         auto_create_policy: T.Optional[bool] = None,
         policy_type: T.Optional[Policy] = None,
-        object_metadata: T.Optional[T.Dict[str, str]] = None,
+        object_metadata: T.Optional[ObjectMetadataType] = None,
         assume_bucket_exists: T.Optional[bool] = None,
     ):
         if minio_client is None:
             minio_client = create_minio_client_from_settings()
         if bucket_name is None:
             bucket_name = get_setting("MINIO_STORAGE_STATIC_BUCKET_NAME")
+            assert bucket_name is not None
         if base_url is None:
             base_url = get_setting("MINIO_STORAGE_STATIC_URL", None)
         if auto_create_bucket is None:
             auto_create_bucket = get_setting(
                 "MINIO_STORAGE_AUTO_CREATE_STATIC_BUCKET", False
             )
+            assert auto_create_bucket is not None
         if presign_urls is None:
             presign_urls = get_setting("MINIO_STORAGE_STATIC_USE_PRESIGNED", False)
+            assert presign_urls is not None
         auto_create_policy_setting = get_setting(
             "MINIO_STORAGE_AUTO_CREATE_STATIC_POLICY", "GET_ONLY"
         )
@@ -495,18 +528,22 @@ class MinioStaticStorage(MinioStorage):
                 if isinstance(auto_create_policy_setting, str)
                 else auto_create_policy_setting
             )
+            assert auto_create_policy is not None
         if policy_type is None:
             policy_type = (
                 Policy(auto_create_policy_setting)
                 if isinstance(auto_create_policy_setting, str)
                 else Policy.get
             )
+            assert policy_type is not None
         if object_metadata is None:
             object_metadata = get_setting("MINIO_STORAGE_STATIC_OBJECT_METADATA", None)
         if assume_bucket_exists is None:
             assume_bucket_exists = get_setting(
                 "MINIO_STORAGE_ASSUME_STATIC_BUCKET_EXISTS", False
             )
+            assert assume_bucket_exists is not None
+
         super().__init__(
             minio_client,
             bucket_name,

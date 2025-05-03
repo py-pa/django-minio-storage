@@ -38,7 +38,7 @@ class NonSeekableMixin:
 class MinioStorageFile(File):
     def __init__(self, name: str, mode: str, storage: "MinioStorage", **kwargs):
         self._storage: "MinioStorage" = storage
-        self.name: str = name
+        self.name: str = name  # type: ignore[override]
         self._mode: str = mode
         self._file = None
 
@@ -101,7 +101,7 @@ class ReadOnlyMinioObjectFile(MinioStorageFile, ReadOnlyMixin, NonSeekableMixin)
         return self._file
 
     @file.setter
-    def _set_file(self, value):
+    def file(self, value):  # type: ignore[override]
         self._file = value
 
     def close(self):
@@ -159,7 +159,7 @@ class ReadOnlySpooledTemporaryFile(MinioStorageFile, ReadOnlyMixin):
         return self._file
 
     @file.setter
-    def _set_file(self, value):
+    def file(self, value):  # type: ignore[override]
         self._file = value
 
     def close(self):

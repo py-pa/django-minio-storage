@@ -52,5 +52,6 @@ class BaseTestMixin:
             client = self.minio_client()
 
         for obj in client.list_objects(name, "", True):
+            assert obj.object_name is not None
             client.remove_object(name, obj.object_name)
         client.remove_bucket(name)
