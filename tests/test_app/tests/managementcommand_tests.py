@@ -1,3 +1,4 @@
+import typing as T
 from io import StringIO
 
 import minio
@@ -86,7 +87,7 @@ class CommandsTests(BaseTestMixin, TestCase):
             lines = out.read().splitlines()
             self.assertEqual(sorted(lines), sorted(expected))
 
-        test_data = (
+        test_data: T.List[T.Tuple[T.List[str], T.List[str]]] = [
             (
                 ["-r"],
                 #
@@ -138,7 +139,7 @@ class CommandsTests(BaseTestMixin, TestCase):
                 #
                 [],
             ),
-        )
+        ]
 
         for test in test_data:
             (args, expected) = test

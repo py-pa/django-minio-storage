@@ -10,6 +10,16 @@ class Policy(enum.Enum):
     write = "WRITE_ONLY"
     read_write = "READ_WRITE"
 
+    @T.overload
+    def bucket(self, bucket_name: str, *, json_encode: T.Literal[True] = ...) -> str:
+        ...
+
+    @T.overload
+    def bucket(
+        self, bucket_name: str, *, json_encode: T.Literal[False]
+    ) -> T.Dict[str, T.Any]:
+        ...
+
     def bucket(
         self, bucket_name: str, *, json_encode: bool = True
     ) -> T.Union[str, T.Dict[str, T.Any]]:

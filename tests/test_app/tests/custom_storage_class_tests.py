@@ -96,7 +96,8 @@ class CustomStorageTests(BaseTestMixin, TestCase):
             ) as storage_file:
                 # Copy the stream from the http stream to the out_file
                 #
-                shutil.copyfileobj(storage_file.file, out_file)  # type: ignore
+                assert storage_file.file
+                shutil.copyfileobj(storage_file.file, out_file)
 
                 #
                 # We are not using the ReadOnlyMinioObjectFile type so we can't seek in

@@ -122,10 +122,11 @@ class Command(BaseCommand):
         raise CommandError("command name required")
 
     def storage(self, options):
-        class_name = {
-            "media": "minio_storage.storage.MinioMediaStorage",
-            "static": "minio_storage.storage.MinioStaticStorage",
-        }.get(options["class"], options["class"])
+        class_name: str = options["class"]
+        if class_name == "media":
+            class_name = "minio_storage.storage.MinioMediaStorage"
+        elif class_name == "static":
+            class_name = "minio_storage.storage.MinioStaticStorage"
 
         try:
             storage_class = import_string(class_name)
@@ -136,7 +137,8 @@ class Command(BaseCommand):
 
         # TODO: maybe another way
         with patch.object(storage_class, "_init_check", return_value=None):
-            storage = storage_class()  # type: ignore
+            # TODO: This constructor can be missing arguments
+            storage = storage_class()  # pyright: ignore[reportCallIssue]
             return storage
 
     def bucket_exists(self, storage, bucket_name):
