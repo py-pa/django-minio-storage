@@ -20,7 +20,7 @@ from minio_storage.policy import Policy
 
 logger = getLogger("minio_storage")
 
-ObjectMetadataType = T.Mapping[str, T.Union[str, T.List[str], T.Tuple[str]]]
+ObjectMetadataType = T.Mapping[str, T.Union[str, list[str], tuple[str]]]
 
 
 @deconstructible
@@ -40,7 +40,7 @@ class MinioStorage(Storage):
         bucket_name: str,
         *,
         base_url: T.Optional[str] = None,
-        file_class: T.Optional[T.Type[MinioStorageFile]] = None,
+        file_class: T.Optional[type[MinioStorageFile]] = None,
         auto_create_bucket: bool = False,
         presign_urls: bool = False,
         auto_create_policy: bool = False,
@@ -224,7 +224,7 @@ class MinioStorage(Storage):
             logger.error(error)
         return False
 
-    def listdir(self, path: str) -> T.Tuple[T.List, T.List]:
+    def listdir(self, path: str) -> tuple[list, list]:
         #  [None, "", "."] is supported to mean the configured root among various
         #  implementations of Storage implementations so we copy that behaviour even if
         #  maybe None should raise an exception instead.
@@ -239,8 +239,8 @@ class MinioStorage(Storage):
             if not path.endswith("/"):
                 path += "/"
 
-        dirs: T.List[str] = []
-        files: T.List[str] = []
+        dirs: list[str] = []
+        files: list[str] = []
         try:
             objects = self.client.list_objects(self.bucket_name, prefix=path)
             for o in objects:
@@ -417,7 +417,7 @@ class MinioMediaStorage(MinioStorage):
         minio_client: T.Optional[minio.Minio] = None,
         bucket_name: T.Optional[str] = None,
         base_url: T.Optional[str] = None,
-        file_class: T.Optional[T.Type[MinioStorageFile]] = None,
+        file_class: T.Optional[type[MinioStorageFile]] = None,
         auto_create_bucket: T.Optional[bool] = None,
         presign_urls: T.Optional[bool] = None,
         auto_create_policy: T.Optional[bool] = None,
@@ -495,7 +495,7 @@ class MinioStaticStorage(MinioStorage):
         minio_client: T.Optional[minio.Minio] = None,
         bucket_name: T.Optional[str] = None,
         base_url: T.Optional[str] = None,
-        file_class: T.Optional[T.Type[MinioStorageFile]] = None,
+        file_class: T.Optional[type[MinioStorageFile]] = None,
         auto_create_bucket: T.Optional[bool] = None,
         presign_urls: T.Optional[bool] = None,
         auto_create_policy: T.Optional[bool] = None,

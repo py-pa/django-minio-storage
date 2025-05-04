@@ -18,11 +18,11 @@ class Policy(enum.Enum):
     @T.overload
     def bucket(
         self, bucket_name: str, *, json_encode: T.Literal[False]
-    ) -> T.Dict[str, T.Any]: ...
+    ) -> dict[str, T.Any]: ...
 
     def bucket(
         self, bucket_name: str, *, json_encode: bool = True
-    ) -> T.Union[str, T.Dict[str, T.Any]]:
+    ) -> T.Union[str, dict[str, T.Any]]:
         policies = {
             Policy.get: _get,
             Policy.read: _read,
@@ -36,11 +36,11 @@ class Policy(enum.Enum):
         return pol
 
 
-def _none(bucket_name: str) -> T.Dict[str, T.Any]:
+def _none(bucket_name: str) -> dict[str, T.Any]:
     return {"Version": "2012-10-17", "Statement": []}
 
 
-def _get(bucket_name: str) -> T.Dict[str, T.Any]:
+def _get(bucket_name: str) -> dict[str, T.Any]:
     return {
         "Version": "2012-10-17",
         "Statement": [
@@ -54,7 +54,7 @@ def _get(bucket_name: str) -> T.Dict[str, T.Any]:
     }
 
 
-def _read(bucket_name: str) -> T.Dict[str, T.Any]:
+def _read(bucket_name: str) -> dict[str, T.Any]:
     return {
         "Version": "2012-10-17",
         "Statement": [
@@ -80,7 +80,7 @@ def _read(bucket_name: str) -> T.Dict[str, T.Any]:
     }
 
 
-def _write(bucket_name: str) -> T.Dict[str, T.Any]:
+def _write(bucket_name: str) -> dict[str, T.Any]:
     return {
         "Version": "2012-10-17",
         "Statement": [
@@ -111,7 +111,7 @@ def _write(bucket_name: str) -> T.Dict[str, T.Any]:
     }
 
 
-def _read_write(bucket_name: str) -> T.Dict[str, T.Any]:
+def _read_write(bucket_name: str) -> dict[str, T.Any]:
     return {
         "Version": "2012-10-17",
         "Statement": [

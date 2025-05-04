@@ -13,6 +13,6 @@
   "reportUnboundVariable": "error",
   "reportOptionalMemberAccess": "error",
   "reportOptionalIterable": "error",
-  "pythonVersion": "3.8",
+  "pythonVersion": "3.9",
   "pythonPlatform": "Linux"
 }

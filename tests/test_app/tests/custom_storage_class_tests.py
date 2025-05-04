@@ -91,9 +91,10 @@ class CustomStorageTests(BaseTestMixin, TestCase):
             # use the with statement to ensure that both the input stream and output
             # files are closed after the copying is done.
             #
-            with open(filename, "wb") as out_file, storage.open(
-                storage_filename
-            ) as storage_file:
+            with (
+                open(filename, "wb") as out_file,
+                storage.open(storage_filename) as storage_file,
+            ):
                 # Copy the stream from the http stream to the out_file
                 #
                 assert storage_file.file
