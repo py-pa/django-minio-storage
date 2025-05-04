@@ -35,21 +35,16 @@ Homepage = "https://github.com/py-pa/django-minio-storage"
 Repository = "https://github.com/py-pa/django-minio-storage"
 Documentation = "https://django-minio-storage.readthedocs.io/"
 
-[tool.black]
-target_version = ['py38']
-
 [tool.setuptools_scm]
 write_to =  "minio_storage/version.py"
 write_to_template = '__version__ = "{version}"'
 tag_regex =  "^v(?P<prefix>v)?(?P<version>[^\\+]+)(?P<suffix>.*)?$"
 
-[tool.isort]
-profile = "black"
-skip = [".tox", "migrations", "node_modules", ".git", ".eggs"]
-
 [tool.ruff]
-target-version = 'py38'
+target-version = "py38"
 line-length = 88
+
+[tool.ruff.lint]
 select = [
     "B",
     "C4",
@@ -71,13 +66,3 @@ select = [
     "W",
 ]
 ignore = ["E203"]
-exclude = [
-    "docs",
-    "migrations",
-    ".git",
-    ".ropeproject",
-    ".cache",
-    ".tox",
-    ".eggs",
-    "minio_storage/version.py",
-]

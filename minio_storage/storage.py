@@ -306,12 +306,12 @@ class MinioStorage(Storage):
     @T.overload
     def url(
         self, name: None, *, max_age: T.Optional[datetime.timedelta] = ...
-    ) -> T.NoReturn:
-        ...
+    ) -> T.NoReturn: ...
 
     @T.overload
-    def url(self, name: str, *, max_age: T.Optional[datetime.timedelta] = ...) -> str:
-        ...
+    def url(
+        self, name: str, *, max_age: T.Optional[datetime.timedelta] = ...
+    ) -> str: ...
 
     def url(
         self, name: T.Optional[str], *, max_age: T.Optional[datetime.timedelta] = None
@@ -336,10 +336,9 @@ class MinioStorage(Storage):
             if self.base_url is not None:
                 url = f"{strip_end(self.base_url)}/{quote(strip_beg(name))}"
             else:
-                url = "{}/{}/{}".format(
-                    strip_end(self.endpoint_url),
-                    self.bucket_name,
-                    quote(strip_beg(name)),
+                url = (
+                    f"{strip_end(self.endpoint_url)}/{self.bucket_name}/"
+                    f"{quote(strip_beg(name))}"
                 )
         if url:
             return url

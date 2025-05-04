@@ -11,14 +11,14 @@ class Policy(enum.Enum):
     read_write = "READ_WRITE"
 
     @T.overload
-    def bucket(self, bucket_name: str, *, json_encode: T.Literal[True] = ...) -> str:
-        ...
+    def bucket(
+        self, bucket_name: str, *, json_encode: T.Literal[True] = ...
+    ) -> str: ...
 
     @T.overload
     def bucket(
         self, bucket_name: str, *, json_encode: T.Literal[False]
-    ) -> T.Dict[str, T.Any]:
-        ...
+    ) -> T.Dict[str, T.Any]: ...
 
     def bucket(
         self, bucket_name: str, *, json_encode: bool = True
