@@ -37,7 +37,7 @@ class NonSeekableMixin:
 
 class MinioStorageFile(File):
     def __init__(self, name: str, mode: str, storage: "MinioStorage", **kwargs):
-        self._storage: "MinioStorage" = storage
+        self._storage: MinioStorage = storage
         self.name: str = name  # type: ignore[override]
         self._mode: str = mode
         self._file = None
