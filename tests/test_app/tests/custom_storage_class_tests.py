@@ -21,7 +21,7 @@ from .utils import bucket_name as create_test_bucket_name
 @deconstructible
 class PrivateStorage(MinioStorage):
     """The PrivateStorage MinioStorage subclass can be used directly, as a storage in
-    settings.DEFAULT_FILE_STORAGE or after instantiated used individually on any django
+    settings.STORAGES or after instantiated used individually on any django
     FileField:
 
     from django.db import models
