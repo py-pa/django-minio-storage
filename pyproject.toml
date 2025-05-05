@@ -66,3 +66,10 @@ select = [
     "W",
 ]
 ignore = ["E203"]
+
+[tool.pytest.ini_options]
+pythonpath = [".", "tests"]
+addopts = ["--tb=short"]
+python_files = ["tests.py", "test_*.py", "*_tests.py"]
+django_find_project = false
+DJANGO_SETTINGS_MODULE = "django_minio_storage_tests.settings"

@@ -14,24 +14,24 @@ jobs:
         python-version: ['3.9', '3.10', '3.11', '3.12', '3.13']
 
     env:
-      AWS_ACCESS_KEY_ID: minioadmin
-      AWS_SECRET_ACCESS_KEY: minioadmin
       MINIO_STORAGE_ENDPOINT: 127.0.0.1:9000
       MINIO_STORAGE_ACCESS_KEY: minioadmin
       MINIO_STORAGE_SECRET_KEY: minioadmin
 
     services:
       minio:
-        image: fclairamb/minio-github-actions
+        # This image does not require any command arguments (which GitHub Actions don't support)
+        image: bitnami/minio:latest
+        env:
+          MINIO_ROOT_USER: minioadmin
+          MINIO_ROOT_PASSWORD: minioadmin
         ports:
           - 9000:9000
 
     steps:
-    - uses: actions/checkout@v3
-      with:
-        fetch-depth: 0
+    - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
