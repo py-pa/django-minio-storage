@@ -2,6 +2,6 @@ requests
 freezegun
 
 # PyTest for running the tests.
-pytest==7.3.1
-pytest-django==4.5.2
-pytest-cov==4.0.0
+pytest==8.3.5
+pytest-django==4.11.1
+pytest-cov==6.1.1

@@ -1,10 +1,10 @@
-version: "2"
 services:
-    minio:
-        image: "minio/minio"
-        command: server /export
-        environment:
-            MINIO_ACCESS_KEY: weak_access_key
-            MINIO_SECRET_KEY: weak_secret_key
-        ports:
-            - "9153:9000"
+  minio:
+    image: minio/minio:latest
+    tty: true
+    command: ["server", "/export"]
+    environment:
+      MINIO_ROOT_USER: weak_access_key
+      MINIO_ROOT_PASSWORD: weak_secret_key
+    ports:
+      - 9153:9000

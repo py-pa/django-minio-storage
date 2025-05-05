@@ -82,7 +82,6 @@ class UploadTests(BaseTestMixin, TestCase):
         metadata_attrs = {
             "Accept-Ranges",
             "Content-Length",
-            "Content-Security-Policy",
             "Content-Type",
             "ETag",
             "Last-Modified",
@@ -93,7 +92,7 @@ class UploadTests(BaseTestMixin, TestCase):
             "Date",
         }
         assert res.metadata is not None
-        self.assertTrue(metadata_attrs.issubset(res.metadata.keys()))
+        assert metadata_attrs <= set(res.metadata.keys())
 
 
 @override_settings(
