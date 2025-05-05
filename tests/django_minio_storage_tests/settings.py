@@ -30,8 +30,8 @@ DEBUG = True
 ALLOWED_HOSTS = []
 
 
-DEFAULT_STORAGE = "minio_storage.storage.MinioMediaStorage"
-STATICFILES_STORAGE = "minio_storage.storage.MinioStaticStorage"
+DEFAULT_STORAGE = "minio_storage.MinioMediaStorage"
+STATICFILES_STORAGE = "minio_storage.MinioStaticStorage"
 
 MINIO_STORAGE_ENDPOINT = os.getenv("MINIO_STORAGE_ENDPOINT", "minio:9000")
 MINIO_STORAGE_ACCESS_KEY = os.environ["MINIO_STORAGE_ACCESS_KEY"]

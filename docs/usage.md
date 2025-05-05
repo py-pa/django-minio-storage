@@ -7,8 +7,8 @@ pip install django-minio-storage
 Add `minio_storage` to `INSTALLED_APPS` in your project settings.
 
 The last step is setting `DEFAULT_FILE_STORAGE` to
-`"minio_storage.storage.MinioMediaStorage"`, and `STATICFILES_STORAGE` to
-`"minio_storage.storage.MinioStaticStorage"`.
+`"minio_storage.MinioMediaStorage"`, and `STATICFILES_STORAGE` to
+`"minio_storage.MinioStaticStorage"`.
 
 ## Django settings Configuration
 
@@ -110,8 +110,8 @@ The following settings are available:
 STATIC_URL = '/static/'
 STATIC_ROOT = './static_files/'
 
-DEFAULT_FILE_STORAGE = "minio_storage.storage.MinioMediaStorage"
-STATICFILES_STORAGE = "minio_storage.storage.MinioStaticStorage"
+DEFAULT_FILE_STORAGE = "minio_storage.MinioMediaStorage"
+STATICFILES_STORAGE = "minio_storage.MinioStaticStorage"
 MINIO_STORAGE_ENDPOINT = 'minio:9000'
 MINIO_STORAGE_ACCESS_KEY = 'KBP6WXGPS387090EZMG8'
 MINIO_STORAGE_SECRET_KEY = 'DRjFXylyfMqn2zilAr33xORhaYz5r9e8r37XPz3A'
