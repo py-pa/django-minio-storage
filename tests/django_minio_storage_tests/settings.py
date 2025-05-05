@@ -29,9 +29,14 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-
-DEFAULT_STORAGE = "minio_storage.storage.MinioMediaStorage"
-STATICFILES_STORAGE = "minio_storage.storage.MinioStaticStorage"
+STORAGES = {
+    "default": {
+        "BACKEND": "minio_storage.storage.MinioMediaStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "minio_storage.storage.MinioStaticStorage",
+    },
+}
 
 MINIO_STORAGE_ENDPOINT = os.getenv("MINIO_STORAGE_ENDPOINT", "minio:9000")
 MINIO_STORAGE_ACCESS_KEY = os.environ["MINIO_STORAGE_ACCESS_KEY"]
@@ -129,8 +134,6 @@ LANGUAGE_CODE = "en-us"
 TIME_ZONE = "UTC"
 
 USE_I18N = True
-
-USE_L10N = True
 
 USE_TZ = True
 

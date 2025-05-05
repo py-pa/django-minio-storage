@@ -6,9 +6,9 @@ pip install django-minio-storage
 
 Add `minio_storage` to `INSTALLED_APPS` in your project settings.
 
-The last step is setting `DEFAULT_FILE_STORAGE` to
-`"minio_storage.storage.MinioMediaStorage"`, and `STATICFILES_STORAGE` to
-`"minio_storage.storage.MinioStaticStorage"`.
+The last step is setting `STORAGES['default']['BACKEND']` to
+`'minio_storage.storage.MinioMediaStorage'`, and `STORAGES['staticfiles']['BACKEND']` to
+`'minio_storage.storage.MinioStaticStorage'`.
 
 ## Django settings Configuration
 
@@ -18,7 +18,7 @@ The following settings are available:
   `minio.example.org:9000` (note that there is no scheme)).
 
 - `MINIO_STORAGE_ACCESS_KEY` and `MINIO_STORAGE_SECRET_KEY` (mandatory)
-  
+
 - `MINIO_STORAGE_REGION`: Allows you to specify the region. By setting this
   configuration option, an additional HTTP request to Minio for region checking
   can be prevented, resulting in improved performance and reduced latency for
@@ -34,18 +34,18 @@ The following settings are available:
 - `MINIO_STORAGE_AUTO_CREATE_MEDIA_BUCKET`: whether to create the bucket if it
   does not already exist (default: `False`)
 
-- `MINIO_STORAGE_ASSUME_MEDIA_BUCKET_EXISTS`: whether to ignore media bucket 
-  creation and policy.  
+- `MINIO_STORAGE_ASSUME_MEDIA_BUCKET_EXISTS`: whether to ignore media bucket
+  creation and policy.
   (default: `False`)
 
 - `MINIO_STORAGE_AUTO_CREATE_MEDIA_POLICY`: sets the buckets public policy
   right after it's been created by `MINIO_STORAGE_AUTO_CREATE_MEDIA_BUCKET`.
   Valid values are: `GET_ONLY`, `READ_ONLY`, `WRITE_ONLY`, `READ_WRITE` and
   `NONE`. (default: `GET_ONLY`)
-  
+
 - `MINIO_STORAGE_MEDIA_OBJECT_METADATA`: set default additional metadata for
   every object persisted during save operations. The value is a dict with
-  string keys and values, example: `{"Cache-Control": "max-age=1000"}`.
+  string keys and values, example: `{'Cache-Control': 'max-age=1000'}`.
   (default: `None`)
 
 - `MINIO_STORAGE_STATIC_BUCKET_NAME`: the bucket that will act as `STATIC`
@@ -55,18 +55,18 @@ The following settings are available:
   does not already exist (default: `False`)
 
 
-- `MINIO_STORAGE_ASSUME_STATIC_BUCKET_EXISTS`: whether to ignore the static bucket 
-  creation and policy.  
+- `MINIO_STORAGE_ASSUME_STATIC_BUCKET_EXISTS`: whether to ignore the static bucket
+  creation and policy.
   (default: `False`)
 
 - `MINIO_STORAGE_AUTO_CREATE_STATIC_POLICY`: sets the buckets public policy
   right after it's been created by `MINIO_STORAGE_AUTO_CREATE_STATIC_BUCKET`.
   Valid values are: `GET_ONLY`, `READ_ONLY`, `WRITE_ONLY`, `READ_WRITE` and
   `NONE`. (default: `GET_ONLY`)
-  
+
 - `MINIO_STORAGE_STATIC_OBJECT_METADATA`: set default additional metadata for
   every object persisted during save operations. The value is a dict with
-  string keys and values, example: `{"Cache-Control": "max-age=1000"}`.
+  string keys and values, example: `{'Cache-Control': 'max-age=1000'}`.
   (default: `None`)
 
 - `MINIO_STORAGE_MEDIA_URL`: the base URL for generating urls to objects from
@@ -110,13 +110,19 @@ The following settings are available:
 STATIC_URL = '/static/'
 STATIC_ROOT = './static_files/'
 
-DEFAULT_FILE_STORAGE = "minio_storage.storage.MinioMediaStorage"
-STATICFILES_STORAGE = "minio_storage.storage.MinioStaticStorage"
+STORAGES = {
+    'default': {
+        'BACKEND': 'minio_storage.storage.MinioMediaStorage',
+    },
+    'staticfiles': {
+        'BACKEND': 'minio_storage.storage.MinioStaticStorage',
+    },
+}
 MINIO_STORAGE_ENDPOINT = 'minio:9000'
 MINIO_STORAGE_ACCESS_KEY = 'KBP6WXGPS387090EZMG8'
 MINIO_STORAGE_SECRET_KEY = 'DRjFXylyfMqn2zilAr33xORhaYz5r9e8r37XPz3A'
 MINIO_STORAGE_USE_HTTPS = False
-MINIO_STORAGE_MEDIA_OBJECT_METADATA = {"Cache-Control": "max-age=1000"}
+MINIO_STORAGE_MEDIA_OBJECT_METADATA = {'Cache-Control': 'max-age=1000'}
 MINIO_STORAGE_MEDIA_BUCKET_NAME = 'local-media'
 MINIO_STORAGE_MEDIA_BACKUP_BUCKET = 'Recycle Bin'
 MINIO_STORAGE_MEDIA_BACKUP_FORMAT = '%c/'
