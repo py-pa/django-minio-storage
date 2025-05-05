@@ -4,6 +4,7 @@ import datetime
 import mimetypes
 import posixpath
 import typing as T
+import warnings
 from collections.abc import Mapping
 from logging import getLogger
 from urllib.parse import quote, urlsplit, urlunsplit
@@ -360,19 +361,19 @@ class MinioStorage(Storage):
     def endpoint_url(self):
         return self.client._base_url._url.geturl()
 
-    def accessed_time(self, name: str) -> datetime.datetime:
+    def get_accessed_time(self, name: str) -> T.NoReturn:
         """
         Not available via the S3 API
         """
-        return self.modified_time(name)
+        raise NotImplementedError("Accessed time is not supported")
 
-    def created_time(self, name: str) -> datetime.datetime:
+    def get_created_time(self, name: str) -> T.NoReturn:
         """
         Not available via the S3 API
         """
-        return self.modified_time(name)
+        raise NotImplementedError("Created time is not supported")
 
-    def modified_time(self, name: str) -> datetime.datetime:
+    def get_modified_time(self, name: str) -> datetime.datetime:
         try:
             info: Object = self.client.stat_object(
                 bucket_name=self.bucket_name, object_name=name
@@ -384,6 +385,30 @@ class MinioStorage(Storage):
         if info.last_modified is None:
             raise OSError(f"Could not access modification time for file {name}")
         return info.last_modified
+
+    def accessed_time(self, name: str) -> datetime.datetime:
+        warnings.warn(
+            "accessed_time is deprecated, use get_modified_time instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.get_modified_time(name)
+
+    def created_time(self, name: str) -> datetime.datetime:
+        warnings.warn(
+            "created_time is deprecated, use get_modified_time instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.get_modified_time(name)
+
+    def modified_time(self, name: str) -> datetime.datetime:
+        warnings.warn(
+            "modified_time is deprecated, use get_modified_time instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.get_modified_time(name)
 
 
 _NoValue = object()
