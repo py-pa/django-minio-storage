@@ -31,10 +31,10 @@ ALLOWED_HOSTS = []
 
 STORAGES = {
     "default": {
-        "BACKEND": "minio_storage.storage.MinioMediaStorage",
+        "BACKEND": "minio_storage.MinioMediaStorage",
     },
     "staticfiles": {
-        "BACKEND": "minio_storage.storage.MinioStaticStorage",
+        "BACKEND": "minio_storage.MinioStaticStorage",
     },
 }
 

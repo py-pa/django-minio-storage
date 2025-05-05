@@ -7,8 +7,8 @@ pip install django-minio-storage
 Add `minio_storage` to `INSTALLED_APPS` in your project settings.
 
 The last step is setting `STORAGES['default']['BACKEND']` to
-`'minio_storage.storage.MinioMediaStorage'`, and `STORAGES['staticfiles']['BACKEND']` to
-`'minio_storage.storage.MinioStaticStorage'`.
+`'minio_storage.MinioMediaStorage'`, and `STORAGES['staticfiles']['BACKEND']` to
+`'minio_storage.MinioStaticStorage'`.
 
 ## Django settings Configuration
 
@@ -112,10 +112,10 @@ STATIC_ROOT = './static_files/'
 
 STORAGES = {
     'default': {
-        'BACKEND': 'minio_storage.storage.MinioMediaStorage',
+        'BACKEND': 'minio_storage.MinioMediaStorage',
     },
     'staticfiles': {
-        'BACKEND': 'minio_storage.storage.MinioStaticStorage',
+        'BACKEND': 'minio_storage.MinioStaticStorage',
     },
 }
 MINIO_STORAGE_ENDPOINT = 'minio:9000'
