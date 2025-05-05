@@ -28,7 +28,7 @@ class Command(BaseCommand):
         group.add_argument(
             "--class",
             type=str,
-            default="minio_storage.storage.MinioMediaStorage",
+            default="minio_storage.MinioMediaStorage",
             help="Storage class to modify "
             "(media/static are short names for default classes)",
         )
@@ -124,9 +124,9 @@ class Command(BaseCommand):
     def storage(self, options):
         class_name: str = options["class"]
         if class_name == "media":
-            class_name = "minio_storage.storage.MinioMediaStorage"
+            class_name = "minio_storage.MinioMediaStorage"
         elif class_name == "static":
-            class_name = "minio_storage.storage.MinioStaticStorage"
+            class_name = "minio_storage.MinioStaticStorage"
 
         try:
             storage_class = import_string(class_name)
