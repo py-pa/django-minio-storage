@@ -348,19 +348,19 @@ class MinioStorage(Storage):
     def endpoint_url(self):
         return self.client._base_url._url.geturl()
 
-    def accessed_time(self, name: str) -> datetime.datetime:
+    def get_accessed_time(self, name: str) -> T.NoReturn:
         """
         Not available via the S3 API
         """
-        return self.modified_time(name)
+        raise NotImplementedError("Accessed time is not supported")
 
-    def created_time(self, name: str) -> datetime.datetime:
+    def get_created_time(self, name: str) -> T.NoReturn:
         """
         Not available via the S3 API
         """
-        return self.modified_time(name)
+        raise NotImplementedError("Created time is not supported")
 
-    def modified_time(self, name: str) -> datetime.datetime:
+    def get_modified_time(self, name: str) -> datetime.datetime:
         try:
             info: Object = self.client.stat_object(self.bucket_name, name)
         except merr.InvalidResponseError as error:
