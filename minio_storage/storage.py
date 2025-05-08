@@ -117,6 +117,7 @@ class MinioStorage(Storage):
             # request), so don't just use client._region
             region=client._get_region(bucket_name),
             http_client=client._http,
+            cert_check=get_setting("MINIO_STORAGE_CERT_CHECK",True)
         )
 
         return base_url_client
@@ -390,6 +391,7 @@ def create_minio_client_from_settings(*, minio_kwargs=None):
         "access_key": get_setting("MINIO_STORAGE_ACCESS_KEY"),
         "secret_key": get_setting("MINIO_STORAGE_SECRET_KEY"),
         "secure": get_setting("MINIO_STORAGE_USE_HTTPS", True),
+        "cert_check": get_setting("MINIO_STORAGE_CERT_CHECK",True),
     }
     region = get_setting("MINIO_STORAGE_REGION", None)
     if region:
