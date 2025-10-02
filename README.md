@@ -17,3 +17,6 @@ project uses the minio python client instead. Inspiration has been drawn from
 See
 [http://django-minio-storage.readthedocs.io/en/latest/](http://django-minio-storage.readthedocs.io/en/latest/) for
 documentation and usage guides.
+
+
+TEST
