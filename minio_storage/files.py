@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import tempfile
 import typing as T
 from logging import getLogger
@@ -36,7 +38,7 @@ class NonSeekableMixin:
 
 
 class MinioStorageFile(File):
-    def __init__(self, name: str, mode: str, storage: "MinioStorage", **kwargs):
+    def __init__(self, name: str, mode: str, storage: MinioStorage, **kwargs):
         self._storage: MinioStorage = storage
         self.name: str = name  # type: ignore[override]
         self._mode: str = mode
@@ -67,8 +69,8 @@ class ReadOnlyMinioObjectFile(MinioStorageFile, ReadOnlyMixin, NonSeekableMixin)
         self,
         name: str,
         mode: str,
-        storage: "MinioStorage",
-        max_memory_size: T.Optional[int] = None,
+        storage: MinioStorage,
+        max_memory_size: int | None = None,
         **kwargs,
     ):
         if mode.find("w") > -1:
@@ -121,8 +123,8 @@ class ReadOnlySpooledTemporaryFile(MinioStorageFile, ReadOnlyMixin):
         self,
         name: str,
         mode: str,
-        storage: "MinioStorage",
-        max_memory_size: T.Optional[int] = None,
+        storage: MinioStorage,
+        max_memory_size: int | None = None,
         **kwargs,
     ):
         if mode.find("w") > -1:

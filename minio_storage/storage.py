@@ -1,8 +1,10 @@
+from __future__ import annotations
+
 import datetime
 import mimetypes
 import posixpath
 import typing as T
-from collections.abc import Sequence
+from collections.abc import Sequence, Mapping
 from logging import getLogger
 from urllib.parse import quote, urlsplit, urlunsplit
 
@@ -22,7 +24,7 @@ from minio_storage.policy import Policy
 
 logger = getLogger("minio_storage")
 
-ObjectMetadataType = T.Mapping[str, T.Union[str, Sequence[str]]]
+ObjectMetadataType: T.TypeAlias = Mapping[str, str | Sequence[str]]
 
 
 @deconstructible
@@ -41,15 +43,15 @@ class MinioStorage(Storage):
         minio_client: minio.Minio,
         bucket_name: str,
         *,
-        base_url: T.Optional[str] = None,
-        file_class: T.Optional[type[MinioStorageFile]] = None,
+        base_url: str | None = None,
+        file_class: type[MinioStorageFile] | None = None,
         auto_create_bucket: bool = False,
         presign_urls: bool = False,
         auto_create_policy: bool = False,
-        policy_type: T.Optional[Policy] = None,
-        object_metadata: T.Optional[ObjectMetadataType] = None,
-        backup_format: T.Optional[str] = None,
-        backup_bucket: T.Optional[str] = None,
+        policy_type: Policy | None = None,
+        object_metadata: ObjectMetadataType | None = None,
+        backup_format: str | None = None,
+        backup_bucket: str | None = None,
         assume_bucket_exists: bool = False,
         **kwargs,
     ):
@@ -284,8 +286,8 @@ class MinioStorage(Storage):
         return info.size
 
     def _presigned_url(
-        self, name: str, max_age: T.Optional[datetime.timedelta] = None
-    ) -> T.Optional[str]:
+        self, name: str, max_age: datetime.timedelta | None = None
+    ) -> str | None:
         kwargs = {}
         if max_age is not None:
             kwargs["expires"] = max_age
@@ -324,16 +326,14 @@ class MinioStorage(Storage):
     # Django allows "name" to be None, but types should indicate that this is disallowed
     @T.overload
     def url(
-        self, name: None, *, max_age: T.Optional[datetime.timedelta] = ...
+        self, name: None, *, max_age: datetime.timedelta | None = ...
     ) -> T.NoReturn: ...
 
     @T.overload
-    def url(
-        self, name: str, *, max_age: T.Optional[datetime.timedelta] = ...
-    ) -> str: ...
+    def url(self, name: str, *, max_age: datetime.timedelta | None = ...) -> str: ...
 
     def url(
-        self, name: T.Optional[str], *, max_age: T.Optional[datetime.timedelta] = None
+        self, name: str | None, *, max_age: datetime.timedelta | None = None
     ) -> str:
         if name is None:
             raise ValueError("name may not be None")
@@ -426,18 +426,18 @@ class MinioMediaStorage(MinioStorage):
     def __init__(  # noqa: C901
         self,
         *,
-        minio_client: T.Optional[minio.Minio] = None,
-        bucket_name: T.Optional[str] = None,
-        base_url: T.Optional[str] = None,
-        file_class: T.Optional[type[MinioStorageFile]] = None,
-        auto_create_bucket: T.Optional[bool] = None,
-        presign_urls: T.Optional[bool] = None,
-        auto_create_policy: T.Optional[bool] = None,
-        policy_type: T.Optional[Policy] = None,
-        object_metadata: T.Optional[ObjectMetadataType] = None,
-        backup_format: T.Optional[str] = None,
-        backup_bucket: T.Optional[str] = None,
-        assume_bucket_exists: T.Optional[bool] = None,
+        minio_client: minio.Minio | None = None,
+        bucket_name: str | None = None,
+        base_url: str | None = None,
+        file_class: type[MinioStorageFile] | None = None,
+        auto_create_bucket: bool | None = None,
+        presign_urls: bool | None = None,
+        auto_create_policy: bool | None = None,
+        policy_type: Policy | None = None,
+        object_metadata: ObjectMetadataType | None = None,
+        backup_format: str | None = None,
+        backup_bucket: str | None = None,
+        assume_bucket_exists: bool | None = None,
     ):
         if minio_client is None:
             minio_client = create_minio_client_from_settings()
@@ -504,16 +504,16 @@ class MinioStaticStorage(MinioStorage):
     def __init__(
         self,
         *,
-        minio_client: T.Optional[minio.Minio] = None,
-        bucket_name: T.Optional[str] = None,
-        base_url: T.Optional[str] = None,
-        file_class: T.Optional[type[MinioStorageFile]] = None,
-        auto_create_bucket: T.Optional[bool] = None,
-        presign_urls: T.Optional[bool] = None,
-        auto_create_policy: T.Optional[bool] = None,
-        policy_type: T.Optional[Policy] = None,
-        object_metadata: T.Optional[ObjectMetadataType] = None,
-        assume_bucket_exists: T.Optional[bool] = None,
+        minio_client: minio.Minio | None = None,
+        bucket_name: str | None = None,
+        base_url: str | None = None,
+        file_class: type[MinioStorageFile] | None = None,
+        auto_create_bucket: bool | None = None,
+        presign_urls: bool | None = None,
+        auto_create_policy: bool | None = None,
+        policy_type: Policy | None = None,
+        object_metadata: ObjectMetadataType | None = None,
+        assume_bucket_exists: bool | None = None,
     ):
         if minio_client is None:
             minio_client = create_minio_client_from_settings()
