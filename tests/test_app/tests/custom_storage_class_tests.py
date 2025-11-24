@@ -43,10 +43,10 @@ class PrivateStorage(MinioStorage):
 
     def __init__(self, bucket_name=None):
         # we can create the minio client ourselves or use
-        # create_minio_client_from_settings convinience function while providing it with
+        # create_minio_client_from_settings convenience function while providing it with
         # extra args.
         #
-        client = create_minio_client_from_settings(minio_kwargs={"region": "us-east-1"})
+        client = create_minio_client_from_settings(region="us-east-1")
 
         # or use our own Django setting
         #
@@ -128,4 +128,4 @@ class CustomStorageTests(BaseTestMixin, TestCase):
         #
         # use the minio client directly to also remove bucket
         #
-        storage.client.remove_bucket(storage.bucket_name)
+        storage.client.remove_bucket(bucket_name=storage.bucket_name)

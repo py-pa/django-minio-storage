@@ -85,7 +85,7 @@ class ReadOnlyMinioObjectFile(MinioStorageFile, ReadOnlyMixin, NonSeekableMixin)
         if self._file is None:
             try:
                 obj = self._storage.client.get_object(
-                    self._storage.bucket_name, self.name
+                    bucket_name=self._storage.bucket_name, object_name=self.name
                 )
                 self._file = obj
                 return self._file
@@ -139,7 +139,7 @@ class ReadOnlySpooledTemporaryFile(MinioStorageFile, ReadOnlyMixin):
             obj = None
             try:
                 obj = self._storage.client.get_object(
-                    self._storage.bucket_name, self.name
+                    bucket_name=self._storage.bucket_name, object_name=self.name
                 )
                 self._file = tempfile.SpooledTemporaryFile(
                     max_size=self.max_memory_size
