@@ -87,18 +87,19 @@ class MinioStorage(Storage):
     def _init_check(self):
         if not self.assume_bucket_exists:
             if self.auto_create_bucket and not self.client.bucket_exists(
-                self.bucket_name
+                bucket_name=self.bucket_name
             ):
-                self.client.make_bucket(self.bucket_name)
+                self.client.make_bucket(bucket_name=self.bucket_name)
                 if self.auto_create_policy:
                     policy_type = self.policy_type
                     if policy_type is None:
                         policy_type = Policy.get
                     self.client.set_bucket_policy(
-                        self.bucket_name, policy_type.bucket(self.bucket_name)
+                        bucket_name=self.bucket_name,
+                        policy=policy_type.bucket(self.bucket_name),
                     )
 
-            elif not self.client.bucket_exists(self.bucket_name):
+            elif not self.client.bucket_exists(bucket_name=self.bucket_name):
                 raise OSError(f"The bucket {self.bucket_name} does not exist")
 
     @staticmethod
@@ -110,12 +111,12 @@ class MinioStorage(Storage):
 
         # Clone from the normal client, but with base_url as the endpoint
         base_url_client = minio.Minio(
-            base_url_parts.netloc,
+            endpoint=base_url_parts.netloc,
             credentials=client._provider,
             secure=base_url_parts.scheme == "https",
             # The bucket region may be auto-detected by client (via an HTTP
             # request), so don't just use client._region
-            region=client._get_region(bucket_name),
+            region=client._get_region(bucket_name=bucket_name),
             http_client=client._http,
         )
 
@@ -155,11 +156,11 @@ class MinioStorage(Storage):
                 content.seek(0)
             content_size, content_type, sane_name = self._examine_file(name, content)
             self.client.put_object(
-                self.bucket_name,
-                sane_name,
-                content,
-                content_size,
-                content_type,
+                bucket_name=self.bucket_name,
+                object_name=sane_name,
+                data=content,
+                length=content_size,
+                content_type=content_type,
                 # Minio is annotated to expect a Dict, rather than a Mapping; we
                 # annotate this type as Mapping, since only Mapping is covariant, which
                 # is more friendly to users.
@@ -172,7 +173,9 @@ class MinioStorage(Storage):
     def delete(self, name: str) -> None:
         if self.backup_format and self.backup_bucket:
             try:
-                obj = self.client.get_object(self.bucket_name, name)
+                obj = self.client.get_object(
+                    bucket_name=self.bucket_name, object_name=name
+                )
             except merr.InvalidResponseError as error:
                 raise minio_error(
                     f"Could not obtain file {name} to make a copy of it",
@@ -190,12 +193,12 @@ class MinioStorage(Storage):
             target_name = f"{timezone.now().strftime(self.backup_format)}{name}"
             try:
                 self.client.put_object(
-                    self.backup_bucket,
-                    target_name,
+                    bucket_name=self.backup_bucket,
+                    object_name=target_name,
                     # This is expected to be a BinaryIO, but the actual
                     # BaseHTTPResponse "obj" still provides ".read() -> bytes".
-                    obj,  # type: ignore[arg-type]
-                    content_length,
+                    data=obj,  # type: ignore[arg-type]
+                    length=content_length,
                 )
             except merr.InvalidResponseError as error:
                 raise minio_error(
@@ -204,13 +207,15 @@ class MinioStorage(Storage):
                 ) from error
 
         try:
-            self.client.remove_object(self.bucket_name, name)
+            self.client.remove_object(bucket_name=self.bucket_name, object_name=name)
         except merr.InvalidResponseError as error:
             raise minio_error(f"Could not remove file {name}", error) from error
 
     def exists(self, name: str) -> bool:
         try:
-            self.client.stat_object(self.bucket_name, self._sanitize_path(name))
+            self.client.stat_object(
+                bucket_name=self.bucket_name, object_name=self._sanitize_path(name)
+            )
             return True
         except merr.InvalidResponseError as error:
             # TODO - deprecate
@@ -242,7 +247,9 @@ class MinioStorage(Storage):
         dirs: list[str] = []
         files: list[str] = []
         try:
-            objects = self.client.list_objects(self.bucket_name, prefix=path)
+            objects = self.client.list_objects(
+                bucket_name=self.bucket_name, prefix=path
+            )
             for o in objects:
                 assert o.object_name is not None
                 p = posixpath.relpath(o.object_name, path)
@@ -258,7 +265,9 @@ class MinioStorage(Storage):
 
     def size(self, name: str) -> int:
         try:
-            info: Object = self.client.stat_object(self.bucket_name, name)
+            info: Object = self.client.stat_object(
+                bucket_name=self.bucket_name, object_name=name
+            )
         except merr.InvalidResponseError as error:
             raise minio_error(
                 f"Could not access file size for {name}", error
@@ -274,7 +283,9 @@ class MinioStorage(Storage):
             kwargs["expires"] = max_age
 
         client = self.client if self.base_url is None else self.base_url_client
-        url = client.presigned_get_object(self.bucket_name, name, **kwargs)
+        url = client.presigned_get_object(
+            bucket_name=self.bucket_name, object_name=name, **kwargs
+        )
 
         if self.base_url is not None:
             url_parts = urlsplit(url)
@@ -362,7 +373,9 @@ class MinioStorage(Storage):
 
     def modified_time(self, name: str) -> datetime.datetime:
         try:
-            info: Object = self.client.stat_object(self.bucket_name, name)
+            info: Object = self.client.stat_object(
+                bucket_name=self.bucket_name, object_name=name
+            )
         except merr.InvalidResponseError as error:
             raise minio_error(
                 f"Could not access modification time for file {name}", error
@@ -384,29 +397,27 @@ def get_setting(name: str, default=_NoValue) -> T.Any:
         return result
 
 
-def create_minio_client_from_settings(*, minio_kwargs=None):
-    endpoint = get_setting("MINIO_STORAGE_ENDPOINT")
-    kwargs = {
+def create_minio_client_from_settings(
+    *, minio_kwargs: T.Optional[T.Mapping[str, T.Any]] = None
+) -> minio.Minio:
+    minio_args: dict[str, T.Any] = {
+        "endpoint": get_setting("MINIO_STORAGE_ENDPOINT"),
         "access_key": get_setting("MINIO_STORAGE_ACCESS_KEY"),
         "secret_key": get_setting("MINIO_STORAGE_SECRET_KEY"),
         "secure": get_setting("MINIO_STORAGE_USE_HTTPS", True),
     }
     region = get_setting("MINIO_STORAGE_REGION", None)
     if region:
-        kwargs["region"] = region
+        minio_args["region"] = region
 
     if minio_kwargs:
-        kwargs.update(minio_kwargs)
+        minio_args.update(minio_kwargs)
 
     # Making this client deconstructible allows it to be passed directly as
     # an argument to MinioStorage, since Django needs to be able to
     # deconstruct all Storage constructor arguments for Storages referenced in
     # migrations (e.g. when using a custom storage on a FileField).
-    client = deconstructible(minio.Minio)(
-        endpoint,
-        **kwargs,
-    )
-    return client
+    return deconstructible(minio.Minio)(**minio_args)
 
 
 @deconstructible

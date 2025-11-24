@@ -78,7 +78,7 @@ class BucketPolicyTests(BaseTestMixin, TestCase):
     def test_auto_create_no_policy(self):
         ms = MinioMediaStorage()
         with self.assertRaises(minio.error.S3Error):
-            ms.client.get_bucket_policy(ms.bucket_name)
+            ms.client.get_bucket_policy(bucket_name=ms.bucket_name)
 
     @override_settings(
         MINIO_STORAGE_AUTO_CREATE_MEDIA_POLICY=True,
@@ -89,7 +89,7 @@ class BucketPolicyTests(BaseTestMixin, TestCase):
         self.maxDiff = 50000
         self.assertPolicyEqual(
             Policy.get.bucket(ms.bucket_name, json_encode=False),
-            json.loads(ms.client.get_bucket_policy(ms.bucket_name)),
+            json.loads(ms.client.get_bucket_policy(bucket_name=ms.bucket_name)),
         )
         fn = ms.save("somefile", ContentFile(b"test"))
         self.assertEqual(ms.open(fn).read(), b"test")
@@ -108,7 +108,7 @@ class BucketPolicyTests(BaseTestMixin, TestCase):
         self.maxDiff = 50000
         self.assertPolicyEqual(
             Policy.get.bucket(ms.bucket_name, json_encode=False),
-            json.loads(ms.client.get_bucket_policy(ms.bucket_name)),
+            json.loads(ms.client.get_bucket_policy(bucket_name=ms.bucket_name)),
         )
         fn = ms.save("somefile", ContentFile(b"test"))
         self.assertEqual(ms.open(fn).read(), b"test")
@@ -126,7 +126,7 @@ class BucketPolicyTests(BaseTestMixin, TestCase):
         self.maxDiff = 50000
         self.assertPolicyEqual(
             Policy.write.bucket(ms.bucket_name, json_encode=False),
-            json.loads(ms.client.get_bucket_policy(ms.bucket_name)),
+            json.loads(ms.client.get_bucket_policy(bucket_name=ms.bucket_name)),
         )
         fn = ms.save("somefile", ContentFile(b"test"))
         self.assertEqual(ms.open(fn).read(), b"test")
@@ -144,7 +144,7 @@ class BucketPolicyTests(BaseTestMixin, TestCase):
         self.maxDiff = 50000
         self.assertPolicyEqual(
             Policy.read_write.bucket(ms.bucket_name, json_encode=False),
-            json.loads(ms.client.get_bucket_policy(ms.bucket_name)),
+            json.loads(ms.client.get_bucket_policy(bucket_name=ms.bucket_name)),
         )
 
     @override_settings(
