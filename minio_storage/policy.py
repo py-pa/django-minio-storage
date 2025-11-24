@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import enum
 import json
 import typing as T
@@ -22,7 +24,7 @@ class Policy(enum.Enum):
 
     def bucket(
         self, bucket_name: str, *, json_encode: bool = True
-    ) -> T.Union[str, dict[str, T.Any]]:
+    ) -> str | dict[str, T.Any]:
         policies = {
             Policy.get: _get,
             Policy.read: _read,
