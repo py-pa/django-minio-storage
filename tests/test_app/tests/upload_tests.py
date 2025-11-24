@@ -77,7 +77,7 @@ class UploadTests(BaseTestMixin, TestCase):
     def test_metadata(self):
         ivan = self.media_storage.save("pelican.txt", ContentFile(b"Ivan le Pelican"))
         res = self.media_storage.client.stat_object(
-            self.media_storage.bucket_name, ivan
+            bucket_name=self.media_storage.bucket_name, object_name=ivan
         )
         metadata_attrs = {
             "Accept-Ranges",
@@ -102,7 +102,7 @@ class TestDefaultObjectMetadata(BaseTestMixin, TestCase):
     def test_default_metadata(self):
         ivan = self.media_storage.save("pelican.txt", ContentFile(b"Ivan le Pelican"))
         res = self.media_storage.client.stat_object(
-            self.media_storage.bucket_name, ivan
+            bucket_name=self.media_storage.bucket_name, object_name=ivan
         )
 
         assert res.metadata is not None

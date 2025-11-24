@@ -6,7 +6,7 @@ license-files = ["LICENSE", "LICENSE-APACHE"]
 requires-python = ">=3.9"
 dependencies = [
   "django>=4.2",
-  "minio>=7.1.16,<7.2.19",
+  "minio>=7.2.19",
 ]
 classifiers=[
   "Development Status :: 4 - Beta",
