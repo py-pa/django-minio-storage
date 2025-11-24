@@ -45,24 +45,22 @@ class RetrieveTestsWithRestrictedBucket(BaseTestMixin, TestCase):
         with self.assertRaises(S3Error):
             self.media_storage.size(test_file)
 
-    def test_modified_time(self):
+    def test_get_modified_time(self):
         self.assertIsInstance(
-            self.media_storage.modified_time(self.new_file), datetime.datetime
+            self.media_storage.get_modified_time(self.new_file), datetime.datetime
         )
 
-    def test_accessed_time(self):
-        self.assertIsInstance(
-            self.media_storage.accessed_time(self.new_file), datetime.datetime
-        )
+    def test_get_accessed_time(self):
+        with self.assertRaises(NotImplementedError):
+            self.media_storage.get_accessed_time(self.new_file)
 
-    def test_created_time(self):
-        self.assertIsInstance(
-            self.media_storage.created_time(self.new_file), datetime.datetime
-        )
+    def test_get_created_time(self):
+        with self.assertRaises(NotImplementedError):
+            self.media_storage.get_created_time(self.new_file)
 
     def test_modified_time_of_non_existent_raises_exception(self):
         with self.assertRaises(S3Error):
-            self.media_storage.modified_time("nonexistent.jpg")
+            self.media_storage.get_modified_time("nonexistent.jpg")
 
     def _listdir_root(self, root):
         self.media_storage.save("dir1/file2.txt", ContentFile(b"meh"))
