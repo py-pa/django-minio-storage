@@ -104,6 +104,9 @@ The following settings are available:
 - `MINIO_STORAGE_STATIC_USE_PRESIGNED`: Determines if the static file URLs
   should be pre-signed (default: `False`) By default set to False.
 
+- `MINIO_STORAGE_CERT_CHECK`:  Ignore SSL certificate verification and avoid SSL VerificationError when using self-generated SSL certificates.  (default: `True`) By default set to True.
+
+
 ## Short Example
 
 ```py
