@@ -44,19 +44,19 @@ class MinioStorageFile(File):
         self._mode: str = mode
         self._file = None
 
-    def read(self, *args, **kwargs):
+    def read(self, *args, **kwargs):  # type: ignore[override]
         if "b" in self._mode:
             return super().read(*args, **kwargs)
         else:
             return super().read(*args, **kwargs).decode()
 
-    def readline(self, *args, **kwargs):
+    def readline(self, *args, **kwargs):  # type: ignore[override]
         if "b" in self._mode:
             return super().readline(*args, **kwargs)
         else:
             return super().readline(*args, **kwargs).decode()
 
-    def readlines(self, *args, **kwargs):
+    def readlines(self, *args, **kwargs):  # type: ignore[override]
         return list(self)
 
 

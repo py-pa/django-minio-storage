@@ -13,7 +13,7 @@ The project source code and issue tracking is hosted at
 
 # Compatibility
 
-CI is currently executed on Python 3.10+ and Django 4.2+.
+CI is currently executed on Python 3.12+ and Django 5.2+.
 
 The goal is to have a thoroughly tested, small code base that delegates as much
 as possible to the minio client.

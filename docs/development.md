@@ -27,5 +27,5 @@ Or just run tests for some of them
 # list all environment
 tox -l
 # run one or more of them
-tox -e py35-django110,py35-django111
+tox -e py314-django52-minioknown,py314-django52-minio
 ```
