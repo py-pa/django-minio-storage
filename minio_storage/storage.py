@@ -24,7 +24,7 @@ from minio_storage.policy import Policy
 
 logger = getLogger("minio_storage")
 
-ObjectMetadataType: T.TypeAlias = Mapping[str, str | list[str] | tuple[str]]
+type ObjectMetadataType = Mapping[str, str | list[str] | tuple[str]]
 
 
 @deconstructible
